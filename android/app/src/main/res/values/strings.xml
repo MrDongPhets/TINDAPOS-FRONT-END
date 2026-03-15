@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KitaPOS</string>
+    <string name="title_activity_main">KitaPOS</string>
+    <string name="package_name">com.kitapos.app</string>
+    <string name="custom_url_scheme">com.kitapos.app</string>
+</resources>
