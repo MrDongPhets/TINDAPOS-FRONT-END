@@ -203,7 +203,7 @@ export default function POSPage() {
     }
   }
 
-  const handlePayment = async (paymentMethod, customerInfo) => {
+  const handlePayment = async (paymentMethod, customerInfo, selectedCustomer?, newCustomer?) => {
     if (cart.length === 0) {
       toast({ title: "Empty Cart", description: "Please add items to cart first", variant: "destructive" })
       return
@@ -215,6 +215,21 @@ export default function POSPage() {
     try {
       setLoading(true)
       const totals = calculateTotals()
+
+      // For credit/utang: resolve customer_id
+      let customer_id = selectedCustomer?.id || null
+      if (paymentMethod === 'credit' && newCustomer?.name) {
+        const createRes = await fetch(`${API_CONFIG.BASE_URL}/client/utang/customers`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ name: newCustomer.name, phone: newCustomer.phone })
+        })
+        if (createRes.ok) {
+          const createData = await createRes.json()
+          customer_id = createData.customer?.id
+        }
+      }
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/pos/sales`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -226,9 +241,10 @@ export default function POSPage() {
           discount_amount: totals.discount_amount,
           discount_type: discount.type,
           total_amount: totals.total,
-          customer_name: customerInfo.name,
-          customer_phone: customerInfo.phone,
-          notes: customerInfo.notes
+          customer_name: selectedCustomer?.name || newCustomer?.name || customerInfo.name,
+          customer_phone: selectedCustomer?.phone || newCustomer?.phone || customerInfo.phone,
+          customer_id,
+          notes: customerInfo?.notes || null
         })
       })
       if (!response.ok) {

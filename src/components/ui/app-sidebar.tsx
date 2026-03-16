@@ -3,15 +3,15 @@
 
 import { useState } from "react"
 import { 
-  Building2, 
-  Users, 
-  CreditCard, 
-  Crown, 
-  Activity, 
-  Server, 
-  Settings, 
-  ShoppingCart, 
-  Package, 
+  Building2,
+  Users,
+  CreditCard,
+  Crown,
+  Activity,
+  Server,
+  Settings,
+  ShoppingCart,
+  Package,
   BarChart3,
   LogOut,
   Layers,
@@ -23,7 +23,8 @@ import {
   DollarSign,
   PackageSearch,
   ArrowRightLeft,
-  Beaker 
+  Beaker,
+  HandCoins
 } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
@@ -152,6 +153,11 @@ const clientNavigation = [
     name: "Staff",
     href: "/client/staff",
     icon: Users,
+  },
+  {
+    name: "Utang Tracker",
+    href: "/client/utang",
+    icon: HandCoins,
   },
   {
     name: "Reports",
