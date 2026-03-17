@@ -47,6 +47,7 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState(null)
+  const [networkDown, setNetworkDown] = useState(false)
   
   // Use the simple store hook
   const {
@@ -165,7 +166,7 @@ export default function ClientDashboard() {
   }
 
   const fetchDashboardData = async () => {
-    // Skip API calls when offline — show empty dashboard instead of error
+    // Skip API calls when offline
     if (!navigator.onLine) {
       setLoading(false)
       setRefreshing(false)
@@ -202,8 +203,15 @@ export default function ClientDashboard() {
 
     } catch (error) {
       logger.error('Failed to fetch dashboard data:', error)
-      // Don't show error when offline — just show empty state
-      if (navigator.onLine) setError(error.message)
+      const isNetworkError = !navigator.onLine ||
+        error.message === 'Failed to fetch' ||
+        error.message?.includes('NetworkError') ||
+        error.message?.includes('network')
+      if (isNetworkError) {
+        setNetworkDown(true)
+      } else {
+        setError(error.message)
+      }
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -246,7 +254,7 @@ export default function ClientDashboard() {
     )
   }
 
-  if (!navigator.onLine) {
+  if (!navigator.onLine || networkDown) {
     return (
       <SidebarProvider>
         <AppSidebar />
@@ -256,12 +264,18 @@ export default function ClientDashboard() {
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <WifiOff className="h-8 w-8 text-orange-500" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">You're offline</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">No connection</h2>
               <p className="text-gray-500 mb-6">Dashboard stats are not available offline.<br />You can still use the POS to make sales.</p>
-              <Button onClick={() => navigate('/client/pos')} className="bg-[#E8302A] hover:bg-[#B91C1C]">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Go to POS
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <Button onClick={() => navigate('/client/pos')} className="bg-[#E8302A] hover:bg-[#B91C1C]">
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Go to POS
+                </Button>
+                <Button variant="outline" onClick={() => { setNetworkDown(false); handleRefresh() }}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry
+                </Button>
+              </div>
             </div>
           </div>
         </SidebarInset>

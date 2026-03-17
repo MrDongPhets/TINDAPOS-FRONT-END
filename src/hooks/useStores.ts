@@ -23,6 +23,20 @@ export function useStores() {
     }
   }, [stores])
 
+  const loadFromCache = async () => {
+    const companyData = localStorage.getItem('companyData')
+    const companyId = companyData ? JSON.parse(companyData).id : ''
+    const cachedStores = companyId
+      ? await localDb.stores.where('company_id').equals(companyId).toArray()
+      : await localDb.stores.toArray()
+    if (cachedStores.length > 0) {
+      setStores(cachedStores)
+      const savedStoreId = localStorage.getItem('selectedStoreId')
+      const toSelect = cachedStores.find(s => s.id === savedStoreId) || cachedStores[0]
+      if (toSelect && viewMode === 'single') selectStore(toSelect)
+    }
+  }
+
   // Fetch stores from API - FIXED ENDPOINT
   const fetchStores = async () => {
     try {
@@ -30,22 +44,11 @@ export function useStores() {
 
       // ── OFFLINE: load from IndexedDB cache ──────────────────────
       if (!navigator.onLine) {
-        const companyData = localStorage.getItem('companyData')
-        const companyId = companyData ? JSON.parse(companyData).id : ''
-        const cachedStores = companyId
-          ? await localDb.stores.where('company_id').equals(companyId).toArray()
-          : await localDb.stores.toArray()
-
-        if (cachedStores.length > 0) {
-          setStores(cachedStores)
-          const savedStoreId = localStorage.getItem('selectedStoreId')
-          const toSelect = cachedStores.find(s => s.id === savedStoreId) || cachedStores[0]
-          if (toSelect && viewMode === 'single') selectStore(toSelect)
-        }
+        await loadFromCache()
         return
       }
 
-      // ── ONLINE: fetch from API ────────────────────────────────────
+      // ── ONLINE: fetch from API (fallback to cache on network error) ─
       const token = localStorage.getItem('authToken')
       const response = await fetch(`${API_CONFIG.BASE_URL}/client/stores`, {
         headers: {
@@ -75,16 +78,18 @@ export function useStores() {
         }
       } else {
         console.error('Failed to fetch stores:', response.status, response.statusText)
+        await loadFromCache()
       }
     } catch (error) {
       console.error('Failed to fetch stores:', error)
+      await loadFromCache()
     } finally {
       setLoading(false)
     }
   }
 
   // Request a new store
-  const requestStore = async (storeData) => {
+  const requestStore = async (storeData: Record<string, unknown>) => {
     try {
       const token = localStorage.getItem('authToken')
       
@@ -113,7 +118,7 @@ export function useStores() {
   }
 
   // Select a store
-  const selectStore = (store) => {
+  const selectStore = (store: { id: string; name: string }) => {
     setSelectedStore(store)
     setViewMode('single')
     localStorage.setItem('selectedStoreId', store?.id || '')
@@ -133,7 +138,7 @@ export function useStores() {
   }
 
   // Get API URL with store filter
-  const getApiUrl = (endpoint) => {
+  const getApiUrl = (endpoint: string) => {
     const url = new URL(`${API_CONFIG.BASE_URL}${endpoint}`)
     if (viewMode === 'single' && selectedStore) {
       url.searchParams.append('store_id', selectedStore.id)
