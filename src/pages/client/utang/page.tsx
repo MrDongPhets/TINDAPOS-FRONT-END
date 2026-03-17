@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -220,18 +219,22 @@ export default function UtangPage() {
         <div className="p-4 space-y-4">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-3">
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Total Outstanding</p>
-                <p className="text-xl font-bold text-red-600">{formatCurrency(totalOutstanding)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Customers with Debt</p>
-                <p className="text-xl font-bold">{customersWithDebt}</p>
-              </CardContent>
-            </Card>
+            <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-3.5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-white/80 truncate">Total Outstanding</p>
+                <p className="text-xl font-bold text-white mt-0.5 truncate leading-tight">{formatCurrency(totalOutstanding)}</p>
+                <p className="text-[11px] text-white/70 mt-0.5 truncate">Unpaid balance</p>
+              </div>
+              <HandCoins className="h-8 w-8 text-white/30 shrink-0" />
+            </div>
+            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-3.5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-white/80 truncate">Customers with Debt</p>
+                <p className="text-xl font-bold text-white mt-0.5 truncate leading-tight">{customersWithDebt}</p>
+                <p className="text-[11px] text-white/70 mt-0.5 truncate">of {customers.length} total</p>
+              </div>
+              <User className="h-8 w-8 text-white/30 shrink-0" />
+            </div>
           </div>
 
           {/* Search */}

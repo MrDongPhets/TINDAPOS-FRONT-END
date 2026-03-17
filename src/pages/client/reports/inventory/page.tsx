@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Package,
   TrendingUp,
@@ -28,10 +29,12 @@ import {
   AlertCircle,
   DollarSign,
   BarChart3,
-  Package2
+  Package2,
+  Store
 } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import API_CONFIG from '@/config/api';
+import { useStores } from '@/hooks/useStores';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -47,6 +50,9 @@ export default function InventoryReportsPage() {
   const [turnoverRates, setTurnoverRates] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
 
+  const { stores, selectedStore, selectStore, fetchStores } = useStores();
+  useEffect(() => { fetchStores(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -55,7 +61,7 @@ export default function InventoryReportsPage() {
     if (user) {
       fetchAllReports();
     }
-  }, [user]);
+  }, [user, selectedStore]);
 
   const checkAuth = async () => {
     try {
@@ -142,17 +148,19 @@ export default function InventoryReportsPage() {
       setError(null);
       const token = localStorage.getItem('authToken');
 
+      const storeParam = selectedStore ? `?store_id=${selectedStore.id}` : '';
+      const storeParamAmp = selectedStore ? `&store_id=${selectedStore.id}` : '';
       const [summaryRes, valueRes, turnoverRes, lowStockRes] = await Promise.all([
-        fetch(`${API_CONFIG.BASE_URL}/reports/inventory`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/inventory${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/inventory/stock-value`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/inventory/stock-value${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/inventory/turnover?days=30`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/inventory/turnover?days=30${storeParamAmp}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/inventory/low-stock`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/inventory/low-stock${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -222,7 +230,7 @@ export default function InventoryReportsPage() {
         </header>
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Error Alert */}
           {error && (
             <Alert variant="destructive">
@@ -237,70 +245,67 @@ export default function InventoryReportsPage() {
               <h1 className="text-3xl font-bold tracking-tight">Inventory Reports</h1>
               <p className="text-muted-foreground mt-1">Stock levels, valuations, and movement analysis</p>
             </div>
-            <Button variant="outline" onClick={exportCSV}>
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {stores.length > 1 && (
+                <Select value={selectedStore?.id ?? 'all'} onValueChange={(v) => {
+                  if (v === 'all') selectStore(null as any)
+                  else { const s = stores.find(x => x.id === v); if (s) selectStore(s) }
+                }}>
+                  <SelectTrigger className="w-[150px]">
+                    <Store className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="All Stores" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Stores</SelectItem>
+                    {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+              <Button variant="outline" onClick={exportCSV}>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
           </div>
 
           {/* Summary Cards */}
           {inventorySummary && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-                  <Package className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {inventorySummary.total_products}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {inventorySummary.total_stock_quantity} units in stock
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Total Products</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{inventorySummary.total_products}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{inventorySummary.total_stock_quantity} units in stock</p>
+                </div>
+                <Package className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Stock Value</CardTitle>
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{inventorySummary.total_stock_value?.toLocaleString() || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Retail: ₱{inventorySummary.total_retail_value?.toLocaleString() || 0}
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Stock Value</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{inventorySummary.total_stock_value?.toLocaleString() || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Retail: ₱{inventorySummary.total_retail_value?.toLocaleString() || 0}</p>
+                </div>
+                <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {inventorySummary.low_stock_count}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Need reordering soon</p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Low Stock</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{inventorySummary.low_stock_count}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Need reordering soon</p>
+                </div>
+                <AlertTriangle className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-                  <Package2 className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">
-                    {inventorySummary.out_of_stock_count}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Immediate action required</p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Out of Stock</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{inventorySummary.out_of_stock_count}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Immediate action required</p>
+                </div>
+                <Package2 className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
             </div>
           )}
 

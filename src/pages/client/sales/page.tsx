@@ -88,6 +88,7 @@ export default function SalesPage() {
   useEffect(() => {
     if (user) {
       fetchSales();
+      fetchSummary();
     }
   }, [user, page, selectedStore, selectedStaff, selectedPayment, dateRange]);
 
@@ -174,8 +175,6 @@ export default function SalesPage() {
         setStaff(staffData.staff || []);
       }
 
-      // Fetch summary
-      fetchSummary();
     } catch (err) {
       console.error('Error fetching initial data:', err);
     }
@@ -260,12 +259,24 @@ export default function SalesPage() {
 
   const getPaymentBadgeColor = (method) => {
     const colors = {
-      cash: 'bg-green-100 text-green-800',
-      card: 'bg-blue-100 text-blue-800',
-      gcash: 'bg-purple-100 text-purple-800',
-      bank: 'bg-orange-100 text-orange-800'
+      cash:   'bg-green-100 text-green-800',
+      card:   'bg-blue-100 text-blue-800',
+      gcash:  'bg-purple-100 text-purple-800',
+      bank:   'bg-orange-100 text-orange-800',
+      credit: 'bg-red-100 text-red-800',
     };
     return colors[method?.toLowerCase()] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getPaymentLabel = (method) => {
+    const labels = {
+      cash:   'CASH',
+      card:   'CARD',
+      gcash:  'GCASH',
+      bank:   'BANK',
+      credit: 'UTANG',
+    };
+    return labels[method?.toLowerCase()] || method?.toUpperCase() || 'N/A';
   };
 
   if (loading && !sales.length) {
@@ -305,7 +316,7 @@ export default function SalesPage() {
         </header>
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Error Alert */}
           {error && (
             <Alert variant="destructive">
@@ -326,64 +337,42 @@ export default function SalesPage() {
 
           {/* Summary Cards - Only show if there's data */}
           {summary && summary.total_transactions > 0 && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {formatCurrency(summary.total_sales)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {summary.total_transactions} transactions
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Total Sales</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{formatCurrency(summary.total_sales)}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{summary.total_transactions} transactions</p>
+                </div>
+                <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Average Sale</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {formatCurrency(summary.average_transaction)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {summary.total_items} items sold
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Average Sale</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{formatCurrency(summary.average_transaction)}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{summary.total_items} items sold</p>
+                </div>
+                <TrendingUp className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-                  <ShoppingCart className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{summary.total_transactions}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Total count
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Transactions</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{summary.total_transactions}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Total count</p>
+                </div>
+                <ShoppingCart className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Discounts</CardTitle>
-                  <Receipt className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {formatCurrency(summary.total_discount)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Given to customers
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Discounts</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{formatCurrency(summary.total_discount)}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Given to customers</p>
+                </div>
+                <Receipt className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
             </div>
           )}
 
@@ -467,6 +456,7 @@ export default function SalesPage() {
                     <SelectItem value="card">Card</SelectItem>
                     <SelectItem value="gcash">GCash</SelectItem>
                     <SelectItem value="bank">Bank Transfer</SelectItem>
+                    <SelectItem value="credit">Utang (Credit)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -543,11 +533,11 @@ export default function SalesPage() {
                           </TableCell>
                           <TableCell>
                             <Badge className={getPaymentBadgeColor(sale.payment_method)}>
-                              {sale.payment_method?.toUpperCase() || 'N/A'}
+                              {getPaymentLabel(sale.payment_method)}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm">
-                            {sale.staff?.name || 'N/A'}
+                            {sale.staff?.name || sale.created_by_user?.name || 'Manager'}
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatCurrency(sale.total_amount)}

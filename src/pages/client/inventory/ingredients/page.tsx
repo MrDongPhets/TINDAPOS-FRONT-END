@@ -336,7 +336,7 @@ export default function IngredientsPage() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">

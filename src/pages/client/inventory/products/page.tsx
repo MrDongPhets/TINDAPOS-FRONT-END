@@ -422,7 +422,7 @@ export default function ProductsPage() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
@@ -437,68 +437,48 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold">{filteredProducts.length}</p>
-                    <p className="text-sm text-gray-600">Total</p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-white/80 truncate">Total</p>
+                <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{filteredProducts.length}</p>
+                <p className="text-[11px] text-white/70 mt-0.5 truncate">All products</p>
+              </div>
+              <Package className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+            </div>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {nonCompositeProducts.filter(p => getStockStatus(p).status === 'in-stock').length}
-                    </p>
-                    <p className="text-sm text-gray-600">In Stock</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-white/80 truncate">In Stock</p>
+                <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">
+                  {nonCompositeProducts.filter(p => getStockStatus(p).status === 'in-stock').length}
+                </p>
+                <p className="text-[11px] text-white/70 mt-0.5 truncate">Well stocked</p>
+              </div>
+              <Package className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+            </div>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {filteredProducts.filter(p => getStockStatus(p).status === 'low-stock').length}
-                    </p>
-                    <p className="text-sm text-gray-600">Low Stock</p>
-                  </div>
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="h-6 w-6 text-orange-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-white/80 truncate">Low Stock</p>
+                <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">
+                  {filteredProducts.filter(p => getStockStatus(p).status === 'low-stock').length}
+                </p>
+                <p className="text-[11px] text-white/70 mt-0.5 truncate">Need reordering</p>
+              </div>
+              <AlertCircle className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+            </div>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {filteredProducts.filter(p => getStockStatus(p).status === 'out-of-stock').length}
-                    </p>
-                    <p className="text-sm text-gray-600">Out of Stock</p>
-                  </div>
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="h-6 w-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-white/80 truncate">Out of Stock</p>
+                <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">
+                  {filteredProducts.filter(p => getStockStatus(p).status === 'out-of-stock').length}
+                </p>
+                <p className="text-[11px] text-white/70 mt-0.5 truncate">Action required</p>
+              </div>
+              <AlertCircle className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+            </div>
           </div>
 
           <Card>

@@ -340,7 +340,7 @@ export default function ClientDashboard() {
         </header>
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Page Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -442,82 +442,46 @@ export default function ClientDashboard() {
           })()}
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Today's Sales</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatCurrency(dashboardData.overview.totalSales)}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {isAllStoresView ? 'All stores combined' : 'This store today'}
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-green-600" />
-                  </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              {
+                label: "Today's Sales",
+                value: formatCurrency(dashboardData.overview.totalSales),
+                sub: isAllStoresView ? 'All stores combined' : 'This store today',
+                icon: DollarSign,
+                gradient: 'from-[#E8302A] to-[#f97316]'
+              },
+              {
+                label: 'Products',
+                value: dashboardData.overview.totalProducts,
+                sub: isAllStoresView ? 'Across all stores' : 'In this store',
+                icon: Package,
+                gradient: 'from-purple-500 to-purple-400'
+              },
+              {
+                label: 'Staff',
+                value: dashboardData.overview.totalStaff,
+                sub: 'Active members',
+                icon: Users,
+                gradient: 'from-blue-500 to-cyan-400'
+              },
+              {
+                label: 'Low Stock',
+                value: dashboardData.overview.lowStockItems,
+                sub: 'Need attention',
+                icon: AlertCircle,
+                gradient: 'from-emerald-500 to-teal-400'
+              },
+            ].map(({ label, value, sub, icon: Icon, gradient }) => (
+              <div key={label} className={`bg-gradient-to-br ${gradient} rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm`}>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">{label}</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{value}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{sub}</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Products</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {dashboardData.overview.totalProducts}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {isAllStoresView ? 'Across all stores' : 'In this store'}
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Staff Members</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {dashboardData.overview.totalStaff}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Active team members
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Users className="h-6 w-6 text-purple-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Low Stock</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {dashboardData.overview.lowStockItems}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Items need attention
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="h-6 w-6 text-orange-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                <Icon className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
+            ))}
           </div>
 
           {/* Store Performance Grid (when viewing all stores) */}

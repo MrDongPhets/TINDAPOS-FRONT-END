@@ -34,10 +34,11 @@ import {
   AlertCircle,
   Percent,
   Receipt,
-  Store
+  Store,
 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import API_CONFIG from '@/config/api';
+import { useStores } from '@/hooks/useStores';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -57,6 +58,9 @@ export default function FinancialReportsPage() {
   const [dateRange, setDateRange] = useState('month');
   const [groupBy, setGroupBy] = useState('category');
 
+  const { stores, selectedStore, selectStore, fetchStores } = useStores();
+  useEffect(() => { fetchStores(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -65,7 +69,7 @@ export default function FinancialReportsPage() {
     if (user) {
       fetchAllReports();
     }
-  }, [user, dateRange, groupBy]);
+  }, [user, dateRange, groupBy, selectedStore]);
 
   const checkAuth = async () => {
     try {
@@ -173,17 +177,18 @@ export default function FinancialReportsPage() {
       const token = localStorage.getItem('authToken');
       const { start_date, end_date } = getDateRange();
 
+      const storeParam = selectedStore ? `&store_id=${selectedStore.id}` : '';
       const [summaryRes, marginsRes, revenueRes, taxRes] = await Promise.all([
-        fetch(`${API_CONFIG.BASE_URL}/reports/financial?start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/financial?start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/financial/profit-margins?group_by=${groupBy}&start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/financial/profit-margins?group_by=${groupBy}&start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/financial/revenue-by-store?start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/financial/revenue-by-store?start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/financial/tax?group_by=monthly&start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/financial/tax?group_by=monthly&start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -253,7 +258,7 @@ export default function FinancialReportsPage() {
         </header>
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Error Alert */}
           {error && (
             <Alert variant="destructive">
@@ -268,7 +273,23 @@ export default function FinancialReportsPage() {
               <h1 className="text-3xl font-bold tracking-tight">Financial Reports</h1>
               <p className="text-muted-foreground mt-1">Revenue, profitability, and tax analytics</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {stores.length > 1 && (
+                <Select value={selectedStore?.id ?? 'all'} onValueChange={(v) => {
+                  if (v === 'all') selectStore(null as any)
+                  else { const s = stores.find(x => x.id === v); if (s) selectStore(s) }
+                }}>
+                  <SelectTrigger className="w-[150px]">
+                    <Store className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="All Stores" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Stores</SelectItem>
+                    {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue />
@@ -290,51 +311,33 @@ export default function FinancialReportsPage() {
 
           {/* Summary Cards */}
           {financialSummary && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{financialSummary.gross_profit?.toLocaleString() || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {financialSummary.gross_margin?.toFixed(1)}% margin
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Total Revenue</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{financialSummary.gross_profit?.toLocaleString() || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{financialSummary.gross_margin?.toFixed(1)}% margin</p>
+                </div>
+                <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-                  <Percent className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{financialSummary.net_profit?.toLocaleString() || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {financialSummary.net_margin?.toFixed(1)}% margin
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Net Profit</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{financialSummary.net_profit?.toLocaleString() || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{financialSummary.net_margin?.toFixed(1)}% margin</p>
+                </div>
+                <Percent className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Tax Collected</CardTitle>
-                  <Receipt className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{financialSummary.total_tax?.toLocaleString() || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    COGS: ₱{financialSummary.total_cogs?.toLocaleString() || 0}
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Tax Collected</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{financialSummary.total_tax?.toLocaleString() || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">COGS: ₱{financialSummary.total_cogs?.toLocaleString() || 0}</p>
+                </div>
+                <Receipt className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
             </div>
           )}
 

@@ -326,14 +326,10 @@ export default function SaleDetailsPage() {
         </header>
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-32 min-w-0 overflow-hidden">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">Sale Details</h1>
                 <p className="text-muted-foreground mt-1 font-mono">
@@ -405,9 +401,9 @@ export default function SaleDetailsPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 min-w-0 w-full">
             {/* Sale Information */}
-            <div className="md:col-span-2 space-y-4">
+            <div className="md:col-span-2 space-y-4 min-w-0 w-full">
               {/* Transaction Details */}
               <Card>
                 <CardHeader>
@@ -447,8 +443,8 @@ export default function SaleDetailsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-md border">
-                    <Table>
+                  <div className="rounded-md border overflow-x-auto w-full">
+                    <Table className="min-w-[420px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Product</TableHead>
@@ -509,16 +505,16 @@ export default function SaleDetailsPage() {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-4">
+            <div className="space-y-4 pb-4 min-w-0 w-full">
               {/* Total Amount */}
               <Card>
                 <CardHeader>
                   <CardTitle>Amount Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatCurrency(sale.subtotal || sale.total_amount)}</span>
+                  <div className="flex justify-between text-sm gap-2">
+                    <span className="text-muted-foreground shrink-0">Subtotal</span>
+                    <span className="text-right">{formatCurrency(sale.subtotal || sale.total_amount)}</span>
                   </div>
                   {sale.discount_amount > 0 && (
                     <div className="flex justify-between text-sm">
@@ -535,9 +531,9 @@ export default function SaleDetailsPage() {
                     </div>
                   )}
                   <Separator />
-                  <div className="flex justify-between">
-                    <span className="font-semibold">Total Amount</span>
-                    <span className="text-2xl font-bold text-green-600">
+                  <div className="flex justify-between gap-2">
+                    <span className="font-semibold shrink-0">Total Amount</span>
+                    <span className="text-2xl font-bold text-green-600 text-right">
                       {formatCurrency(sale.total_amount)}
                     </span>
                   </div>

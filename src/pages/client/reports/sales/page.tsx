@@ -39,6 +39,8 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import API_CONFIG from '@/config/api';
+import { useStores } from '@/hooks/useStores';
+import { Store } from 'lucide-react';
 
 export default function SalesReportsPage() {
   const navigate = useNavigate();
@@ -56,6 +58,9 @@ export default function SalesReportsPage() {
   const [period, setPeriod] = useState('daily');
   const [dateRange, setDateRange] = useState('today');
 
+  const { stores, selectedStore, selectStore, fetchStores } = useStores();
+  useEffect(() => { fetchStores(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -64,7 +69,7 @@ export default function SalesReportsPage() {
     if (user) {
       fetchAllReports();
     }
-  }, [user, period, dateRange]);
+  }, [user, period, dateRange, selectedStore]);
 
   const checkAuth = async () => {
     try {
@@ -184,17 +189,18 @@ export default function SalesReportsPage() {
       const token = localStorage.getItem('authToken');
       const { start_date, end_date } = getDateRange();
 
+      const storeParam = selectedStore ? `&store_id=${selectedStore.id}` : '';
       const [summaryRes, periodRes, topProductsRes, staffRes] = await Promise.all([
-        fetch(`${API_CONFIG.BASE_URL}/reports/sales?start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/sales?start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/sales/period?period=${period}&start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/sales/period?period=${period}&start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/sales/top-products?limit=10&start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/sales/top-products?limit=10&start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch(`${API_CONFIG.BASE_URL}/reports/sales/staff-performance?start_date=${start_date}&end_date=${end_date}`, {
+        fetch(`${API_CONFIG.BASE_URL}/reports/sales/staff-performance?start_date=${start_date}&end_date=${end_date}${storeParam}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -264,7 +270,7 @@ export default function SalesReportsPage() {
         </header>
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Error Alert */}
           {error && (
             <Alert variant="destructive">
@@ -279,7 +285,23 @@ export default function SalesReportsPage() {
               <h1 className="text-3xl font-bold tracking-tight">Sales Reports</h1>
               <p className="text-muted-foreground mt-1">Comprehensive sales analytics and performance metrics</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {stores.length > 1 && (
+                <Select value={selectedStore?.id ?? 'all'} onValueChange={(v) => {
+                  if (v === 'all') selectStore(null as any)
+                  else { const s = stores.find(x => x.id === v); if (s) selectStore(s) }
+                }}>
+                  <SelectTrigger className="w-[150px]">
+                    <Store className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="All Stores" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Stores</SelectItem>
+                    {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-[150px]">
                   <Calendar className="h-4 w-4 mr-2" />
@@ -313,66 +335,46 @@ export default function SalesReportsPage() {
 
           {/* Summary Cards */}
           {salesSummary && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{salesSummary.total_sales?.toLocaleString() || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {salesSummary.total_transactions} transactions
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Total Sales</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{salesSummary.total_sales?.toLocaleString() || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{salesSummary.total_transactions} transactions</p>
+                </div>
+                <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Avg Transaction</CardTitle>
-                  <ShoppingCart className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{salesSummary.average_transaction?.toFixed(2) || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {salesSummary.total_items} items sold
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Avg Transaction</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{salesSummary.average_transaction?.toFixed(2) || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{salesSummary.total_items} items sold</p>
+                </div>
+                <ShoppingCart className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Discount</CardTitle>
-                  <TrendingDown className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{salesSummary.total_discount?.toLocaleString() || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Tax: ₱{salesSummary.total_tax?.toLocaleString() || 0}
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Total Discount</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{salesSummary.total_discount?.toLocaleString() || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Tax: ₱{salesSummary.total_tax?.toLocaleString() || 0}</p>
+                </div>
+                <TrendingDown className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Items/Transaction</CardTitle>
-                  <Package className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {salesSummary.total_transactions > 0 
-                      ? (salesSummary.total_items / salesSummary.total_transactions).toFixed(1) 
+              <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Items/Transaction</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">
+                    {salesSummary.total_transactions > 0
+                      ? (salesSummary.total_items / salesSummary.total_transactions).toFixed(1)
                       : 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Average basket size</p>
-                </CardContent>
-              </Card>
+                  </p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Average basket size</p>
+                </div>
+                <Package className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
             </div>
           )}
 
