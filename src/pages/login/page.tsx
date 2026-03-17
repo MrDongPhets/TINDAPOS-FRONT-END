@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, LogIn, Building2, Wifi, WifiOff, AlertTriangle, User, LogOut, Users, Eye, EyeOff } from "lucide-react"
+import { Loader2, LogIn, Building2, WifiOff, AlertTriangle, User, LogOut, Users, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/components/auth/AuthProvider"
 import API_CONFIG from "@/config/api"
 import { Capacitor } from "@capacitor/core"
@@ -127,26 +127,15 @@ function LoginForm() {
   if (isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        {/* Connection Status */}
-        <div className="fixed top-4 right-4 z-50">
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
-            isOnline 
-              ? 'bg-green-100 text-green-700' 
-              : 'bg-red-100 text-red-700'
-          }`}>
-            {isOnline ? (
-              <>
-                <Wifi className="h-3 w-3" />
-                <span>Connected</span>
-              </>
-            ) : (
-              <>
-                <WifiOff className="h-3 w-3" />
-                <span>Offline</span>
-              </>
-            )}
+        {/* Connection Status — only show when offline */}
+        {!isOnline && (
+          <div className="fixed top-4 right-4 z-50">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-red-100 text-red-700">
+              <WifiOff className="h-3 w-3" />
+              <span>Offline</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Header */}
         <div className="text-center mb-6">
@@ -224,26 +213,15 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      {/* Connection Status */}
-      <div className="fixed top-4 right-4 z-50">
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
-          isOnline 
-            ? 'bg-green-100 text-green-700' 
-            : 'bg-red-100 text-red-700'
-        }`}>
-          {isOnline ? (
-            <>
-              <Wifi className="h-3 w-3" />
-              <span>Connected</span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="h-3 w-3" />
-              <span>Offline</span>
-            </>
-          )}
+      {/* Connection Status — only show when offline */}
+      {!isOnline && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-red-100 text-red-700">
+            <WifiOff className="h-3 w-3" />
+            <span>Offline</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Header */}
       <div className="text-center mb-6">

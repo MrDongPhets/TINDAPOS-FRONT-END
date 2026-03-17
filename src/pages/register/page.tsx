@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, UserPlus, ArrowLeft, Check, X, Zap, Star, ChevronRight } from "lucide-react"
+import { Loader2, UserPlus, ArrowLeft, Check, X, Zap, Star, ChevronRight, Eye, EyeOff } from "lucide-react"
 import API_CONFIG from "@/config/api" // Import API config
 
 const subscriptionPlans = [
@@ -86,6 +86,9 @@ export default function RegisterPage() {
 
   // Selected subscription plan
   const [selectedPlan, setSelectedPlan] = useState('basic')
+
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Password strength validation
   const [passwordStrength, setPasswordStrength] = useState({
@@ -416,12 +419,23 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Password *</label>
-                  <Input
-                    type="password"
-                    placeholder="Create a strong password"
-                    value={userData.password}
-                    onChange={(e) => handleUserInputChange('password', e.target.value)}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a strong password"
+                      value={userData.password}
+                      onChange={(e) => handleUserInputChange('password', e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   
                   {/* Password Strength Indicator */}
                   {userData.password && (
@@ -467,12 +481,23 @@ export default function RegisterPage() {
 
                 <div className="space-y-2 md:col-start-2">
                   <label className="text-sm font-medium">Confirm Password *</label>
-                  <Input
-                    type="password"
-                    placeholder="Re-enter your password"
-                    value={userData.confirmPassword}
-                    onChange={(e) => handleUserInputChange('confirmPassword', e.target.value)}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Re-enter your password"
+                      value={userData.confirmPassword}
+                      onChange={(e) => handleUserInputChange('confirmPassword', e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {userData.confirmPassword && userData.password !== userData.confirmPassword && (
                     <p className="text-xs text-red-500">Passwords do not match</p>
                   )}

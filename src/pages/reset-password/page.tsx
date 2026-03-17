@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, KeyRound, CheckCircle, XCircle } from "lucide-react"
+import { Loader2, KeyRound, CheckCircle, XCircle, Eye, EyeOff } from "lucide-react"
 import API_CONFIG from "@/config/api"
 
 export default function ResetPasswordPage() {
@@ -15,6 +15,8 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -95,25 +97,47 @@ export default function ResetPasswordPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">New Password</label>
-                <Input
-                  type="password"
-                  placeholder="At least 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading || !token}
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="At least 6 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading || !token}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(p => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Confirm Password</label>
-                <Input
-                  type="password"
-                  placeholder="Re-enter your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                  disabled={loading || !token}
-                />
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Re-enter your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                    disabled={loading || !token}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(p => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
               {/* Password match indicator */}
