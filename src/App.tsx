@@ -45,6 +45,9 @@ import SubscriptionExpiredPage from '@/pages/client/subscription-expired/page'
 import SettingsPage from '@/pages/client/settings/page'
 import UtangPage from '@/pages/client/utang/page'
 
+// Billing
+import BillingSuccessPage from '@/pages/billing/success/page'
+
 // Staff POS
 import PosPage from '@/pages/pos/page'
 
@@ -99,6 +102,9 @@ function App() {
         <Route path="/client/subscription-expired" element={<SubscriptionExpiredPage />} />
         <Route path="/client/settings" element={<SettingsPage />} />
         <Route path="/client/utang" element={<UtangPage />} />
+
+        {/* Billing */}
+        <Route path="/billing/success" element={<BillingSuccessPage />} />
 
         {/* Staff POS */}
         <Route path="/pos" element={<PosPage />} />
