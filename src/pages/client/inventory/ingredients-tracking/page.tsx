@@ -48,6 +48,7 @@ import {
 } from "lucide-react"
 import { StockAdjustmentModal } from '@/components/inventory/IngredientActionsModals'
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function IngredientsTrackingPage() {
   const [user, setUser] = useState(null)
@@ -263,25 +264,8 @@ export default function IngredientsTrackingPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <div className="ml-auto px-4 flex items-center gap-2 min-w-0 overflow-hidden">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="search"
-                placeholder="Search ingredients..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={fetchData}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+          <div className="ml-auto px-4">
+            <UserMenuDropdown />
           </div>
         </header>
 
@@ -340,6 +324,18 @@ export default function IngredientsTrackingPage() {
             </div>
           </div>
 
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              type="search"
+              placeholder="Search ingredients..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
           {/* Stock Levels Table */}
           <Card>
             <CardHeader>
@@ -380,8 +376,8 @@ export default function IngredientsTrackingPage() {
                           <TableCell className="hidden md:table-cell font-medium">₱{totalValue}</TableCell>
                           <TableCell>
                             <Badge className={stockStatus.color}>
-                              <StatusIcon className="w-3 h-3 mr-1" />
-                              {stockStatus.text}
+                              <StatusIcon className="w-3 h-3 sm:mr-1" />
+                              <span className="hidden sm:inline">{stockStatus.text}</span>
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
@@ -410,11 +406,11 @@ export default function IngredientsTrackingPage() {
 
           {/* Recent Movements */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle>Recent Ingredient Movements</CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Select value={movementFilter} onValueChange={setMovementFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-32">
                     <SelectValue placeholder="Movement Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -425,9 +421,9 @@ export default function IngredientsTrackingPage() {
                     <SelectItem value="usage">Usage</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-28">
                     <SelectValue placeholder="Period" />
                   </SelectTrigger>
                   <SelectContent>

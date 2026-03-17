@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -255,6 +256,7 @@ export default function FinancialReportsPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
         {/* Main Content */}

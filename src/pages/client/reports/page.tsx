@@ -32,6 +32,7 @@ import {
   Store
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 
 export default function ReportsPage() {
   const navigate = useNavigate();
@@ -190,6 +191,7 @@ export default function ReportsPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
         {/* Main Content */}

@@ -59,6 +59,8 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
+  CheckCircle,
+  XCircle,
   Image as ImageIcon,
   Barcode,
   Store,
@@ -78,6 +80,7 @@ import { ProductRecipeModal } from "@/components/inventory/ProductRecipeModal"
 import { ManufactureProductModal } from "@/components/inventory/ManufactureProductModal"
 import StockAdjustmentModal from "@/components/inventory/StockAdjustmentModal"
 import API_CONFIG from "@/config/api"
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function ProductsPage() {
   const [user, setUser] = useState(null)
@@ -270,11 +273,11 @@ export default function ProductsPage() {
 
   const getStockStatus = (product) => {
     if (product.stock_quantity <= 0) {
-      return { status: 'out-of-stock', color: 'bg-red-100 text-red-800 border-red-200', text: 'Out of Stock' }
+      return { status: 'out-of-stock', color: 'bg-red-100 text-red-800 border-red-200', text: 'Out of Stock', icon: XCircle }
     } else if (product.stock_quantity <= product.min_stock_level) {
-      return { status: 'low-stock', color: 'bg-orange-100 text-orange-800 border-orange-200', text: 'Low Stock' }
+      return { status: 'low-stock', color: 'bg-orange-100 text-orange-800 border-orange-200', text: 'Low Stock', icon: AlertCircle }
     } else {
-      return { status: 'in-stock', color: 'bg-green-100 text-green-800 border-green-200', text: 'In Stock' }
+      return { status: 'in-stock', color: 'bg-green-100 text-green-800 border-green-200', text: 'In Stock', icon: CheckCircle }
     }
   }
 
@@ -416,9 +419,7 @@ export default function ProductsPage() {
               onToggleViewMode={toggleViewMode}
               loading={false}
             />
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing} className="shrink-0">
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
+            <UserMenuDropdown />
           </div>
         </header>
 
@@ -577,7 +578,10 @@ export default function ProductsPage() {
                                 {/* Mobile-only sub-info */}
                                 <div className="sm:hidden mt-0.5 flex items-center gap-1.5">
                                   <span className="text-xs font-semibold text-gray-700">{formatCurrency(product.default_price)}</span>
-                                  <Badge className={`text-xs ${stockStatus.color}`}>{stockStatus.text}</Badge>
+                                  <Badge className={`text-xs ${stockStatus.color}`}>
+                                    <stockStatus.icon className="w-3 h-3 sm:mr-1" />
+                                    <span className="hidden sm:inline">{stockStatus.text}</span>
+                                  </Badge>
                                 </div>
                               </div>
                             </div>
@@ -773,7 +777,8 @@ export default function ProductsPage() {
                             ) : (
                               // Regular product stock status
                               <Badge className={stockStatus.color}>
-                                {stockStatus.text}
+                                <stockStatus.icon className="w-3 h-3 sm:mr-1" />
+                                <span className="hidden sm:inline">{stockStatus.text}</span>
                               </Badge>
                             )}
                           </TableCell>

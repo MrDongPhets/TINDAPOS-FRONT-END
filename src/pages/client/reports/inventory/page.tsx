@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -227,6 +228,7 @@ export default function InventoryReportsPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
         {/* Main Content */}

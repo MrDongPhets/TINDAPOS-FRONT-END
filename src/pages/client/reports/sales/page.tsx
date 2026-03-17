@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
 import { Store } from 'lucide-react';
 
@@ -267,6 +268,7 @@ export default function SalesReportsPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
         {/* Main Content */}

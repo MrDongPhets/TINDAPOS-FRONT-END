@@ -50,6 +50,7 @@ import {
   Receipt
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 
 export default function SalesPage() {
   const navigate = useNavigate();
@@ -313,6 +314,7 @@ export default function SalesPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
         {/* Main Content */}

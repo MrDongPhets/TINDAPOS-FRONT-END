@@ -50,6 +50,7 @@ import {
 } from "lucide-react"
 import StockAdjustmentModal from '@/components/inventory/StockAdjustmentModal'
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function InventoryTrackingPage() {
   const [user, setUser] = useState(null)
@@ -314,25 +315,8 @@ export default function InventoryTrackingPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <div className="ml-auto px-4 flex items-center gap-2 min-w-0 overflow-hidden">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="search"
-                placeholder="Search products..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={fetchData}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+          <div className="ml-auto px-4">
+            <UserMenuDropdown />
           </div>
         </header>
 
@@ -400,6 +384,18 @@ export default function InventoryTrackingPage() {
             </div>
           </div>
 
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              type="search"
+              placeholder="Search products..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
           {/* Stock Levels Table */}
           <Card>
             <CardHeader>
@@ -416,7 +412,7 @@ export default function InventoryTrackingPage() {
                     <TableHead className="hidden lg:table-cell">Min Level</TableHead>
                     <TableHead className="hidden xl:table-cell">Max Level</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -452,18 +448,20 @@ export default function InventoryTrackingPage() {
                         <TableCell className="hidden xl:table-cell">{product.is_composite ? '-' : (product.max_stock_level || 'N/A')}</TableCell>
                         <TableCell>
                           <Badge className={stockStatus.color}>
-                            <StatusIcon className="w-3 h-3 mr-1" />
-                            {stockStatus.text}
+                            <StatusIcon className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">{stockStatus.text}</span>
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell>
                           <Button
                             variant="outline"
                             size="sm"
+                            className="h-8 w-8 p-0"
                             onClick={() => handleStockAdjustment(product)}
                             disabled={product.is_composite}
+                            title="Adjust Stock"
                           >
-                            Adjust
+                            <RotateCcw className="h-3.5 w-3.5" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -476,11 +474,11 @@ export default function InventoryTrackingPage() {
 
           {/* Recent Movements */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle>Recent Stock Movements</CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Select value={itemTypeFilter} onValueChange={setItemTypeFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-32">
                     <SelectValue placeholder="Item Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -491,7 +489,7 @@ export default function InventoryTrackingPage() {
                 </Select>
 
                 <Select value={movementFilter} onValueChange={setMovementFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-32">
                     <SelectValue placeholder="Movement Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -504,9 +502,9 @@ export default function InventoryTrackingPage() {
                     <SelectItem value="manufacturing">Manufacturing</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-28">
                     <SelectValue placeholder="Period" />
                   </SelectTrigger>
                   <SelectContent>

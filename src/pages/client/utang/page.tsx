@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/components/auth/AuthProvider'
 import API_CONFIG from '@/config/api'
+import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 
 const getAuthHeaders = () => ({
   'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -203,17 +204,13 @@ export default function UtangPage() {
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 overflow-hidden">
           <SidebarTrigger className="-ml-1" />
-          <div className="flex flex-1 items-center justify-between overflow-hidden">
+          <div className="flex flex-1 items-center overflow-hidden">
             <div className="min-w-0">
               <h1 className="text-lg font-semibold truncate">Utang Tracker</h1>
               <p className="text-sm text-muted-foreground hidden sm:block">Track customer credit & debt</p>
             </div>
-            <Button onClick={() => setShowAddDialog(true)} className="bg-[#E8302A] hover:bg-[#B91C1C] shrink-0 ml-2">
-              <Plus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Add Customer</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
           </div>
+          <UserMenuDropdown />
         </header>
 
         <div className="p-4 space-y-4">
@@ -237,15 +234,22 @@ export default function UtangPage() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search by name or phone..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9"
-            />
+          {/* Search + Add */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by name or phone..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button onClick={() => setShowAddDialog(true)} className="bg-[#E8302A] hover:bg-[#B91C1C] shrink-0">
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Add Customer</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
           </div>
 
           {/* Customer List */}

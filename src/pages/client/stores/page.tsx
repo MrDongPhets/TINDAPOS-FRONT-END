@@ -18,6 +18,7 @@ import {
 import { Plus, Store, MapPin, Phone, CheckCircle, XCircle, Pause, RefreshCw, AlertCircle } from 'lucide-react'
 import { toast } from "sonner"
 import API_CONFIG from "@/config/api"
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function ClientStores() {
   const navigate = useNavigate()
@@ -139,9 +140,7 @@ export default function ClientStores() {
             </Breadcrumb>
           </div>
           <div className="ml-auto px-4 flex items-center gap-2 min-w-0 overflow-hidden">
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
+            <UserMenuDropdown />
           </div>
         </header>
 

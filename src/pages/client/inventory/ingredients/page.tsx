@@ -52,6 +52,8 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
+  CheckCircle,
+  XCircle,
   Package,
   ArrowUpCircle,
   ArrowDownCircle
@@ -66,6 +68,7 @@ import {
   StockAdjustmentModal
 } from "@/components/inventory/IngredientActionsModals"
 import API_CONFIG from "@/config/api"
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function IngredientsPage() {
   const [user, setUser] = useState(null)
@@ -224,11 +227,11 @@ export default function IngredientsPage() {
 
   const getStockStatus = (ingredient) => {
     if (ingredient.stock_quantity <= 0) {
-      return { status: 'out', color: 'bg-red-100 text-red-800 border-red-200', text: 'Out of Stock' }
+      return { status: 'out', color: 'bg-red-100 text-red-800 border-red-200', text: 'Out of Stock', icon: XCircle }
     } else if (ingredient.stock_quantity <= ingredient.min_stock_level) {
-      return { status: 'low', color: 'bg-orange-100 text-orange-800 border-orange-200', text: 'Low Stock' }
+      return { status: 'low', color: 'bg-orange-100 text-orange-800 border-orange-200', text: 'Low Stock', icon: AlertCircle }
     } else {
-      return { status: 'good', color: 'bg-green-100 text-green-800 border-green-200', text: 'In Stock' }
+      return { status: 'good', color: 'bg-green-100 text-green-800 border-green-200', text: 'In Stock', icon: CheckCircle }
     }
   }
 
@@ -325,14 +328,7 @@ export default function IngredientsPage() {
           </Breadcrumb>
           <div className="ml-auto flex items-center gap-2">
             <SimpleStoreSelector />
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
+            <UserMenuDropdown />
           </div>
         </header>
 
@@ -486,7 +482,8 @@ export default function IngredientsPage() {
                           </TableCell>
                           <TableCell>
                             <Badge className={`${stockStatus.color} border`}>
-                              {stockStatus.text}
+                              <stockStatus.icon className="w-3 h-3 sm:mr-1" />
+                              <span className="hidden sm:inline">{stockStatus.text}</span>
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden xl:table-cell">

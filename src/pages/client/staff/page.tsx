@@ -50,6 +50,7 @@ import {
   Building2
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import PermissionMatrix from '@/components/staff/PermissionMatrix';
 
 export default function StaffPage() {
@@ -323,6 +324,7 @@ export default function StaffPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
         {/* Main Content */}

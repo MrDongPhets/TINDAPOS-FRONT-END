@@ -35,6 +35,7 @@ import {
 import { ArrowRightLeft, Plus, Check, X, Clock, Package, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import API_CONFIG from "@/config/api"
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function InventoryTransferPage() {
   const [user, setUser] = useState(null)
@@ -286,12 +287,13 @@ export default function InventoryTransferPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
         <div className="flex flex-1 flex-col gap-4 p-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-2xl font-semibold flex items-center gap-2">
                 <ArrowRightLeft className="h-6 w-6 text-blue-600 shrink-0" />
                 Inventory Transfer
@@ -300,10 +302,6 @@ export default function InventoryTransferPage() {
             </div>
 
             <div className="flex gap-2 items-start sm:items-end shrink-0">
-              <Button variant="outline" size="sm" onClick={fetchTransfers} disabled={loading}>
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
-
               <Dialog open={showDialog} onOpenChange={setShowDialog}>
                 <DialogTrigger asChild>
                   <Button className="bg-[#E8302A] hover:bg-[#B91C1C]">

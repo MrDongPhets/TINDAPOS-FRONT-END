@@ -18,6 +18,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 import {
   ShoppingCart,
   Package,
@@ -223,6 +224,7 @@ export default function ClientDashboard() {
     fetchDashboardData()
   }
 
+
   // Dashboard title based on view mode
   const getDashboardTitle = () => {
     if (isAllStoresView) {
@@ -327,15 +329,7 @@ export default function ClientDashboard() {
               onToggleViewMode={toggleViewMode}
               loading={false}
             />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="shrink-0"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
+            <UserMenuDropdown />
           </div>
         </header>
 

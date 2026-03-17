@@ -40,6 +40,7 @@ import EditCategoryModal from '@/components/categories/EditCategoryModal'
 import ViewCategoryModal from '@/components/categories/ViewCategoryModal'
 import DeleteCategoryDialog from '@/components/categories/DeleteCategoryDialog'
 import API_CONFIG from '@/config/api';
+import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function CategoriesPage() {
   const [user, setUser] = useState(null)
@@ -203,14 +204,7 @@ export default function CategoriesPage() {
               <Filter className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">{showInactive ? "Hide Inactive" : "Show All"}</span>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchCategories}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+            <UserMenuDropdown />
           </div>
         </header>
 
