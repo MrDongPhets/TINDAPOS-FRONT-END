@@ -362,7 +362,49 @@ export default function POSPage() {
       toast({ title: "Sale Completed", description: `Receipt: ${data.receipt_number}` })
     } catch (error) {
       logger.error('Payment error:', error)
-      toast({ title: "Payment Failed", description: error.message || "Failed to process payment", variant: "destructive" })
+      const isNetworkError = !error.message || error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')
+      if (isNetworkError) {
+        // API unreachable (Android offline detection unreliable) — queue locally
+        try {
+          const companyData = localStorage.getItem('companyData')
+          const companyId = companyData ? JSON.parse(companyData).id : ''
+          const totals = calculateTotals()
+          const salePayload = {
+            store_id: selectedStore.id,
+            items: cart,
+            payment_method: paymentMethod,
+            subtotal: totals.subtotal,
+            discount_amount: totals.discount_amount,
+            discount_type: discount.type,
+            total_amount: totals.total,
+            customer_name: selectedCustomer?.name || newCustomer?.name || customerInfo?.name || null,
+            customer_phone: selectedCustomer?.phone || newCustomer?.phone || customerInfo?.phone || null,
+            customer_id: selectedCustomer?.id || null,
+            notes: customerInfo?.notes || null
+          }
+          await localDb.pending_sales.add({
+            id: generateLocalId(),
+            ...salePayload,
+            company_id: companyId,
+            created_at: Date.now(),
+            sync_status: 'pending',
+            retry_count: 0
+          })
+          setLastSale({ total_amount: totals.total, payment_method: paymentMethod })
+          setLastCartItems([...cart])
+          setShowReceipt(true)
+          setShowPayment(false)
+          setShowMobileCart(false)
+          setCart([])
+          setDiscount({ type: null, value: 0 })
+          toast({ title: "Sale Saved Offline", description: "No connection — will sync when back online." })
+        } catch (queueError) {
+          logger.error('Queue error:', queueError)
+          toast({ title: "Payment Failed", description: "Could not process or save the sale.", variant: "destructive" })
+        }
+      } else {
+        toast({ title: "Payment Failed", description: error.message || "Failed to process payment", variant: "destructive" })
+      }
     } finally {
       setLoading(false)
     }
@@ -396,7 +438,10 @@ export default function POSPage() {
   }
 
   return (
-    <div className={`h-screen flex flex-col bg-gray-50 overflow-hidden ${!isOnline ? 'pt-9' : ''}`}>
+    <div
+      className="h-screen flex flex-col bg-gray-50 overflow-hidden"
+      style={!isOnline ? { paddingTop: 'calc(2.25rem + env(safe-area-inset-top, 0px))' } : undefined}
+    >
       {/* Header */}
       <div className="bg-white border-b px-3 py-2.5 shrink-0">
         <div className="flex items-center gap-2">

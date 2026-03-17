@@ -69,7 +69,7 @@ export default function Cart({
 
       {/* Summary */}
       {items.length > 0 && (
-        <div className="border-t bg-gray-50 p-4 space-y-3">
+        <div className="border-t bg-gray-50 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] space-y-3">
           {/* Subtotal */}
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Subtotal</span>

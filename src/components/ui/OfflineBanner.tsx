@@ -34,7 +34,7 @@ export function OfflineBanner() {
 
   if (showSynced) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-50 bg-green-500 text-white px-4 py-2 flex items-center justify-center gap-2 text-sm font-medium">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-green-500 text-white px-4 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2 flex items-center justify-center gap-2 text-sm font-medium">
         <RefreshCw className="h-4 w-4" />
         Back online — syncing sales...
       </div>
@@ -42,7 +42,7 @@ export function OfflineBanner() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-orange-500 text-white px-4 py-2 flex items-center justify-center gap-2 text-sm font-medium">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-orange-500 text-white px-4 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2 flex items-center justify-center gap-2 text-sm font-medium">
       <WifiOff className="h-4 w-4" />
       <span>Offline mode</span>
       {pendingCount > 0 && (

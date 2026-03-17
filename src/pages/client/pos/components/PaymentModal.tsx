@@ -104,7 +104,11 @@ export default function PaymentModal({ open, onClose, onSubmit, total, loading }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent
+        className="max-w-2xl overflow-y-auto max-h-[90svh] pb-[env(safe-area-inset-bottom,0px)]"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Complete Payment</DialogTitle>
           <DialogDescription>
@@ -151,7 +155,6 @@ export default function PaymentModal({ open, onClose, onSubmit, total, loading }
                 value={cashReceived}
                 onChange={(e) => setCashReceived(e.target.value)}
                 className="mt-2 text-lg font-bold"
-                autoFocus
               />
               {cashReceived && (
                 <div className="mt-3 p-3 bg-white rounded border border-green-300">
