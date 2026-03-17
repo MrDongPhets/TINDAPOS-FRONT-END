@@ -32,7 +32,8 @@ import {
   Check,
   Clock,
   CreditCard,
-  AlertTriangle
+  AlertTriangle,
+  WifiOff
 } from "lucide-react"
 import API_CONFIG from "@/config/api"
 
@@ -164,6 +165,13 @@ export default function ClientDashboard() {
   }
 
   const fetchDashboardData = async () => {
+    // Skip API calls when offline — show empty dashboard instead of error
+    if (!navigator.onLine) {
+      setLoading(false)
+      setRefreshing(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -194,7 +202,8 @@ export default function ClientDashboard() {
 
     } catch (error) {
       logger.error('Failed to fetch dashboard data:', error)
-      setError(error.message)
+      // Don't show error when offline — just show empty state
+      if (navigator.onLine) setError(error.message)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -234,6 +243,29 @@ export default function ClientDashboard() {
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
+    )
+  }
+
+  if (!navigator.onLine) {
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-10">
+            <div className="text-center max-w-md px-4">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <WifiOff className="h-8 w-8 text-orange-500" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">You're offline</h2>
+              <p className="text-gray-500 mb-6">Dashboard stats are not available offline.<br />You can still use the POS to make sales.</p>
+              <Button onClick={() => navigate('/client/pos')} className="bg-[#E8302A] hover:bg-[#B91C1C]">
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Go to POS
+              </Button>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     )
   }
 
