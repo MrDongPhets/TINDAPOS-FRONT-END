@@ -126,14 +126,39 @@ export default function POSPage() {
     if (!selectedStore) return
     try {
       setLoading(true)
+
+      // ── OFFLINE: load from IndexedDB ─────────────────────────────
+      if (!navigator.onLine) {
+        let cached = await localDb.products.where('store_id').equals(selectedStore.id).toArray()
+        if (selectedCategory && selectedCategory !== 'all') {
+          cached = cached.filter(p => p.category_id === selectedCategory)
+        }
+        setProducts(cached)
+        return
+      }
+
+      // ── ONLINE: fetch from API ────────────────────────────────────
       const params = new URLSearchParams({ store_id: selectedStore.id, category_id: selectedCategory })
       const response = await fetch(`${API_CONFIG.BASE_URL}/pos/products/category?${params}`, { headers: getAuthHeaders() })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
-      setProducts(data.products || [])
+      const productList = data.products || []
+      setProducts(productList)
+
+      // Cache for offline use
+      if (productList.length > 0) {
+        const companyData = localStorage.getItem('companyData')
+        const companyId = companyData ? JSON.parse(companyData).id : ''
+        const now = Date.now()
+        await localDb.products.bulkPut(
+          productList.map((p: any) => ({ ...p, company_id: p.company_id || companyId, cached_at: now }))
+        )
+      }
     } catch (error) {
       logger.error('Fetch products error:', error)
-      toast({ title: "Error", description: "Failed to fetch products", variant: "destructive" })
+      if (navigator.onLine) {
+        toast({ title: "Error", description: "Failed to fetch products", variant: "destructive" })
+      }
     } finally {
       setLoading(false)
     }

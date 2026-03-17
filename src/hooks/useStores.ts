@@ -59,6 +59,16 @@ export function useStores() {
         const storeList = data.stores || []
         setStores(storeList)
 
+        // Cache for offline use
+        if (storeList.length > 0) {
+          const companyData = localStorage.getItem('companyData')
+          const companyId = companyData ? JSON.parse(companyData).id : ''
+          const now = Date.now()
+          await localDb.stores.bulkPut(
+            storeList.map((s: any) => ({ ...s, company_id: s.company_id || companyId, cached_at: now }))
+          )
+        }
+
         // Auto-select first store if none selected
         if (!selectedStore && storeList.length > 0 && viewMode === 'single') {
           selectStore(storeList[0])
