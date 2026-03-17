@@ -1,6 +1,7 @@
 // src/hooks/useStores.js - Fixed endpoint URL
 import { useState, useEffect } from 'react'
 import API_CONFIG from '@/config/api'
+import { localDb } from '@/db/localDb'
 
 export function useStores() {
   const [stores, setStores] = useState([])
@@ -26,9 +27,26 @@ export function useStores() {
   const fetchStores = async () => {
     try {
       setLoading(true)
+
+      // ── OFFLINE: load from IndexedDB cache ──────────────────────
+      if (!navigator.onLine) {
+        const companyData = localStorage.getItem('companyData')
+        const companyId = companyData ? JSON.parse(companyData).id : ''
+        const cachedStores = companyId
+          ? await localDb.stores.where('company_id').equals(companyId).toArray()
+          : await localDb.stores.toArray()
+
+        if (cachedStores.length > 0) {
+          setStores(cachedStores)
+          const savedStoreId = localStorage.getItem('selectedStoreId')
+          const toSelect = cachedStores.find(s => s.id === savedStoreId) || cachedStores[0]
+          if (toSelect && viewMode === 'single') selectStore(toSelect)
+        }
+        return
+      }
+
+      // ── ONLINE: fetch from API ────────────────────────────────────
       const token = localStorage.getItem('authToken')
-      
-      // FIXED: Correct endpoint WITHOUT /api prefix
       const response = await fetch(`${API_CONFIG.BASE_URL}/client/stores`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -38,11 +56,12 @@ export function useStores() {
 
       if (response.ok) {
         const data = await response.json()
-        setStores(data.stores || [])
-        
+        const storeList = data.stores || []
+        setStores(storeList)
+
         // Auto-select first store if none selected
-        if (!selectedStore && data.stores?.length > 0 && viewMode === 'single') {
-          selectStore(data.stores[0])
+        if (!selectedStore && storeList.length > 0 && viewMode === 'single') {
+          selectStore(storeList[0])
         }
       } else {
         console.error('Failed to fetch stores:', response.status, response.statusText)
