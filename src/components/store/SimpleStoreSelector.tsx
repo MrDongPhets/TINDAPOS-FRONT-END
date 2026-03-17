@@ -1,18 +1,13 @@
-// src/components/store/SimpleStoreSelector.jsx - No context dependency
-
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import { Store } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { 
-  Building2, 
-  CheckCircle
-} from "lucide-react"
 
 export function SimpleStoreSelector({
   stores = [],
@@ -23,106 +18,50 @@ export function SimpleStoreSelector({
   loading = false,
   className = ""
 }) {
-  if (loading) {
-    return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <Building2 className="h-4 w-4 text-gray-400" />
-        <span className="text-sm text-gray-500">Loading stores...</span>
-      </div>
-    )
+  if (loading || stores.length <= 1) return null
+
+  const label = viewMode === 'all' ? 'All' : (selectedStore?.name?.slice(0, 8) || 'Store')
+
+  const handleSelectAll = () => {
+    if (viewMode !== 'all' && onToggleViewMode) onToggleViewMode()
   }
 
-  if (stores.length <= 1) {
-    return (
-      <div className={`flex items-center gap-2 min-w-0 ${className}`}>
-        <Building2 className="h-4 w-4 text-blue-600 shrink-0" />
-        <span className="font-medium text-gray-900 truncate max-w-[120px] sm:max-w-none">
-          {stores[0]?.name || 'Main Store'}
-        </span>
-        <Badge variant="secondary" className="text-xs hidden sm:inline-flex shrink-0">
-          Single Store
-        </Badge>
-      </div>
-    )
+  const handleSelectStore = (store: any) => {
+    if (viewMode === 'all' && onToggleViewMode) onToggleViewMode()
+    if (onStoreSelect) onStoreSelect(store)
   }
 
-  // Multiple stores - show selector
   return (
-    <div className={`flex items-center gap-2 min-w-0 ${className}`}>
-      <Building2 className="h-4 w-4 text-blue-600 shrink-0" />
-
-      {/* View Mode Toggle */}
-      <div className="flex items-center gap-2 min-w-0">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
-          variant={viewMode === 'all' ? 'default' : 'outline'}
+          variant="outline"
           size="sm"
-          onClick={onToggleViewMode}
-          className="h-8 text-xs shrink-0"
+          className={`h-8 gap-1.5 px-2.5 text-xs font-medium ${className}`}
         >
-          {viewMode === 'all' ? (
-            <>
-              <CheckCircle className="h-3 w-3 sm:mr-1" />
-              <span className="hidden sm:inline">All Stores</span>
-            </>
-          ) : (
-            <>
-              <span className="hidden sm:inline">View All Stores</span>
-              <span className="sm:hidden">All</span>
-            </>
-          )}
+          <Store className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="max-w-[80px] truncate">{label}</span>
         </Button>
-
-        {viewMode === 'single' && (
-          <Select
-            value={selectedStore?.id || ''}
-            onValueChange={(storeId) => {
-              const store = stores.find(s => s.id === storeId)
-              onStoreSelect(store)
-            }}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Select Store</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={handleSelectAll}
+          className={viewMode === 'all' ? 'font-semibold text-blue-600' : ''}
+        >
+          All Stores
+        </DropdownMenuItem>
+        {stores.map((store: any) => (
+          <DropdownMenuItem
+            key={store.id}
+            onClick={() => handleSelectStore(store)}
+            className={viewMode === 'single' && selectedStore?.id === store.id ? 'font-semibold text-blue-600' : ''}
           >
-            <SelectTrigger className="w-32 sm:w-44 h-8 min-w-0">
-              <SelectValue placeholder="Select store...">
-                {selectedStore ? (
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-medium truncate">{selectedStore.name}</span>
-                    <Badge
-                      variant="secondary"
-                      className={`text-xs shrink-0 hidden sm:inline-flex ${
-                        selectedStore.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {selectedStore.status}
-                    </Badge>
-                  </div>
-                ) : (
-                  'Select store...'
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {stores.map((store) => (
-                <SelectItem key={store.id} value={store.id}>
-                  <div className="flex items-center justify-between w-full">
-                    <span className="font-medium">{store.name}</span>
-                    <Badge
-                      variant="secondary"
-                      className={`text-xs ml-2 ${
-                        store.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {store.status}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-    </div>
+            {store.name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

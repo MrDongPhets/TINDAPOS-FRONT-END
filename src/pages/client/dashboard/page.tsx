@@ -343,7 +343,7 @@ export default function ClientDashboard() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Page Header */}
           <div className="flex items-center justify-between">
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                 {isAllStoresView ? (
                   <Building2 className="h-6 w-6 text-blue-600" />
@@ -363,27 +363,6 @@ export default function ClientDashboard() {
             </div>
           </div>
 
-          {/* Company Code Banner */}
-          {companyCode && (
-            <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Building2 className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-xs text-blue-600 font-medium">Staff Company Code</p>
-                  <p className="text-lg font-mono font-bold tracking-widest text-blue-900">{companyCode}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-blue-500">Share this code with your staff to let them log in</p>
-                <button
-                  onClick={copyCompanyCode}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-[#E8302A] text-white text-xs rounded-md hover:bg-[#B91C1C]"
-                >
-                  {codeCopied ? <><Check className="h-3 w-3" /> Copied!</> : <><Copy className="h-3 w-3" /> Copy</>}
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Subscription Banner */}
           {subscription && (() => {

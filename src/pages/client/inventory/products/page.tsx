@@ -424,7 +424,7 @@ export default function ProductsPage() {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                 <Package className="h-6 w-6 text-blue-600" />
                 Products Management
@@ -535,13 +535,13 @@ export default function ProductsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Product</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Cost Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Expiry Date</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden sm:table-cell">Category</TableHead>
+                      <TableHead className="hidden lg:table-cell">SKU</TableHead>
+                      <TableHead className="hidden sm:table-cell">Price</TableHead>
+                      <TableHead className="hidden lg:table-cell">Cost Price</TableHead>
+                      <TableHead className="hidden sm:table-cell">Stock</TableHead>
+                      <TableHead className="hidden lg:table-cell">Expiry Date</TableHead>
+                      <TableHead className="hidden md:table-cell">Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -554,17 +554,17 @@ export default function ProductsPage() {
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-3">
                               {product.image_url ? (
-                                <img 
-                                  src={product.image_url} 
+                                <img
+                                  src={product.image_url}
                                   alt={product.name}
-                                  className="h-10 w-10 rounded-lg object-cover"
+                                  className="h-10 w-10 rounded-lg object-cover shrink-0"
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                                <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                                   <ImageIcon className="h-5 w-5 text-gray-400" />
                                 </div>
                               )}
-                              <div>
+                              <div className="min-w-0">
                                 <div className="font-semibold text-gray-900 flex items-center gap-2">
                                   {product.name}
                                   {product.is_composite && (
@@ -574,15 +574,15 @@ export default function ProductsPage() {
                                     </Badge>
                                   )}
                                 </div>
-                                {product.description && (
-                                  <div className="text-xs text-gray-500 truncate max-w-xs">
-                                    {product.description}
-                                  </div>
-                                )}
+                                {/* Mobile-only sub-info */}
+                                <div className="sm:hidden mt-0.5 flex items-center gap-1.5">
+                                  <span className="text-xs font-semibold text-gray-700">{formatCurrency(product.default_price)}</span>
+                                  <Badge className={`text-xs ${stockStatus.color}`}>{stockStatus.text}</Badge>
+                                </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             {product.categories ? (
                               <Badge 
                                 variant="outline" 
@@ -598,13 +598,13 @@ export default function ProductsPage() {
                               <span className="text-gray-400 text-sm">No category</span>
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             <div className="flex items-center gap-1 text-sm">
                               <Barcode className="h-3 w-3 text-gray-400" />
                               <span className="font-mono">{product.sku || 'N/A'}</span>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <div className="font-semibold">{formatCurrency(product.default_price)}</div>
                             {product.cost_price > 0 && (() => {
                               const margin = ((product.default_price - product.cost_price) / product.default_price) * 100
@@ -615,14 +615,14 @@ export default function ProductsPage() {
                               )
                             })()}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             {product.cost_price > 0 ? (
                               <div className="font-medium text-orange-600">{formatCurrency(product.cost_price)}</div>
                             ) : (
                               <span className="text-gray-400 text-sm">—</span>
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             {product.is_composite ? (
                               product.stock_quantity > 0 ? (
                                 // Composite product WITH manufactured stock
@@ -681,7 +681,7 @@ export default function ProductsPage() {
                               </TooltipProvider>
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             {product.is_composite && product.earliest_expiry_date ? (
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-2">
@@ -757,7 +757,7 @@ export default function ProductsPage() {
                               <span className="text-gray-400 text-sm">—</span>
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             {product.is_composite ? (
                               product.stock_quantity > 0 ? (
                                 // Has manufactured stock

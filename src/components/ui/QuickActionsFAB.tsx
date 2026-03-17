@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  ShoppingCart, Package, ShoppingBag, BarChart2, Users, Wallet, Plus, X
+  ShoppingCart, Package, ShoppingBag, BarChart2, Users, Wallet, Plus, X, LayoutDashboard
 } from 'lucide-react'
 
 const QUICK_ACTIONS = [
-  { label: 'Open POS',  icon: ShoppingCart, bg: 'bg-[#E8302A]', path: '/client/pos' },
-  { label: 'Products',  icon: Package,      bg: 'bg-blue-500',  path: '/client/inventory/products' },
-  { label: 'Sales',     icon: ShoppingBag,  bg: 'bg-green-500', path: '/client/sales' },
-  { label: 'Reports',   icon: BarChart2,    bg: 'bg-purple-500',path: '/client/reports' },
-  { label: 'Staff',     icon: Users,        bg: 'bg-orange-500',path: '/client/staff' },
-  { label: 'Utang',     icon: Wallet,       bg: 'bg-yellow-500',path: '/client/utang' },
+  { label: 'Open POS',   icon: ShoppingCart,     bg: 'bg-[#E8302A]', path: '/client/pos' },
+  { label: 'Products',   icon: Package,          bg: 'bg-blue-500',  path: '/client/inventory/products' },
+  { label: 'Sales',      icon: ShoppingBag,      bg: 'bg-green-500', path: '/client/sales' },
+  { label: 'Reports',    icon: BarChart2,         bg: 'bg-purple-500',path: '/client/reports' },
+  { label: 'Staff',      icon: Users,            bg: 'bg-orange-500',path: '/client/staff' },
+  { label: 'Utang',      icon: Wallet,           bg: 'bg-yellow-500',path: '/client/utang' },
+  { label: 'Dashboard',  icon: LayoutDashboard,  bg: 'bg-sky-500',   path: '/client/dashboard' },
 ]
 
 // Pages where FAB should NOT appear

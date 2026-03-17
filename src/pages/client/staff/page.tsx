@@ -34,17 +34,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Users, 
-  Plus, 
-  Trash2, 
-  CheckCircle, 
+import {
+  Users,
+  Plus,
+  Trash2,
+  CheckCircle,
   XCircle,
   Loader2,
   AlertCircle,
   Store,
   Filter,
-  FileText
+  FileText,
+  Copy,
+  Check,
+  Building2
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
 import PermissionMatrix from '@/components/staff/PermissionMatrix';
@@ -62,6 +65,8 @@ export default function StaffPage() {
   const [selectedStore, setSelectedStore] = useState('all');
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
+  const [companyCode, setCompanyCode] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const [formData, setFormData] = useState({
     staff_id: '',
@@ -90,7 +95,27 @@ export default function StaffPage() {
     fetchStores();
     fetchStaff();
     fetchPermissions();
+    fetchCompanyCode();
   }, []);
+
+  const fetchCompanyCode = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API_CONFIG.BASE_URL}/client/company`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.company?.company_code) setCompanyCode(data.company.company_code);
+    } catch {}
+  };
+
+  const copyCompanyCode = () => {
+    if (companyCode) {
+      navigator.clipboard.writeText(companyCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
+  };
 
   const fetchPermissions = async () => {
     try {
@@ -305,7 +330,7 @@ export default function StaffPage() {
           <div className="space-y-6">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
+              <div className="hidden md:block">
                 <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
                 <p className="text-gray-600 mt-1">Manage your team members and their access</p>
               </div>
@@ -323,6 +348,28 @@ export default function StaffPage() {
 
               </div>
             </div>
+
+            {/* Company Code */}
+            {companyCode && (
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <Building2 className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-white/70 font-medium">Staff Login Code</p>
+                    <p className="text-2xl font-mono font-bold tracking-widest text-white leading-tight">{companyCode}</p>
+                    <p className="text-[11px] text-white/60 mt-0.5">Share this code so staff can log in</p>
+                  </div>
+                </div>
+                <button
+                  onClick={copyCompanyCode}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-white text-blue-600 text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors shrink-0"
+                >
+                  {codeCopied ? <><Check className="h-4 w-4" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy</>}
+                </button>
+              </div>
+            )}
 
             {/* Success/Error Messages */}
             {success && (

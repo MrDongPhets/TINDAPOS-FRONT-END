@@ -204,7 +204,7 @@ export default function ReportsPage() {
 
           {/* Page Title */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
               <p className="text-muted-foreground mt-1">
                 Comprehensive business insights and data analysis
@@ -220,56 +220,42 @@ export default function ReportsPage() {
 
           {/* Quick Stats */}
           {quickStats && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    ₱{quickStats.todaySales.toLocaleString()}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {quickStats.todayTransactions} transactions
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Today's Sales</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{quickStats.todaySales.toLocaleString()}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{quickStats.todayTransactions} transactions</p>
+                </div>
+                <TrendingUp className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-                  <Package className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{quickStats.totalProducts}</div>
-                  <p className="text-xs text-muted-foreground">Active in inventory</p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Total Products</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{quickStats.totalProducts}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Active in inventory</p>
+                </div>
+                <Package className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-                  <AlertCircle className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{quickStats.lowStock}</div>
-                  <p className="text-xs text-muted-foreground">Need reordering</p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Low Stock Items</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{quickStats.lowStock}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Need reordering</p>
+                </div>
+                <AlertCircle className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Stores</CardTitle>
-                  <Store className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {user?.company?.name || 'N/A'}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Multi-store ready</p>
-                </CardContent>
-              </Card>
+              <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white/80 truncate">Active Stores</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{user?.company?.name || 'N/A'}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Multi-store ready</p>
+                </div>
+                <Store className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
+              </div>
             </div>
           )}
 

@@ -281,7 +281,7 @@ export default function SalesReportsPage() {
 
           {/* Page Header with Filters */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-3xl font-bold tracking-tight">Sales Reports</h1>
               <p className="text-muted-foreground mt-1">Comprehensive sales analytics and performance metrics</p>
             </div>

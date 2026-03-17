@@ -327,7 +327,7 @@ export default function SalesPage() {
 
           {/* Page Title */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-3xl font-bold tracking-tight">Sales Transactions</h1>
               <p className="text-muted-foreground mt-1">
                 Manage and view all sales transactions
@@ -485,12 +485,12 @@ export default function SalesPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Receipt</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Payment</TableHead>
-                      <TableHead>Staff</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="hidden sm:table-cell">Date & Time</TableHead>
+                      <TableHead className="hidden md:table-cell">Customer</TableHead>
+                      <TableHead className="hidden md:table-cell">Items</TableHead>
+                      <TableHead className="hidden sm:table-cell">Payment</TableHead>
+                      <TableHead className="hidden lg:table-cell">Staff</TableHead>
+                      <TableHead className="hidden sm:table-cell text-right">Amount</TableHead>
                       <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -510,36 +510,45 @@ export default function SalesPage() {
                     ) : (
                       sales.map((sale) => (
                         <TableRow key={sale.id} className="hover:bg-gray-50">
-                          <TableCell className="font-mono text-sm">
-                            {sale.receipt_number}
+                          <TableCell>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-mono text-xs leading-tight">
+                                <span className="hidden sm:inline">{sale.receipt_number}</span>
+                                <span className="sm:hidden text-gray-500">#{sale.receipt_number.split('-').pop()}</span>
+                              </p>
+                              <span className="sm:hidden text-xs font-semibold shrink-0">{formatCurrency(sale.total_amount)}</span>
+                            </div>
+                            {/* Mobile-only sub-info */}
+                            <div className="sm:hidden mt-0.5 flex items-center gap-1.5">
+                              <span className="text-xs text-muted-foreground truncate">{formatDate(sale.created_at)}</span>
+                              <Badge className={`text-xs shrink-0 ${getPaymentBadgeColor(sale.payment_method)}`}>
+                                {getPaymentLabel(sale.payment_method)}
+                              </Badge>
+                            </div>
                           </TableCell>
-                          <TableCell className="text-sm">
+                          <TableCell className="hidden sm:table-cell text-sm">
                             {formatDate(sale.created_at)}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <div className="text-sm">
-                              <p className="font-medium">
-                                {sale.customer_name || 'Walk-in Customer'}
-                              </p>
+                              <p className="font-medium">{sale.customer_name || 'Walk-in Customer'}</p>
                               {sale.customer_phone && (
-                                <p className="text-muted-foreground text-xs">
-                                  {sale.customer_phone}
-                                </p>
+                                <p className="text-muted-foreground text-xs">{sale.customer_phone}</p>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <Badge variant="outline">{sale.items_count} items</Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <Badge className={getPaymentBadgeColor(sale.payment_method)}>
                               {getPaymentLabel(sale.payment_method)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-sm">
+                          <TableCell className="hidden lg:table-cell text-sm">
                             {sale.staff?.name || sale.created_by_user?.name || 'Manager'}
                           </TableCell>
-                          <TableCell className="text-right font-semibold">
+                          <TableCell className="hidden sm:table-cell text-right font-semibold">
                             {formatCurrency(sale.total_amount)}
                           </TableCell>
                           <TableCell className="text-center">
