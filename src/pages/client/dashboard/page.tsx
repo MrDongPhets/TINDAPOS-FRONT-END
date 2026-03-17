@@ -33,7 +33,7 @@ import {
   Clock,
   CreditCard,
   AlertTriangle,
-  WifiOff
+  WifiOff,
 } from "lucide-react"
 import API_CONFIG from "@/config/api"
 
@@ -636,6 +636,7 @@ export default function ClientDashboard() {
             </Card>
           </div>
         </div>
+
       </SidebarInset>
     </SidebarProvider>
   )

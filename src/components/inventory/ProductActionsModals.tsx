@@ -2,6 +2,7 @@ import { formatCurrency } from '@/lib/utils'
 // src/components/inventory/ProductActionsModals.jsx - Complete file with FIFO expiry date
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   Dialog,
   DialogContent,
@@ -35,11 +36,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { 
-  Package, 
-  Edit, 
-  Trash2, 
-  Loader2, 
-  AlertCircle, 
+  Package,
+  Edit,
+  Trash2,
+  Loader2,
+  AlertCircle,
   Eye,
   Calendar,
   DollarSign,
@@ -47,7 +48,9 @@ import {
   ChefHat,
   Layers,
   Info,
-  Factory
+  Factory,
+  Tag,
+  ArrowRight
 } from "lucide-react"
 import { ImageUpload } from "@/components/ui/image-upload"
 import API_CONFIG from "@/config/api"
@@ -460,6 +463,7 @@ export function ViewProductModal({ product, open, onOpenChange }) {
 // 2. EDIT PRODUCT MODAL
 // ========================================
 export function EditProductModal({ product, open, onOpenChange, onProductUpdated }) {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [categories, setCategories] = useState([])
@@ -762,22 +766,36 @@ export function EditProductModal({ product, open, onOpenChange, onProductUpdated
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category_id">Category</Label>
-                  <Select 
-                    value={formData.category_id} 
-                    onValueChange={(value) => handleInputChange('category_id', value)}
-                    disabled={loading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {categories.length === 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => { onOpenChange(false); navigate('/client/inventory/categories') }}
+                      className="w-full flex items-center justify-between gap-2 rounded-md border border-dashed border-orange-300 bg-orange-50 px-3 py-2.5 text-sm text-orange-700 hover:bg-orange-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 shrink-0" />
+                        <span>No categories yet — tap to create one first</span>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0" />
+                    </button>
+                  ) : (
+                    <Select
+                      value={formData.category_id}
+                      onValueChange={(value) => handleInputChange('category_id', value)}
+                      disabled={loading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
                 <div className="space-y-2">

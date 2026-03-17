@@ -77,9 +77,14 @@ export function useStores() {
           )
         }
 
-        // Auto-select first store if none selected
-        if (!selectedStore && storeList.length > 0 && viewMode === 'single') {
-          selectStore(storeList[0])
+        // Restore saved store from localStorage (don't rely on stale React state)
+        if (storeList.length > 0) {
+          const savedStoreId = localStorage.getItem('selectedStoreId')
+          const savedViewMode = localStorage.getItem('storeViewMode') || 'single'
+          if (savedViewMode === 'single') {
+            const toSelect = storeList.find((s: any) => s.id === savedStoreId) || storeList[0]
+            selectStore(toSelect)
+          }
         }
       } else {
         console.error('Failed to fetch stores:', response.status, response.statusText)

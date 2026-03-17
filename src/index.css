@@ -2,6 +2,33 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* FAB Quick Actions animations */
+@keyframes fab-item-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@keyframes fab-spin-in {
+  from { transform: rotate(-90deg) scale(0.8); opacity: 0; }
+  to   { transform: rotate(0deg)   scale(1);   opacity: 1; }
+}
+
+.fab-item {
+  animation: fab-item-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+.fab-icon-btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.fab-icon-btn:hover {
+  transform: scale(1.12);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+}
+.fab-icon-btn:active {
+  transform: scale(0.93);
+}
+
 /* Mobile safe area for Capacitor (avoids status bar & nav bar overlap) */
 #root {
   padding-top: env(safe-area-inset-top);

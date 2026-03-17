@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/lib/utils'
 'use client'
 
-import { Package, Plus, Minus } from 'lucide-react'
+import { Package, Plus, Minus, AlertTriangle } from 'lucide-react'
 
 interface CartItem {
   product_id: string
@@ -18,6 +18,12 @@ interface ProductGridProps {
 
 export default function ProductGrid({ products, onProductClick, loading, cart = [], onUpdateQuantity }: ProductGridProps) {
   const getCartItem = (productId: string) => cart.find(item => item.product_id === productId)
+
+  const getStockBadge = (stock: number) => {
+    if (stock === 0) return { label: 'Out of stock', class: 'bg-red-500 text-white', icon: true }
+    if (stock <= 5)  return { label: `Only ${stock} left!`, class: 'bg-orange-500 text-white', icon: true }
+    return { label: `${stock} in stock`, class: 'bg-gray-200 text-gray-700', icon: false }
+  }
 
   if (loading) {
     return (
@@ -50,14 +56,21 @@ export default function ProductGrid({ products, onProductClick, loading, cart = 
       {products.map((product) => {
         const cartItem = getCartItem(product.id)
         const inCart = !!cartItem
+        const stock = product.stock_quantity ?? 0
+        const outOfStock = stock === 0
+        const stockBadge = getStockBadge(stock)
 
         return (
           <div
             key={product.id}
-            className={`bg-white rounded-xl overflow-hidden shadow-sm cursor-pointer transition-all border-2 ${
-              inCart ? 'border-[#E8302A]' : 'border-transparent hover:border-gray-200 hover:shadow-md'
+            className={`bg-white rounded-xl overflow-hidden shadow-sm transition-all border-2 ${
+              outOfStock
+                ? 'border-transparent opacity-60 cursor-not-allowed'
+                : inCart
+                ? 'border-[#E8302A] cursor-pointer'
+                : 'border-transparent hover:border-gray-200 hover:shadow-md cursor-pointer'
             }`}
-            onClick={() => !inCart && onProductClick(product)}
+            onClick={() => !inCart && !outOfStock && onProductClick(product)}
           >
             {/* Product Image */}
             <div className="relative bg-gray-100 h-28 md:h-32 flex items-center justify-center overflow-hidden">
@@ -70,18 +83,32 @@ export default function ProductGrid({ products, onProductClick, loading, cart = 
               ) : (
                 <Package className="h-10 w-10 text-gray-300" />
               )}
+              {/* Cart qty badge */}
               {inCart && (
                 <div className="absolute top-1.5 right-1.5 bg-[#E8302A] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItem.quantity}
+                </div>
+              )}
+              {/* Out of stock overlay */}
+              {outOfStock && (
+                <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                  <span className="text-xs font-bold text-red-500 bg-white px-2 py-0.5 rounded-full shadow-sm border border-red-200">
+                    Out of stock
+                  </span>
                 </div>
               )}
             </div>
 
             {/* Product Info */}
             <div className="p-2">
-              <h3 className="font-semibold text-xs md:text-sm mb-0.5 line-clamp-1">
+              <h3 className="font-semibold text-xs md:text-sm mb-1 line-clamp-1">
                 {product.name}
               </h3>
+              {/* Stock badge — full width, easy to read */}
+              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md mb-1.5 ${stockBadge.class}`}>
+                {stockBadge.icon && <AlertTriangle className="h-3 w-3 shrink-0" />}
+                {stockBadge.label}
+              </span>
               <p className="text-sm font-bold text-[#E8302A] mb-2">
                 {formatCurrency(parseFloat(product.default_price))}
               </p>
@@ -108,7 +135,8 @@ export default function ProductGrid({ products, onProductClick, loading, cart = 
                 </div>
               ) : (
                 <button
-                  className="w-full py-1.5 bg-gray-100 hover:bg-[#FFF1F0] text-gray-700 hover:text-[#E8302A] rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors"
+                  disabled={outOfStock}
+                  className="w-full py-1.5 bg-gray-100 hover:bg-[#FFF1F0] text-gray-700 hover:text-[#E8302A] rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors disabled:pointer-events-none disabled:opacity-50"
                   onClick={(e) => {
                     e.stopPropagation()
                     onProductClick(product)

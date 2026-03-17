@@ -470,7 +470,10 @@ export default function POSPage() {
               value={selectedStore?.id}
               onValueChange={(storeId) => {
                 const store = stores.find(s => s.id === storeId)
-                if (store) setSelectedStore(store)
+                if (store) {
+                  setSelectedStore(store)
+                  localStorage.setItem('selectedStoreId', store.id)
+                }
               }}
             >
               <SelectTrigger className="h-8 text-sm border-gray-200 max-w-[160px]">

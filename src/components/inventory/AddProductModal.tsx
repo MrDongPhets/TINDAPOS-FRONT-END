@@ -2,6 +2,7 @@
 import logger from '@/utils/logger';
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   Dialog,
   DialogContent,
@@ -25,11 +26,12 @@ import {
 } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SuccessModal } from "@/components/ui/success-modal"
-import { Loader2, Plus, Package, AlertCircle, ChefHat, Info } from "lucide-react"
+import { Loader2, Plus, Package, AlertCircle, ChefHat, Info, Tag, ArrowRight } from "lucide-react"
 import API_CONFIG from "@/config/api"
 import { formatCurrency } from "@/lib/utils"
 
 export function AddProductModal({ onProductAdded, trigger = null }) {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -323,18 +325,32 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category_id">Category</Label>
-                  <Select onValueChange={(value) => handleInputChange('category_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {categories.length === 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => { setOpen(false); navigate('/client/inventory/categories') }}
+                      className="w-full flex items-center justify-between gap-2 rounded-md border border-dashed border-orange-300 bg-orange-50 px-3 py-2.5 text-sm text-orange-700 hover:bg-orange-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 shrink-0" />
+                        <span>No categories yet — tap to create one first</span>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0" />
+                    </button>
+                  ) : (
+                    <Select onValueChange={(value) => handleInputChange('category_id', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
                 <div className="space-y-2">
