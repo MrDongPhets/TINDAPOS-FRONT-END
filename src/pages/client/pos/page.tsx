@@ -24,12 +24,14 @@ import {
 } from "@/components/ui/select"
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import API_CONFIG from '@/config/api'
 import { formatCurrency } from '@/lib/utils'
 
 export default function POSPage() {
   const { toast } = useToast()
   const { isStaff, logout } = useAuth()
+  const isOnline = useNetworkStatus()
 
   // State
   const [stores, setStores] = useState([])
@@ -191,7 +193,18 @@ export default function POSPage() {
       }
     } catch (error) {
       logger.error('Fetch products error:', error)
-      if (navigator.onLine) {
+      // Fallback to cache on any network failure (handles Android where navigator.onLine is unreliable)
+      try {
+        let cached = await localDb.products.where('store_id').equals(selectedStore.id).toArray()
+        if (selectedCategory && selectedCategory !== 'all') {
+          cached = cached.filter(p => p.category_id === selectedCategory)
+        }
+        if (cached.length > 0) {
+          setProducts(cached)
+        } else {
+          toast({ title: "Error", description: "Failed to fetch products", variant: "destructive" })
+        }
+      } catch {
         toast({ title: "Error", description: "Failed to fetch products", variant: "destructive" })
       }
     } finally {
@@ -383,7 +396,7 @@ export default function POSPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+    <div className={`h-screen flex flex-col bg-gray-50 overflow-hidden ${!isOnline ? 'pt-9' : ''}`}>
       {/* Header */}
       <div className="bg-white border-b px-3 py-2.5 shrink-0">
         <div className="flex items-center gap-2">
@@ -449,7 +462,7 @@ export default function POSPage() {
           </div>
 
           {/* Product Grid - scrollable */}
-          <div className="flex-1 overflow-y-auto p-3 pb-28 lg:pb-4">
+          <div className="flex-1 overflow-y-auto p-3 pb-32 lg:pb-4">
             <ProductGrid
               products={products}
               onProductClick={addToCart}
@@ -479,7 +492,7 @@ export default function POSPage() {
       </div>
 
       {/* Mobile Bottom Toolbar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-40">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-40 pb-[env(safe-area-inset-bottom,0px)]">
         {/* Toolbar Icons */}
         <div className="flex items-center justify-around px-2 py-1.5 border-b border-gray-100">
           <button
