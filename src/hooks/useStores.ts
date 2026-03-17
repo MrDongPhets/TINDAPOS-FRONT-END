@@ -23,6 +23,11 @@ export function useStores() {
     }
   }, [stores])
 
+  // Pre-load from cache on mount so offline stores show immediately on page refresh
+  useEffect(() => {
+    loadFromCache()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const loadFromCache = async () => {
     const companyData = localStorage.getItem('companyData')
     const companyId = companyData ? JSON.parse(companyData).id : ''

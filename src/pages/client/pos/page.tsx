@@ -101,14 +101,49 @@ export default function POSPage() {
     }
   }, [selectedStore?.id])
 
+  const loadStoresFromCache = async () => {
+    const companyData = localStorage.getItem('companyData')
+    const companyId = companyData ? JSON.parse(companyData).id : ''
+    const cachedStores = companyId
+      ? await localDb.stores.where('company_id').equals(companyId).toArray()
+      : await localDb.stores.toArray()
+    if (cachedStores.length > 0) {
+      setStores(cachedStores)
+      const savedStoreId = localStorage.getItem('selectedStoreId')
+      const toSelect = cachedStores.find(s => s.id === savedStoreId) || cachedStores[0]
+      if (toSelect) setSelectedStore(toSelect)
+    }
+  }
+
   const fetchStores = async () => {
     try {
+      // ── OFFLINE: load from IndexedDB cache ─────────────────────
+      if (!navigator.onLine) {
+        await loadStoresFromCache()
+        return
+      }
+
+      // ── ONLINE: fetch from API ──────────────────────────────────
       const response = await fetch(`${API_CONFIG.BASE_URL}/pos/stores`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setStores(data.stores || [])
-      if (data.stores?.length > 0) setSelectedStore(data.stores[0])
+      const storeList = data.stores || []
+      setStores(storeList)
+      if (storeList.length > 0) {
+        const savedStoreId = localStorage.getItem('selectedStoreId')
+        const toSelect = storeList.find((s: any) => s.id === savedStoreId) || storeList[0]
+        setSelectedStore(toSelect)
+
+        // Cache for offline use
+        const companyData = localStorage.getItem('companyData')
+        const companyId = companyData ? JSON.parse(companyData).id : ''
+        const now = Date.now()
+        await localDb.stores.bulkPut(
+          storeList.map((s: any) => ({ ...s, company_id: s.company_id || companyId, cached_at: now }))
+        )
+      }
     } catch (error) {
       logger.error('Fetch stores error:', error)
+      await loadStoresFromCache()
     }
   }
 
@@ -334,7 +369,7 @@ export default function POSPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground text-sm">You need to create a store before using the POS.</p>
-            <Button onClick={fetchStores} variant="outline" className="w-full">Refresh Stores</Button>
+<Button onClick={fetchStores} variant="outline" className="w-full">Refresh Stores</Button>
             <Link to="/client/stores" className="block">
               <Button className="w-full"><StoreIcon className="mr-2 h-4 w-4" />Go to Stores</Button>
             </Link>
