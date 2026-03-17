@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { Toaster } from '@/components/ui/toaster'
+import { OfflineBanner } from '@/components/ui/OfflineBanner'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 
 // Setup
 import SetupPage from '@/pages/setup/page'
@@ -46,9 +48,16 @@ import UtangPage from '@/pages/client/utang/page'
 // Staff POS
 import PosPage from '@/pages/pos/page'
 
+function AppContent() {
+  useOfflineSync();
+  return null;
+}
+
 function App() {
   return (
     <AuthProvider>
+      <OfflineBanner />
+      <AppContent />
       <Routes>
         {/* Setup (offline first-run) */}
         <Route path="/setup" element={<SetupPage />} />

@@ -1,9 +1,11 @@
-// src/components/auth/AuthProvider.tsx - Updated with Staff support
+// src/components/auth/AuthProvider.tsx - Updated with Staff support + Offline login
 import logger from '@/utils/logger';
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import API_CONFIG from '@/config/api'
+import { localDb, hashPassword } from '@/db/localDb'
+import { cacheDataForOffline } from '@/hooks/useOfflineSync'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const AuthContext = createContext<any>({})
@@ -46,10 +48,15 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('authToken')
     if (!token) return false
 
+    // When offline, trust existing token from localStorage
+    if (!navigator.onLine) {
+      logger.log('📴 Offline — skipping token validation, trusting cached session')
+      return true
+    }
+
     try {
       const userTypeData = localStorage.getItem('userType')
-      
-      // Different verification endpoints for different user types
+
       let endpoint = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.VERIFY}`
       if (userTypeData === 'staff') {
         endpoint = `${API_CONFIG.BASE_URL}/staff/auth/verify`
@@ -73,8 +80,9 @@ export function AuthProvider({ children }) {
         return false;
       }
     } catch (error) {
-      logger.error('Token validation error:', error);
-      return false;
+      // Network error — trust cached session
+      logger.log('⚠️ Token validation network error, trusting cached session');
+      return true;
     }
   }
 
@@ -308,24 +316,51 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials, loginType = 'client') => {
     logger.log('🔑 Login attempt:', credentials.email || credentials.staff_id, loginType)
-    
-    // PREVENT LOGIN IF ALREADY AUTHENTICATED
+
     if (isAuthenticated) {
-      logger.log('🔑 User already authenticated, preventing new login')
-      return { 
-        success: false, 
-        error: 'You are already logged in. Please logout first to switch accounts.' 
+      return {
+        success: false,
+        error: 'You are already logged in. Please logout first to switch accounts.'
       }
     }
-    
+
     setLoading(true)
-    
+
     try {
-      const endpoint = loginType === 'super_admin' 
+      // ── OFFLINE LOGIN ──────────────────────────────────────────────
+      if (!navigator.onLine && loginType === 'client') {
+        logger.log('📴 Offline — attempting cached login')
+        const cached = await localDb.auth_cache
+          .where('email').equals(credentials.email.toLowerCase())
+          .first()
+
+        if (cached) {
+          const inputHash = await hashPassword(credentials.password)
+          if (inputHash === cached.password_hash) {
+            const userData = {
+              id: cached.user_id,
+              email: cached.email,
+              name: cached.name,
+              company_id: cached.company_id
+            }
+            localStorage.setItem('authToken', cached.token)
+            localStorage.setItem('userData', JSON.stringify(userData))
+            localStorage.setItem('userType', cached.user_type)
+            localStorage.setItem('companyData', JSON.stringify({ id: cached.company_id, name: cached.company_name }))
+            setUser(userData)
+            setUserType(cached.user_type)
+            setIsAuthenticated(true)
+            logger.log('✅ Offline login successful')
+            return { success: true }
+          }
+        }
+        return { success: false, error: 'Offline login failed. Please connect to the internet to log in for the first time.' }
+      }
+
+      // ── ONLINE LOGIN ───────────────────────────────────────────────
+      const endpoint = loginType === 'super_admin'
         ? `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.SUPER_ADMIN_LOGIN}`
         : `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`
-
-      logger.log('📡 Calling:', endpoint)
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -334,10 +369,8 @@ export function AuthProvider({ children }) {
       })
 
       const data = await response.json()
-      logger.log('📦 Server response:', data)
 
       if (response.ok && data.token) {
-        // Clear any existing session first
         localStorage.removeItem('authToken')
         localStorage.removeItem('userData')
         localStorage.removeItem('userType')
@@ -345,38 +378,51 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('subscriptionData')
         localStorage.removeItem('staffData')
 
-        // Determine the correct user type
         const finalUserType = data.userType || loginType
 
-        logger.log('💾 Storing auth data:', {
-          userType: finalUserType,
-          email: data.user.email
-        })
-
-        // Store data in localStorage
         localStorage.setItem('authToken', data.token)
         localStorage.setItem('userData', JSON.stringify(data.user))
         localStorage.setItem('userType', finalUserType)
+        if (data.company) localStorage.setItem('companyData', JSON.stringify(data.company))
 
-        if (data.company) {
-          localStorage.setItem('companyData', JSON.stringify(data.company))
-        }
-
-        // Update state immediately - route protection effect will handle redirect
         setUser(data.user)
         setUserType(finalUserType)
         setIsAuthenticated(true)
 
-        logger.log('✅ Login successful, route protection will redirect')
+        // Cache credentials + data for offline use (client only)
+        if (finalUserType === 'client' && data.user && data.company) {
+          try {
+            const passwordHash = await hashPassword(credentials.password)
+            await localDb.auth_cache.put({
+              id: 'current_user',
+              user_id: data.user.id,
+              email: data.user.email.toLowerCase(),
+              password_hash: passwordHash,
+              name: data.user.name,
+              user_type: finalUserType,
+              company_id: data.company.id,
+              company_name: data.company.name,
+              token: data.token,
+              cached_at: Date.now()
+            })
+            // Cache products/categories/stores in background
+            const storeData = localStorage.getItem('selectedStore') || ''
+            let storeId = ''
+            try { storeId = JSON.parse(storeData)?.id || '' } catch { /* ignore */ }
+            cacheDataForOffline(data.token, data.company.id, storeId)
+            logger.log('💾 Credentials cached for offline use')
+          } catch (cacheErr) {
+            logger.warn('⚠️ Failed to cache credentials:', cacheErr)
+          }
+        }
 
         return { success: true }
       } else {
-        logger.log('❌ Login failed:', data.error)
         return { success: false, error: data.error || 'Login failed' }
       }
     } catch (error) {
       logger.error('❌ Login error:', error)
-      return { success: false, error: 'Connection failed. Please check if the server is running.' }
+      return { success: false, error: 'Connection failed. Please check your internet connection.' }
     } finally {
       setLoading(false)
     }

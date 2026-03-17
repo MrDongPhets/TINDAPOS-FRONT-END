@@ -2,6 +2,7 @@
 import logger from '@/utils/logger';
 
 import { useState, useEffect } from 'react'
+import { localDb, generateLocalId } from '@/db/localDb'
 import { ArrowLeft, LogOut, Percent, RotateCcw, PauseCircle, ShoppingCart, X, Store as StoreIcon, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
@@ -230,22 +231,48 @@ export default function POSPage() {
         }
       }
 
+      const salePayload = {
+        store_id: selectedStore.id,
+        items: cart,
+        payment_method: paymentMethod,
+        subtotal: totals.subtotal,
+        discount_amount: totals.discount_amount,
+        discount_type: discount.type,
+        total_amount: totals.total,
+        customer_name: selectedCustomer?.name || newCustomer?.name || customerInfo.name,
+        customer_phone: selectedCustomer?.phone || newCustomer?.phone || customerInfo.phone,
+        customer_id,
+        notes: customerInfo?.notes || null
+      }
+
+      // ── OFFLINE: queue sale locally ────────────────────────────────
+      if (!navigator.onLine) {
+        const companyData = localStorage.getItem('companyData')
+        const companyId = companyData ? JSON.parse(companyData).id : ''
+        await localDb.pending_sales.add({
+          id: generateLocalId(),
+          ...salePayload,
+          company_id: companyId,
+          created_at: Date.now(),
+          sync_status: 'pending',
+          retry_count: 0
+        })
+        setLastSale({ total_amount: totals.total, payment_method: paymentMethod })
+        setLastCartItems([...cart])
+        setShowReceipt(true)
+        setShowPayment(false)
+        setShowMobileCart(false)
+        setCart([])
+        setDiscount({ type: null, value: 0 })
+        toast({ title: "Sale Saved Offline", description: "Will sync automatically when back online." })
+        return
+      }
+
+      // ── ONLINE: submit to backend ──────────────────────────────────
       const response = await fetch(`${API_CONFIG.BASE_URL}/pos/sales`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({
-          store_id: selectedStore.id,
-          items: cart,
-          payment_method: paymentMethod,
-          subtotal: totals.subtotal,
-          discount_amount: totals.discount_amount,
-          discount_type: discount.type,
-          total_amount: totals.total,
-          customer_name: selectedCustomer?.name || newCustomer?.name || customerInfo.name,
-          customer_phone: selectedCustomer?.phone || newCustomer?.phone || customerInfo.phone,
-          customer_id,
-          notes: customerInfo?.notes || null
-        })
+        body: JSON.stringify(salePayload)
       })
       if (!response.ok) {
         const errorData = await response.json()
