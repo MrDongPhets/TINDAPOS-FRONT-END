@@ -288,7 +288,7 @@ export default function IngredientsTrackingPage() {
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Page Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="hidden md:flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                 <Beaker className="h-6 w-6 text-amber-600" />
@@ -301,64 +301,43 @@ export default function IngredientsTrackingPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{ingredients.length}</p>
-                    <p className="text-sm text-gray-600">Total Ingredients</p>
-                  </div>
-                  <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <Beaker className="h-6 w-6 text-amber-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-orange-600">{lowStockIngredients}</p>
-                    <p className="text-sm text-gray-600">Low Stock Alert</p>
-                  </div>
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <TrendingDown className="h-6 w-6 text-orange-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-red-600">{outOfStockIngredients}</p>
-                    <p className="text-sm text-gray-600">Out of Stock</p>
-                  </div>
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-green-600">
-                      ${totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                    </p>
-                    <p className="text-sm text-gray-600">Ingredients Value</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Total Ingredients</p>
+              <p className="text-3xl font-bold mt-1">{ingredients.length}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Beaker className="h-3.5 w-3.5" />
+                <span>All tracked items</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Low Stock Alert</p>
+              <p className="text-3xl font-bold mt-1">{lowStockIngredients}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <TrendingDown className="h-3.5 w-3.5" />
+                <span>Need restocking</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Out of Stock</p>
+              <p className="text-3xl font-bold mt-1">{outOfStockIngredients}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>Requires action</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Ingredients Value</p>
+              <p className="text-3xl font-bold mt-1">₱{totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span>Total stock value</span>
+              </div>
+            </div>
           </div>
 
           {/* Stock Levels Table */}
@@ -371,12 +350,12 @@ export default function IngredientsTrackingPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ingredient</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Current Stock</TableHead>
-                    <TableHead>Unit</TableHead>
-                    <TableHead>Min Level</TableHead>
-                    <TableHead>Unit Cost</TableHead>
-                    <TableHead>Total Value</TableHead>
+                    <TableHead className="hidden xl:table-cell">SKU</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead className="hidden lg:table-cell">Unit</TableHead>
+                    <TableHead className="hidden lg:table-cell">Min Level</TableHead>
+                    <TableHead className="hidden xl:table-cell">Unit Cost</TableHead>
+                    <TableHead className="hidden md:table-cell">Total Value</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -391,14 +370,14 @@ export default function IngredientsTrackingPage() {
                       return (
                         <TableRow key={ingredient.id}>
                           <TableCell className="font-medium">{ingredient.name}</TableCell>
-                          <TableCell className="text-gray-500">{ingredient.sku || 'N/A'}</TableCell>
+                          <TableCell className="hidden xl:table-cell text-gray-500">{ingredient.sku || 'N/A'}</TableCell>
                           <TableCell>
                             <span className="font-semibold">{ingredient.stock_quantity}</span>
                           </TableCell>
-                          <TableCell className="text-gray-500">{ingredient.unit}</TableCell>
-                          <TableCell>{ingredient.min_stock_level || 'N/A'}</TableCell>
-                          <TableCell>₱{ingredient.unit_cost.toFixed(4)}</TableCell>
-                          <TableCell className="font-medium">₱{totalValue}</TableCell>
+                          <TableCell className="hidden lg:table-cell text-gray-500">{ingredient.unit}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{ingredient.min_stock_level || 'N/A'}</TableCell>
+                          <TableCell className="hidden xl:table-cell">₱{ingredient.unit_cost.toFixed(4)}</TableCell>
+                          <TableCell className="hidden md:table-cell font-medium">₱{totalValue}</TableCell>
                           <TableCell>
                             <Badge className={stockStatus.color}>
                               <StatusIcon className="w-3 h-3 mr-1" />
@@ -411,7 +390,7 @@ export default function IngredientsTrackingPage() {
                               size="sm"
                               onClick={() => handleStockAdjustment(ingredient)}
                             >
-                              Adjust Stock
+                              Adjust
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -466,12 +445,12 @@ export default function IngredientsTrackingPage() {
                   <TableRow>
                     <TableHead>Ingredient</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Unit</TableHead>
-                    <TableHead>Before</TableHead>
-                    <TableHead>After</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Notes</TableHead>
+                    <TableHead>Qty</TableHead>
+                    <TableHead className="hidden lg:table-cell">Unit</TableHead>
+                    <TableHead className="hidden lg:table-cell">Before</TableHead>
+                    <TableHead className="hidden lg:table-cell">After</TableHead>
+                    <TableHead className="hidden md:table-cell">Date</TableHead>
+                    <TableHead className="hidden xl:table-cell">Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -498,13 +477,13 @@ export default function IngredientsTrackingPage() {
                               {movement.movement_type === 'in' ? '+' : '-'}{movement.quantity}
                             </span>
                           </TableCell>
-                          <TableCell className="text-gray-500">{movement.ingredient_unit || movement.unit}</TableCell>
-                          <TableCell>{movement.previous_stock}</TableCell>
-                          <TableCell>{movement.new_stock}</TableCell>
-                          <TableCell className="text-gray-500">
+                          <TableCell className="hidden lg:table-cell text-gray-500">{movement.ingredient_unit || movement.unit}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{movement.previous_stock}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{movement.new_stock}</TableCell>
+                          <TableCell className="hidden md:table-cell text-gray-500">
                             {new Date(movement.created_at).toLocaleDateString()}
                           </TableCell>
-                          <TableCell className="text-gray-500 max-w-xs truncate">
+                          <TableCell className="hidden xl:table-cell text-gray-500 max-w-xs truncate">
                             {movement.notes || 'No notes'}
                           </TableCell>
                         </TableRow>

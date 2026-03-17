@@ -486,12 +486,12 @@ export default function SalesPage() {
                     <TableRow>
                       <TableHead>Receipt</TableHead>
                       <TableHead className="hidden sm:table-cell">Date & Time</TableHead>
-                      <TableHead className="hidden md:table-cell">Customer</TableHead>
-                      <TableHead className="hidden md:table-cell">Items</TableHead>
-                      <TableHead className="hidden sm:table-cell">Payment</TableHead>
-                      <TableHead className="hidden lg:table-cell">Staff</TableHead>
+                      <TableHead className="hidden lg:table-cell">Customer</TableHead>
+                      <TableHead className="hidden xl:table-cell">Items</TableHead>
+                      <TableHead className="hidden md:table-cell">Payment</TableHead>
+                      <TableHead className="hidden xl:table-cell">Staff</TableHead>
                       <TableHead className="hidden sm:table-cell text-right">Amount</TableHead>
-                      <TableHead className="text-center">Actions</TableHead>
+                      <TableHead className="text-center w-14">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -513,8 +513,8 @@ export default function SalesPage() {
                           <TableCell>
                             <div className="flex items-center justify-between gap-2">
                               <p className="font-mono text-xs leading-tight">
-                                <span className="hidden sm:inline">{sale.receipt_number}</span>
-                                <span className="sm:hidden text-gray-500">#{sale.receipt_number.split('-').pop()}</span>
+                                <span className="hidden lg:inline">{sale.receipt_number}</span>
+                                <span className="lg:hidden text-gray-600">#{sale.receipt_number.split('-').pop()}</span>
                               </p>
                               <span className="sm:hidden text-xs font-semibold shrink-0">{formatCurrency(sale.total_amount)}</span>
                             </div>
@@ -526,10 +526,10 @@ export default function SalesPage() {
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell text-sm">
+                          <TableCell className="hidden sm:table-cell text-sm whitespace-nowrap">
                             {formatDate(sale.created_at)}
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
+                          <TableCell className="hidden lg:table-cell">
                             <div className="text-sm">
                               <p className="font-medium">{sale.customer_name || 'Walk-in Customer'}</p>
                               {sale.customer_phone && (
@@ -537,18 +537,18 @@ export default function SalesPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
+                          <TableCell className="hidden xl:table-cell">
                             <Badge variant="outline">{sale.items_count} items</Badge>
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell">
+                          <TableCell className="hidden md:table-cell">
                             <Badge className={getPaymentBadgeColor(sale.payment_method)}>
                               {getPaymentLabel(sale.payment_method)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="hidden lg:table-cell text-sm">
+                          <TableCell className="hidden xl:table-cell text-sm">
                             {sale.staff?.name || sale.created_by_user?.name || 'Manager'}
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell text-right font-semibold">
+                          <TableCell className="hidden sm:table-cell text-right font-semibold whitespace-nowrap">
                             {formatCurrency(sale.total_amount)}
                           </TableCell>
                           <TableCell className="text-center">

@@ -337,7 +337,7 @@ export default function IngredientsPage() {
         </header>
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+          <div className="hidden md:flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                 <Beaker className="h-6 w-6 text-blue-600" />
@@ -352,76 +352,52 @@ export default function IngredientsPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold">{stats.total}</p>
-                    <p className="text-sm text-gray-600">Total</p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Beaker className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold">{stats.inStock}</p>
-                    <p className="text-sm text-gray-600">In Stock</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-orange-600">{stats.lowStock}</p>
-                    <p className="text-sm text-gray-600">Low Stock</p>
-                  </div>
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="h-6 w-6 text-orange-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-red-600">{stats.outOfStock}</p>
-                    <p className="text-sm text-gray-600">Out of Stock</p>
-                  </div>
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="h-6 w-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold">{formatCurrency(stats.totalValue)}</p>
-                    <p className="text-sm text-gray-600">Total Value</p>
-                  </div>
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-purple-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Total</p>
+              <p className="text-3xl font-bold mt-1">{stats.total}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Beaker className="h-3.5 w-3.5" />
+                <span>Ingredients</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">In Stock</p>
+              <p className="text-3xl font-bold mt-1">{stats.inStock}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Package className="h-3.5 w-3.5" />
+                <span>Sufficient</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Low Stock</p>
+              <p className="text-3xl font-bold mt-1">{stats.lowStock}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <AlertCircle className="h-3.5 w-3.5" />
+                <span>Need restocking</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Out of Stock</p>
+              <p className="text-3xl font-bold mt-1">{stats.outOfStock}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <AlertCircle className="h-3.5 w-3.5" />
+                <span>Empty</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Total Value</p>
+              <p className="text-3xl font-bold mt-1">{formatCurrency(stats.totalValue)}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Package className="h-3.5 w-3.5" />
+                <span>Stock value</span>
+              </div>
+            </div>
           </div>
 
           {/* Filters */}
@@ -466,12 +442,12 @@ export default function IngredientsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Ingredient</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Unit Cost</TableHead>
+                      <TableHead className="hidden lg:table-cell">SKU</TableHead>
+                      <TableHead className="hidden md:table-cell">Unit Cost</TableHead>
                       <TableHead>Stock</TableHead>
-                      <TableHead>Min Level</TableHead>
+                      <TableHead className="hidden lg:table-cell">Min Level</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Supplier</TableHead>
+                      <TableHead className="hidden xl:table-cell">Supplier</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -491,12 +467,12 @@ export default function IngredientsPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             <code className="text-xs bg-gray-100 px-2 py-1 rounded">
                               {ingredient.sku}
                             </code>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <div className="font-medium">{formatCurrency(ingredient.unit_cost)}</div>
                             <div className="text-xs text-gray-500">per {ingredient.unit}</div>
                           </TableCell>
@@ -504,11 +480,8 @@ export default function IngredientsPage() {
                             <div className="font-semibold">
                               {ingredient.stock_quantity} {ingredient.unit}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              Value: {formatCurrency(ingredient.unit_cost * ingredient.stock_quantity)}
-                            </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             {ingredient.min_stock_level} {ingredient.unit}
                           </TableCell>
                           <TableCell>
@@ -516,7 +489,7 @@ export default function IngredientsPage() {
                               {stockStatus.text}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden xl:table-cell">
                             <div className="text-sm text-gray-600">
                               {ingredient.supplier || '-'}
                             </div>

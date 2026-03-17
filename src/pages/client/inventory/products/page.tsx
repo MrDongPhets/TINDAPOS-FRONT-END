@@ -535,13 +535,13 @@ export default function ProductsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Product</TableHead>
-                      <TableHead className="hidden sm:table-cell">Category</TableHead>
-                      <TableHead className="hidden lg:table-cell">SKU</TableHead>
+                      <TableHead className="hidden md:table-cell">Category</TableHead>
+                      <TableHead className="hidden xl:table-cell">SKU</TableHead>
                       <TableHead className="hidden sm:table-cell">Price</TableHead>
-                      <TableHead className="hidden lg:table-cell">Cost Price</TableHead>
-                      <TableHead className="hidden sm:table-cell">Stock</TableHead>
-                      <TableHead className="hidden lg:table-cell">Expiry Date</TableHead>
-                      <TableHead className="hidden md:table-cell">Status</TableHead>
+                      <TableHead className="hidden xl:table-cell">Cost Price</TableHead>
+                      <TableHead className="hidden md:table-cell">Stock</TableHead>
+                      <TableHead className="hidden xl:table-cell">Expiry Date</TableHead>
+                      <TableHead className="hidden lg:table-cell">Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -582,14 +582,14 @@ export default function ProductsPage() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell">
+                          <TableCell className="hidden md:table-cell">
                             {product.categories ? (
-                              <Badge 
-                                variant="outline" 
-                                style={{ 
-                                  backgroundColor: `${product.categories.color}20`, 
-                                  borderColor: product.categories.color, 
-                                  color: product.categories.color 
+                              <Badge
+                                variant="outline"
+                                style={{
+                                  backgroundColor: `${product.categories.color}20`,
+                                  borderColor: product.categories.color,
+                                  color: product.categories.color
                                 }}
                               >
                                 {product.categories.name}
@@ -598,7 +598,7 @@ export default function ProductsPage() {
                               <span className="text-gray-400 text-sm">No category</span>
                             )}
                           </TableCell>
-                          <TableCell className="hidden lg:table-cell">
+                          <TableCell className="hidden xl:table-cell">
                             <div className="flex items-center gap-1 text-sm">
                               <Barcode className="h-3 w-3 text-gray-400" />
                               <span className="font-mono">{product.sku || 'N/A'}</span>
@@ -615,14 +615,14 @@ export default function ProductsPage() {
                               )
                             })()}
                           </TableCell>
-                          <TableCell className="hidden lg:table-cell">
+                          <TableCell className="hidden xl:table-cell">
                             {product.cost_price > 0 ? (
                               <div className="font-medium text-orange-600">{formatCurrency(product.cost_price)}</div>
                             ) : (
                               <span className="text-gray-400 text-sm">—</span>
                             )}
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell">
+                          <TableCell className="hidden md:table-cell">
                             {product.is_composite ? (
                               product.stock_quantity > 0 ? (
                                 // Composite product WITH manufactured stock
@@ -681,7 +681,7 @@ export default function ProductsPage() {
                               </TooltipProvider>
                             )}
                           </TableCell>
-                          <TableCell className="hidden lg:table-cell">
+                          <TableCell className="hidden xl:table-cell">
                             {product.is_composite && product.earliest_expiry_date ? (
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-2">
@@ -757,7 +757,7 @@ export default function ProductsPage() {
                               <span className="text-gray-400 text-sm">—</span>
                             )}
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
+                          <TableCell className="hidden lg:table-cell">
                             {product.is_composite ? (
                               product.stock_quantity > 0 ? (
                                 // Has manufactured stock

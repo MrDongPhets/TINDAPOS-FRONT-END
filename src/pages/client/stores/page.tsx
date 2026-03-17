@@ -147,7 +147,7 @@ export default function ClientStores() {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
+            <div className="hidden md:block">
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                 <Store className="h-6 w-6 text-blue-600" />
                 My Stores
@@ -218,34 +218,34 @@ export default function ClientStores() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <Store className="h-8 w-8 text-blue-600" />
-                <div>
-                  <p className="text-2xl font-bold">{stores.length}</p>
-                  <p className="text-xs text-gray-500">Total Stores</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <CheckCircle className="h-8 w-8 text-green-600" />
-                <div>
-                  <p className="text-2xl font-bold">{stores.filter(s => s.status === 'active' || s.is_active).length}</p>
-                  <p className="text-xs text-gray-500">Active</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex items-center gap-3">
-                <XCircle className="h-8 w-8 text-gray-400" />
-                <div>
-                  <p className="text-2xl font-bold">{stores.filter(s => s.status === 'suspended' || s.status === 'cancelled').length}</p>
-                  <p className="text-xs text-gray-500">Inactive</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Total Stores</p>
+              <p className="text-3xl font-bold mt-1">{stores.length}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Store className="h-3.5 w-3.5" />
+                <span>{storeLimit} limit</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Active</p>
+              <p className="text-3xl font-bold mt-1">{stores.filter(s => s.status === 'active' || s.is_active).length}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <CheckCircle className="h-3.5 w-3.5" />
+                <span>Running</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Inactive</p>
+              <p className="text-3xl font-bold mt-1">{stores.filter(s => s.status === 'suspended' || s.status === 'cancelled').length}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <XCircle className="h-3.5 w-3.5" />
+                <span>Suspended</span>
+              </div>
+            </div>
           </div>
 
           {/* Stores Grid */}

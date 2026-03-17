@@ -217,7 +217,7 @@ export default function CategoriesPage() {
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           {/* Page Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="hidden md:flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                 <Folder className="h-6 w-6 text-blue-600" />
@@ -231,68 +231,43 @@ export default function CategoriesPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{totalCategories}</p>
-                    <p className="text-sm text-gray-600">Total Categories</p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Folder className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {categories.filter(c => c.is_active).length}
-                    </p>
-                    <p className="text-sm text-gray-600">Active Categories</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <FolderOpen className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {categories.filter(c => !c.is_active).length}
-                    </p>
-                    <p className="text-sm text-gray-600">Inactive Categories</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <Folder className="h-6 w-6 text-gray-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {categories.reduce((sum, c) => sum + (c.product_count || 0), 0)}
-                    </p>
-                    <p className="text-sm text-gray-600">Total Products</p>
-                  </div>
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Package className="h-6 w-6 text-purple-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Total Categories</p>
+              <p className="text-3xl font-bold mt-1">{totalCategories}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Folder className="h-3.5 w-3.5" />
+                <span>All categories</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Active</p>
+              <p className="text-3xl font-bold mt-1">{categories.filter(c => c.is_active).length}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <FolderOpen className="h-3.5 w-3.5" />
+                <span>In use</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Inactive</p>
+              <p className="text-3xl font-bold mt-1">{categories.filter(c => !c.is_active).length}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Folder className="h-3.5 w-3.5" />
+                <span>Disabled</span>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-4 text-white relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+              <p className="text-white/80 text-sm font-medium">Total Products</p>
+              <p className="text-3xl font-bold mt-1">{categories.reduce((sum, c) => sum + (c.product_count || 0), 0)}</p>
+              <div className="flex items-center gap-1 mt-2 text-white/70 text-xs">
+                <Package className="h-3.5 w-3.5" />
+                <span>Categorized</span>
+              </div>
+            </div>
           </div>
 
           {/* Categories Grid */}
