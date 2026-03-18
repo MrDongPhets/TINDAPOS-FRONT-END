@@ -13,11 +13,13 @@ import {
   CheckCircle,
   ArrowLeft,
   Wifi,
+  WifiOff,
   Laptop,
-  Zap
+  Zap,
+  MessageCircle
 } from "lucide-react"
 
-const EXE_DOWNLOAD_URL = "/TindaPOS-1.0.0.exe"
+const FACEBOOK_PAGE_URL = "https://m.me/61582747590992"
 
 export default function DownloadPage() {
   const [androidStepsOpen, setAndroidStepsOpen] = useState(false)
@@ -64,37 +66,25 @@ export default function DownloadPage() {
 
     <CardContent className="space-y-4">
       <ul className="space-y-2 text-sm text-gray-600">
-        <Feature icon={<Wifi className="h-3.5 w-3.5" />} text="Internet connection required" />
+        <Feature icon={<WifiOff className="h-3.5 w-3.5" />} text="Works offline after install" />
         <Feature icon={<Zap className="h-3.5 w-3.5" />} text="Fast & lightweight desktop experience" />
+        <Feature icon={<CheckCircle className="h-3.5 w-3.5" />} text="Install via browser (PWA) — no .exe needed" />
       </ul>
 
       <Separator />
 
-      <a href={EXE_DOWNLOAD_URL} download>
-        <Button className="w-full bg-[#E8302A] hover:bg-[#B91C1C] gap-2">
-          <Download className="h-4 w-4" />
-          Download for Windows (.exe)
+      <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer">
+        <Button className="w-full bg-[#1877F2] hover:bg-[#1565C0] gap-2">
+          <MessageCircle className="h-4 w-4" />
+          Contact us on Facebook
         </Button>
       </a>
 
-      <p className="text-xs text-gray-400 text-center">
-        Windows 10 / 11 · 64-bit
-      </p>
-
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
-        <p className="font-medium mb-1">Need an offline version?</p>
+        <p className="font-medium mb-1">Want the desktop app?</p>
         <p>
-          The standard app requires an internet connection for syncing and updates.
-          If your business requires an <strong>offline setup</strong>, please
-          <strong> contact support</strong> for a custom deployment.
-        </p>
-      </div>
-
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
-        <p className="font-medium mb-1">⚠️ Windows SmartScreen warning?</p>
-        <p>
-          Click <strong>"More info"</strong> → <strong>"Run anyway"</strong> to install.
-          The app is safe but not yet signed with a paid certificate.
+          You can also install TindaPOS as a desktop app on Windows via Chrome or Edge — no download required.
+          Check the <strong>Android &amp; Desktop (PWA)</strong> card for install steps.
         </p>
       </div>
     </CardContent>
