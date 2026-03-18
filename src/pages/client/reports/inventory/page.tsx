@@ -32,12 +32,12 @@ import {
   Package2,
   Store
 } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const gradStartColors = ['#E8302A', '#f97316', '#10b981', '#f59e0b', '#ec4899', '#84cc16'];
 
 export default function InventoryReportsPage() {
   const navigate = useNavigate();
@@ -273,7 +273,7 @@ export default function InventoryReportsPage() {
           {/* Summary Cards */}
           {inventorySummary && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="bg-gradient-to-br from-[#E8302A] to-[#f97316] rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white/80 truncate">Total Products</p>
                   <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">{inventorySummary.total_products}</p>
@@ -327,23 +327,41 @@ export default function InventoryReportsPage() {
                     <CardTitle>Stock Value by Category</CardTitle>
                     <CardDescription>Distribution of inventory worth</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
+                  <CardContent className="flex flex-col items-center pb-4">
+                    <ResponsiveContainer width="100%" height={260}>
                       <PieChart>
+                        <defs>
+                          {(stockValue?.categories || []).map((_: any, i: number) => {
+                            const gradColors = [
+                              ['#E8302A','#B91C1C'], ['#f97316','#ea580c'], ['#10b981','#059669'],
+                              ['#f59e0b','#d97706'], ['#ec4899','#db2777'], ['#84cc16','#65a30d']
+                            ]
+                            const [c1, c2] = gradColors[i % gradColors.length]
+                            return (
+                              <linearGradient key={i} id={`invPieGrad${i}`} x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor={c1} />
+                                <stop offset="100%" stopColor={c2} />
+                              </linearGradient>
+                            )
+                          })}
+                        </defs>
                         <Pie
                           data={stockValue?.categories || []}
                           dataKey="retail_value"
                           nameKey="category_name"
                           cx="50%"
                           cy="50%"
-                          outerRadius={100}
-                          label={(entry: any) => entry.category_name}
+                          innerRadius={55}
+                          outerRadius={90}
+                          paddingAngle={3}
+                          startAngle={90}
+                          endAngle={-270}
                         >
-                          {(stockValue?.categories || []).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          {(stockValue?.categories || []).map((_: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={`url(#invPieGrad${index})`} stroke="none" />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }} formatter={(v: any) => `₱${v.toLocaleString()}`} />
                       </PieChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -358,9 +376,9 @@ export default function InventoryReportsPage() {
                     <div className="space-y-4">
                       {stockValue?.categories?.map((cat, index) => (
                         <div key={cat.category_id} className="flex items-center gap-4">
-                          <div 
-                            className="w-4 h-4 rounded" 
-                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          <div
+                            className="w-4 h-4 rounded"
+                            style={{ backgroundColor: gradStartColors[index % gradStartColors.length] }}
                           />
                           <div className="flex-1">
                             <p className="font-medium">{cat.category_name}</p>
@@ -389,16 +407,24 @@ export default function InventoryReportsPage() {
                   <CardTitle>Top 10 Products by Turnover Rate</CardTitle>
                   <CardDescription>Fastest moving inventory items (Last 30 days)</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={turnoverRates} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="product_name" type="category" width={150} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="turnover_rate" fill="#3b82f6" name="Turnover Rate" />
-                      <Bar dataKey="quantity_sold" fill="#10b981" name="Units Sold" />
+                <CardContent className="p-0 pb-4">
+                  <ResponsiveContainer width="100%" height={turnoverRates.length * 50 + 20}>
+                    <BarChart data={turnoverRates} layout="vertical" margin={{ top: 4, right: 20, left: 8, bottom: 4 }}>
+                      <defs>
+                        <linearGradient id="turnoverGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#E8302A" />
+                          <stop offset="100%" stopColor="#E8302A" />
+                        </linearGradient>
+                        <linearGradient id="soldGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#f97316" />
+                          <stop offset="100%" stopColor="#ea580c" />
+                        </linearGradient>
+                      </defs>
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="product_name" type="category" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} width={130} />
+                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }} />
+                      <Bar dataKey="turnover_rate" fill="url(#turnoverGrad)" radius={[0, 4, 4, 0]} barSize={14} name="Turnover Rate" />
+                      <Bar dataKey="quantity_sold" fill="url(#soldGrad)" radius={[0, 4, 4, 0]} barSize={14} name="Units Sold" />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>

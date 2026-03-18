@@ -37,6 +37,10 @@ import {
   WifiOff,
 } from "lucide-react"
 import API_CONFIG from "@/config/api"
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
+} from 'recharts'
 
 export default function ClientDashboard() {
   const navigate = useNavigate()
@@ -62,6 +66,10 @@ export default function ClientDashboard() {
     getApiUrl
   } = useStores()
   
+  // Chart filter states
+  const [trendDays, setTrendDays] = useState(7)
+  const [topMetric, setTopMetric] = useState<'stock' | 'value'>('stock')
+
   // Dashboard data
   const [dashboardData, setDashboardData] = useState({
     overview: {
@@ -243,6 +251,66 @@ export default function ClientDashboard() {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const getSalesTrendData = () => {
+    const days = []
+    for (let i = trendDays - 1; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      days.push({
+        date: trendDays <= 7
+          ? d.toLocaleDateString('en-US', { weekday: 'short' })
+          : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        dateStr: d.toISOString().split('T')[0],
+        sales: 0,
+      })
+    }
+    dashboardData.recentSales.forEach((sale) => {
+      const saleDate = new Date(sale.date).toISOString().split('T')[0]
+      const match = days.find((d) => d.dateStr === saleDate)
+      if (match) match.sales += sale.amount
+    })
+    return days
+  }
+
+  const topProductsChartData = dashboardData.topProducts.slice(0, 5).map((p: any) => ({
+    name: p.name?.length > 14 ? p.name.substring(0, 14) + '…' : (p.name || 'Unknown'),
+    stock: p.stockQuantity ?? p.stock_quantity ?? p.quantity ?? 0,
+    value: Math.round((p.stockQuantity ?? p.stock_quantity ?? 0) * (p.price ?? p.default_price ?? 0)),
+  }))
+
+  const stockHealthData = [
+    { name: 'In Stock', value: Math.max(0, dashboardData.overview.totalProducts - dashboardData.overview.lowStockItems), color: '#10b981' },
+    { name: 'Low Stock', value: dashboardData.overview.lowStockItems, color: '#f59e0b' },
+  ].filter(d => d.value > 0)
+
+  const salesTrendData = getSalesTrendData()
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload?.length) {
+      return (
+        <div className="bg-white border border-gray-100 rounded-xl shadow-lg px-3 py-2 text-xs">
+          <p className="text-gray-500 mb-1">{label}</p>
+          <p className="font-bold text-[#E8302A]">{formatCurrency(payload[0].value)}</p>
+        </div>
+      )
+    }
+    return null
+  }
+
+  const BarTooltip = ({ active, payload, label }: any) => {
+    if (active && payload?.length) {
+      return (
+        <div className="bg-white border border-gray-100 rounded-xl shadow-lg px-3 py-2 text-xs">
+          <p className="text-gray-700 font-medium mb-1">{label}</p>
+          <p className="text-[#E8302A] font-bold">
+            {topMetric === 'value' ? formatCurrency(payload[0].value) : `${payload[0].value} units`}
+          </p>
+        </div>
+      )
+    }
+    return null
   }
 
   if (loading) {
@@ -491,6 +559,177 @@ export default function ClientDashboard() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Sales Trend Area Chart */}
+            <Card className="lg:col-span-2 overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-sm font-semibold text-gray-700">
+                    Sales Trend — Last {trendDays} Days
+                  </CardTitle>
+                  <div className="flex gap-1">
+                    {[7, 14, 30].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setTrendDays(d)}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                          trendDays === d
+                            ? 'bg-[#E8302A] text-white'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        }`}
+                      >
+                        {d}D
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 pb-2">
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={salesTrendData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#E8302A" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#E8302A" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis hide />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="sales"
+                      stroke="#E8302A"
+                      strokeWidth={2.5}
+                      fill="url(#salesGradient)"
+                      dot={{ r: 3, fill: '#E8302A', strokeWidth: 0 }}
+                      activeDot={{ r: 5, fill: '#fff', stroke: '#E8302A', strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Stock Health Donut */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-gray-700">Stock Health</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center justify-center pb-4">
+                {stockHealthData.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height={130}>
+                      <PieChart>
+                        <defs>
+                          <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#10b981" />
+                            <stop offset="100%" stopColor="#34d399" />
+                          </linearGradient>
+                          <linearGradient id="amberGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#f59e0b" />
+                            <stop offset="100%" stopColor="#fbbf24" />
+                          </linearGradient>
+                        </defs>
+                        <Pie
+                          data={stockHealthData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={38}
+                          outerRadius={58}
+                          paddingAngle={3}
+                          dataKey="value"
+                          startAngle={90}
+                          endAngle={-270}
+                        >
+                          {stockHealthData.map((entry, i) => (
+                            <Cell key={i} fill={i === 0 ? 'url(#greenGrad)' : 'url(#amberGrad)'} stroke="none" />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(v: any) => [`${v} products`, '']}
+                          contentStyle={{ fontSize: 11, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex gap-4 mt-1">
+                      {stockHealthData.map((d, i) => (
+                        <div key={i} className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
+                          <span>{d.name}</span>
+                          <span className="font-bold text-gray-800">{d.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 text-sm">No product data</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top Products Bar Chart */}
+          {topProductsChartData.length > 0 && (
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-sm font-semibold text-gray-700">
+                    Top Products — {topMetric === 'stock' ? 'Stock Qty' : 'Stock Value'}
+                  </CardTitle>
+                  <div className="flex gap-1">
+                    {(['stock', 'value'] as const).map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setTopMetric(m)}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                          topMetric === m
+                            ? 'bg-[#E8302A] text-white'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        }`}
+                      >
+                        {m === 'stock' ? 'Qty' : 'Value'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 pb-4">
+                <ResponsiveContainer width="100%" height={topProductsChartData.length * 44 + 20}>
+                  <BarChart
+                    data={topProductsChartData}
+                    layout="vertical"
+                    margin={{ top: 4, right: 20, left: 8, bottom: 4 }}
+                  >
+                    <defs>
+                      <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#E8302A" />
+                        <stop offset="100%" stopColor="#f97316" />
+                      </linearGradient>
+                    </defs>
+                    <XAxis type="number" hide />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={90}
+                    />
+                    <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(232,48,42,0.06)' }} />
+                    <Bar dataKey={topMetric} fill="url(#barGradient)" radius={[0, 6, 6, 0]} barSize={18} />
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           )}

@@ -37,7 +37,7 @@ import {
   TrendingDown,
   Package
 } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
@@ -347,7 +347,7 @@ export default function SalesReportsPage() {
                 <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
               </div>
 
-              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="bg-gradient-to-br from-[#E8302A] to-[#f97316] rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white/80 truncate">Avg Transaction</p>
                   <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{salesSummary.average_transaction?.toFixed(2) || 0}</p>
@@ -365,7 +365,7 @@ export default function SalesReportsPage() {
                 <TrendingDown className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
               </div>
 
-              <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="bg-gradient-to-br from-[#E8302A] to-[#f97316] rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white/80 truncate">Items/Transaction</p>
                   <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">
@@ -392,37 +392,31 @@ export default function SalesReportsPage() {
             <TabsContent value="overview" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Sales Trend</CardTitle>
-                  <CardDescription>
-                    {period.charAt(0).toUpperCase() + period.slice(1)} sales performance
-                  </CardDescription>
+                  <CardTitle className="text-sm font-semibold text-gray-700">Sales Trend</CardTitle>
+                  <CardDescription>{period.charAt(0).toUpperCase() + period.slice(1)} performance</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={350}>
-                    <LineChart data={periodData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
-                      <Tooltip 
-                        formatter={(value) => `₱${value.toLocaleString()}`}
-                        labelFormatter={(label) => `Period: ${label}`}
+                <CardContent className="p-0 pb-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={periodData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="salesTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#E8302A" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#E8302A" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="txnGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f97316" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="period" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }}
+                        formatter={(v: any, name: string) => [name === 'total_sales' ? `₱${v.toLocaleString()}` : v, name === 'total_sales' ? 'Sales' : 'Transactions']}
                       />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="total_sales" 
-                        stroke="#3b82f6" 
-                        strokeWidth={2}
-                        name="Total Sales"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="total_transactions" 
-                        stroke="#10b981" 
-                        strokeWidth={2}
-                        name="Transactions"
-                      />
-                    </LineChart>
+                      <Area type="monotone" dataKey="total_sales" stroke="#E8302A" strokeWidth={2.5} fill="url(#salesTrendGrad)" dot={{ r: 3, fill: '#E8302A', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#fff', stroke: '#E8302A', strokeWidth: 2 }} />
+                      <Area type="monotone" dataKey="total_transactions" stroke="#f97316" strokeWidth={2} fill="url(#txnGrad)" dot={{ r: 3, fill: '#f97316', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#fff', stroke: '#f97316', strokeWidth: 2 }} />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
@@ -464,16 +458,27 @@ export default function SalesReportsPage() {
                   <CardTitle>Staff Performance</CardTitle>
                   <CardDescription>Individual sales achievements</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={staffPerformance}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="staff_name" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
-                      <Legend />
-                      <Bar dataKey="total_sales" fill="#3b82f6" name="Total Sales" />
-                      <Bar dataKey="total_transactions" fill="#10b981" name="Transactions" />
+                <CardContent className="p-0 pb-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={staffPerformance} margin={{ top: 10, right: 16, left: 0, bottom: 40 }}>
+                      <defs>
+                        <linearGradient id="staffSalesGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#E8302A" />
+                          <stop offset="100%" stopColor="#E8302A" />
+                        </linearGradient>
+                        <linearGradient id="staffTxnGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#f97316" />
+                          <stop offset="100%" stopColor="#ea580c" />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="staff_name" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={60} />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }}
+                        formatter={(v: any, name: string) => [name === 'total_sales' ? `₱${v.toLocaleString()}` : v, name === 'total_sales' ? 'Sales' : 'Transactions']}
+                      />
+                      <Bar dataKey="total_sales" fill="url(#staffSalesGrad)" radius={[4, 4, 0, 0]} barSize={18} name="total_sales" />
+                      <Bar dataKey="total_transactions" fill="url(#staffTxnGrad)" radius={[4, 4, 0, 0]} barSize={18} name="total_transactions" />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>

@@ -36,12 +36,12 @@ import {
   Receipt,
   Store,
 } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#E8302A', '#f97316', '#10b981', '#f59e0b', '#B91C1C', '#ec4899'];
 
 export default function FinancialReportsPage() {
   const navigate = useNavigate();
@@ -323,7 +323,7 @@ export default function FinancialReportsPage() {
                 <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
               </div>
 
-              <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
+              <div className="bg-gradient-to-br from-[#E8302A] to-[#f97316] rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white/80 truncate">Net Profit</p>
                   <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{financialSummary.net_profit?.toLocaleString() || 0}</p>
@@ -373,16 +373,24 @@ export default function FinancialReportsPage() {
                       Profitability by {groupBy}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={350}>
-                      <BarChart data={profitMargins.slice(0, 10)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                        <YAxis />
-                        <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
-                        <Legend />
-                        <Bar dataKey="gross_profit" fill="#3b82f6" name="Gross Profit" />
-                        <Bar dataKey="net_profit" fill="#10b981" name="Net Profit" />
+                  <CardContent className="p-0 pb-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={profitMargins.slice(0, 10)} margin={{ top: 10, right: 16, left: 0, bottom: 60 }}>
+                        <defs>
+                          <linearGradient id="grossProfitGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#E8302A" />
+                            <stop offset="100%" stopColor="#E8302A" />
+                          </linearGradient>
+                          <linearGradient id="netProfitGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" />
+                            <stop offset="100%" stopColor="#059669" />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={70} />
+                        <YAxis hide />
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }} formatter={(v: any) => `₱${v.toLocaleString()}`} />
+                        <Bar dataKey="gross_profit" fill="url(#grossProfitGrad)" radius={[4, 4, 0, 0]} barSize={16} name="Gross Profit" />
+                        <Bar dataKey="net_profit" fill="url(#netProfitGrad)" radius={[4, 4, 0, 0]} barSize={16} name="Net Profit" />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -427,16 +435,24 @@ export default function FinancialReportsPage() {
                   <CardTitle>Revenue vs Cost Analysis</CardTitle>
                   <CardDescription>Detailed financial breakdown</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={profitMargins.slice(0, 10)} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={150} />
-                      <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
-                      <Legend />
-                      <Bar dataKey="total_revenue" fill="#3b82f6" name="Revenue" />
-                      <Bar dataKey="total_cogs" fill="#ef4444" name="COGS" />
+                <CardContent className="p-0 pb-4">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={profitMargins.slice(0, 10)} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+                      <defs>
+                        <linearGradient id="revenueGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#E8302A" />
+                          <stop offset="100%" stopColor="#E8302A" />
+                        </linearGradient>
+                        <linearGradient id="cogsGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#f59e0b" />
+                          <stop offset="100%" stopColor="#ef4444" />
+                        </linearGradient>
+                      </defs>
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} width={120} />
+                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }} formatter={(v: any) => `₱${v.toLocaleString()}`} />
+                      <Bar dataKey="total_revenue" fill="url(#revenueGrad)" radius={[0, 4, 4, 0]} barSize={14} name="Revenue" />
+                      <Bar dataKey="total_cogs" fill="url(#cogsGrad)" radius={[0, 4, 4, 0]} barSize={14} name="COGS" />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -451,16 +467,24 @@ export default function FinancialReportsPage() {
                     <CardTitle>Store Performance Comparison</CardTitle>
                     <CardDescription>Revenue by location</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={350}>
-                      <BarChart data={revenueByStore?.stores || []}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="store_name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
-                        <Legend />
-                        <Bar dataKey="total_revenue" fill="#3b82f6" name="Revenue" />
-                        <Bar dataKey="transaction_count" fill="#10b981" name="Transactions" />
+                  <CardContent className="p-0 pb-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={revenueByStore?.stores || []} margin={{ top: 10, right: 16, left: 0, bottom: 40 }}>
+                        <defs>
+                          <linearGradient id="storeRevGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#E8302A" />
+                            <stop offset="100%" stopColor="#E8302A" />
+                          </linearGradient>
+                          <linearGradient id="storeTxnGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#f97316" />
+                            <stop offset="100%" stopColor="#ea580c" />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="store_name" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} angle={-25} textAnchor="end" height={60} />
+                        <YAxis hide />
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }} formatter={(v: any) => `₱${v.toLocaleString()}`} />
+                        <Bar dataKey="total_revenue" fill="url(#storeRevGrad)" radius={[4, 4, 0, 0]} barSize={20} name="Revenue" />
+                        <Bar dataKey="transaction_count" fill="url(#storeTxnGrad)" radius={[4, 4, 0, 0]} barSize={20} name="Transactions" />
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -471,23 +495,41 @@ export default function FinancialReportsPage() {
                     <CardTitle>Revenue Distribution</CardTitle>
                     <CardDescription>Store contribution percentage</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={350}>
+                  <CardContent className="flex flex-col items-center pb-4">
+                    <ResponsiveContainer width="100%" height={260}>
                       <PieChart>
+                        <defs>
+                          {(revenueByStore?.stores || []).map((_, i) => {
+                            const gradColors = [
+                              ['#E8302A','#B91C1C'], ['#f97316','#ea580c'], ['#10b981','#059669'],
+                              ['#f59e0b','#d97706'], ['#ec4899','#db2777'], ['#84cc16','#65a30d']
+                            ]
+                            const [c1, c2] = gradColors[i % gradColors.length]
+                            return (
+                              <linearGradient key={i} id={`pieGrad${i}`} x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor={c1} />
+                                <stop offset="100%" stopColor={c2} />
+                              </linearGradient>
+                            )
+                          })}
+                        </defs>
                         <Pie
                           data={revenueByStore?.stores || []}
                           dataKey="total_revenue"
                           nameKey="store_name"
                           cx="50%"
                           cy="50%"
-                          outerRadius={100}
-                          label={(entry: any) => entry.store_name}
+                          innerRadius={55}
+                          outerRadius={90}
+                          paddingAngle={3}
+                          startAngle={90}
+                          endAngle={-270}
                         >
-                          {(revenueByStore?.stores || []).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          {(revenueByStore?.stores || []).map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={`url(#pieGrad${index})`} stroke="none" />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }} formatter={(v: any) => `₱${v.toLocaleString()}`} />
                       </PieChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -549,7 +591,7 @@ export default function FinancialReportsPage() {
                           <p className="text-xs text-muted-foreground">Active Stores</p>
                         </div>
                         <div>
-                          <p className="text-2xl font-bold text-purple-600">
+                          <p className="text-2xl font-bold text-[#E8302A]">
                             {revenueByStore.company_totals.total_transactions}
                           </p>
                           <p className="text-xs text-muted-foreground">Total Transactions</p>
@@ -596,28 +638,24 @@ export default function FinancialReportsPage() {
                     </div>
                   </div>
 
-                  <ResponsiveContainer width="100%" height={350}>
-                    <LineChart data={taxReports?.data || []}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => `₱${value.toLocaleString()}`} />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="total_sales" 
-                        stroke="#3b82f6" 
-                        strokeWidth={2}
-                        name="Total Sales"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="total_tax" 
-                        stroke="#10b981" 
-                        strokeWidth={2}
-                        name="Tax Collected"
-                      />
-                    </LineChart>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <AreaChart data={taxReports?.data || []} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="taxSalesGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#E8302A" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#E8302A" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="taxCollGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="period" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                      <YAxis hide />
+                      <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', background: '#fff' }} formatter={(v: any) => `₱${v.toLocaleString()}`} />
+                      <Area type="monotone" dataKey="total_sales" stroke="#E8302A" strokeWidth={2.5} fill="url(#taxSalesGrad)" dot={{ r: 3, fill: '#E8302A', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#fff', stroke: '#E8302A', strokeWidth: 2 }} name="Total Sales" />
+                      <Area type="monotone" dataKey="total_tax" stroke="#10b981" strokeWidth={2} fill="url(#taxCollGrad)" dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#fff', stroke: '#10b981', strokeWidth: 2 }} name="Tax Collected" />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
