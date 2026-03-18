@@ -2,16 +2,6 @@ import { useState, useEffect } from 'react'
 import { X, Download, Smartphone, Zap, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-const DISMISS_KEY = 'pwa_install_dismissed_at'
-const DISMISS_DAYS = 3 // re-show after 3 days if dismissed
-
-function isDismissedRecently(): boolean {
-  const ts = localStorage.getItem(DISMISS_KEY)
-  if (!ts) return false
-  const daysSince = (Date.now() - Number(ts)) / (1000 * 60 * 60 * 24)
-  return daysSince < DISMISS_DAYS
-}
-
 function isStandalone(): boolean {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -27,21 +17,16 @@ export function PWAInstallModal() {
   useEffect(() => {
     // Already installed as PWA — never show
     if (isStandalone()) return
-    // Already dismissed recently — skip
-    if (isDismissedRecently()) return
 
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e)
-      // Small delay so page loads first before modal appears
-      setTimeout(() => setShow(true), 2500)
+      // Short delay so page renders before modal appears
+      setTimeout(() => setShow(true), 800)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    // Also handle the case where the app was previously installed
-    // When uninstalled, display-mode goes back to browser and
-    // beforeinstallprompt fires again on next visit
     window.addEventListener('appinstalled', () => {
       setShow(false)
       setDeferredPrompt(null)
@@ -63,7 +48,8 @@ export function PWAInstallModal() {
   }
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISS_KEY, String(Date.now()))
+    // Only hide for this page load — no localStorage persistence
+    // Browser will re-fire beforeinstallprompt on next visit
     setShow(false)
   }
 
