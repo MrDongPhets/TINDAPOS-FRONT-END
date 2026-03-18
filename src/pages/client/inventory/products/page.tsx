@@ -70,7 +70,8 @@ import {
   Store,
   ChefHat,
   Factory,
-  Calendar
+  Calendar,
+  RefreshCw
 } from "lucide-react"
 import { SimpleStoreSelector } from "@/components/store/SimpleStoreSelector"
 import { useStores } from "@/hooks/useStores"
