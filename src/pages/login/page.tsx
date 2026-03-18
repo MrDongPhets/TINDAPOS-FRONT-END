@@ -24,10 +24,11 @@ function LoginForm() {
   const [isOnline, setIsOnline] = useState(true)
   const [successMessage, setSuccessMessage] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('remember_me') === 'true')
 
-  // Client login state
+  // Client login state — pre-fill email if remembered
   const [credentials, setCredentials] = useState({
-    email: "",
+    email: localStorage.getItem('remember_me') === 'true' ? (localStorage.getItem('remembered_email') || "") : "",
     password: ""
   })
 
@@ -98,10 +99,18 @@ function LoginForm() {
 
       if (!result.success) {
         setError(result.error || "Login failed. Please try again.")
+      } else {
+        if (rememberMe) {
+          localStorage.setItem('remember_me', 'true')
+          localStorage.setItem('remembered_email', credentials.email)
+        } else {
+          localStorage.removeItem('remember_me')
+          localStorage.removeItem('remembered_email')
+        }
       }
       // Success handling is done by AuthProvider (automatic redirect)
 
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setLoading(false)
@@ -302,7 +311,30 @@ function LoginForm() {
               </div>
             </div>
 
-            <Button 
+            {/* Remember Me */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setRememberMe(p => !p)}
+                className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                  rememberMe ? 'bg-[#E8302A] border-[#E8302A]' : 'border-gray-300 bg-white'
+                }`}
+              >
+                {rememberMe && (
+                  <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10" fill="none">
+                    <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+              <label
+                onClick={() => setRememberMe(p => !p)}
+                className="text-sm text-gray-600 cursor-pointer select-none"
+              >
+                Remember me
+              </label>
+            </div>
+
+            <Button
               onClick={handleLogin}
               className="w-full bg-[#E8302A] hover:bg-[#B91C1C]"
               disabled={loading}

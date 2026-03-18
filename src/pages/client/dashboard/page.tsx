@@ -144,23 +144,21 @@ export default function ClientDashboard() {
       })
 
       if (response.status === 401 || response.status === 403) {
-        const errorData = await response.json()
-
-        if (errorData.code === 'TOKEN_EXPIRED' || errorData.code === 'INVALID_TOKEN') {
-          localStorage.removeItem('authToken')
-          localStorage.removeItem('userData')
-          localStorage.removeItem('userType')
-          localStorage.removeItem('companyData')
-          localStorage.removeItem('subscriptionData')
-          alert('Your session has expired. Please log in again.')
-          navigate('/login')
-          return null
-        }
+        const errorData = await response.json().catch(() => ({}))
 
         if (errorData.code === 'SUBSCRIPTION_EXPIRED') {
           navigate('/client/subscription-expired')
           return null
         }
+
+        // Any 401/403 (expired token, invalid token, or unknown auth error) → re-login
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('userData')
+        localStorage.removeItem('userType')
+        localStorage.removeItem('companyData')
+        localStorage.removeItem('subscriptionData')
+        navigate('/login')
+        return null
       }
 
       if (!response.ok) {

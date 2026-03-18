@@ -8,19 +8,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Settings, LogOut } from 'lucide-react'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 export function UserMenuDropdown() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
 
   const userData = localStorage.getItem('userData')
   const user = userData ? JSON.parse(userData) : null
   const initial = user?.name?.charAt(0)?.toUpperCase() || 'U'
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('userData')
-    localStorage.removeItem('companyData')
-    navigate('/login')
+    logout()
   }
 
   return (
