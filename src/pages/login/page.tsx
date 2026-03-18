@@ -11,14 +11,19 @@ import { useAuth } from "@/components/auth/AuthProvider"
 import API_CONFIG from "@/config/api"
 import { Capacitor } from "@capacitor/core"
 
-// True when running inside Electron, Capacitor (Android/iOS), or PWA
-const isNativeApp = Capacitor.isNativePlatform()
-  || navigator.userAgent.includes('Electron')
-  || window.matchMedia('(display-mode: standalone)').matches
+function checkIsNativeApp(): boolean {
+  return Capacitor.isNativePlatform()
+    || navigator.userAgent.includes('Electron')
+    || window.matchMedia('(display-mode: standalone)').matches
+    || window.matchMedia('(display-mode: minimal-ui)').matches
+    || window.matchMedia('(display-mode: window-controls-overlay)').matches
+    || (window.navigator as { standalone?: boolean }).standalone === true
+}
 
 function LoginForm() {
   const { login, loginWithToken, loading: authLoading, isAuthenticated, user, userType, logout } = useAuth()
   const navigate = useNavigate()
+  const [isNativeApp, setIsNativeApp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [isOnline, setIsOnline] = useState(true)
@@ -31,6 +36,15 @@ function LoginForm() {
     email: localStorage.getItem('remember_me') === 'true' ? (localStorage.getItem('remembered_email') || "") : "",
     password: ""
   })
+
+  // Detect native/PWA environment on mount (covers all display modes including desktop PWA)
+  useEffect(() => {
+    setIsNativeApp(checkIsNativeApp())
+    const mql = window.matchMedia('(display-mode: standalone)')
+    const handler = () => setIsNativeApp(checkIsNativeApp())
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
 
   // Handle Google OAuth redirect (token in URL) and success messages
   useEffect(() => {
