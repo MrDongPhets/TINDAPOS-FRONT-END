@@ -211,8 +211,30 @@ export default function ActivityLogsPage() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} company={company} />
         <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-32 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="flex gap-3 mb-2">
+              <div className="h-9 w-40 bg-gray-200 rounded animate-pulse" />
+              <div className="h-9 w-40 bg-gray-200 rounded animate-pulse" />
+            </div>
+            <div className="rounded-xl border bg-white p-4 animate-pulse space-y-3">
+              <div className="h-4 w-32 bg-gray-200 rounded" />
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex gap-3 items-center py-2 border-b border-gray-50">
+                  <div className="h-8 w-8 rounded-full bg-gray-200" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-3 w-40 bg-gray-200 rounded" />
+                    <div className="h-3 w-56 bg-gray-100 rounded" />
+                  </div>
+                  <div className="h-5 w-16 bg-gray-100 rounded-full" />
+                  <div className="h-3 w-24 bg-gray-100 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>

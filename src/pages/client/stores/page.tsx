@@ -108,10 +108,35 @@ export default function ClientStores() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} />
         <SidebarInset>
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-muted-foreground">Loading stores...</p>
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-20 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            <div className="rounded-xl border bg-white p-4 animate-pulse">
+              <div className="flex justify-between mb-4">
+                <div className="h-4 w-20 bg-gray-200 rounded" />
+                <div className="h-8 w-24 bg-gray-200 rounded" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="rounded-xl border p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-gray-200" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 bg-gray-200 rounded w-2/3" />
+                        <div className="h-3 bg-gray-100 rounded w-1/2" />
+                      </div>
+                    </div>
+                    <div className="h-3 bg-gray-100 rounded w-full" />
+                    <div className="h-3 bg-gray-100 rounded w-3/4" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </SidebarInset>

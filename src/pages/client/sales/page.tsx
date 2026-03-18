@@ -38,7 +38,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import {
   Search,
-  Filter,
+  SlidersHorizontal,
   Download,
   Eye,
   Loader2,
@@ -47,8 +47,14 @@ import {
   ShoppingCart,
   DollarSign,
   TrendingUp,
-  Receipt
+  Receipt,
+  Store,
 } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 
@@ -248,6 +254,55 @@ export default function SalesPage() {
     fetchSales();
   };
 
+  const exportToCSV = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const { start_date, end_date } = getDateRange();
+      const params = new URLSearchParams();
+      if (selectedStore !== 'all') params.append('store_id', selectedStore);
+      if (selectedPayment !== 'all') params.append('payment_method', selectedPayment);
+      if (start_date) params.append('start_date', start_date);
+      if (end_date) params.append('end_date', end_date);
+      if (searchTerm) params.append('search', searchTerm);
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}/client/sales/export?${params}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const rows = data.sales || [];
+
+      const header = ['Receipt', 'Date', 'Customer', 'Payment', 'Items', 'Discount', 'Total'];
+      const csvRows = [
+        header.join(','),
+        ...rows.map((s) => {
+          const itemNames = (s.sales_items || [])
+            .map((i: any) => `${i.products?.name || 'Item'} x${i.quantity}`)
+            .join('; ');
+          return [
+            s.receipt_number,
+            `"${formatDate(s.created_at)}"`,
+            `"${s.customer_name || 'Walk-in Customer'}"`,
+            s.payment_method?.toUpperCase() || '',
+            `"${itemNames}"`,
+            s.discount_amount || 0,
+            s.total_amount || 0,
+          ].join(',');
+        })
+      ];
+
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sales-${dateRange}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('en-PH', {
       year: 'numeric',
@@ -285,8 +340,34 @@ export default function SalesPage() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} />
         <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-24 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            <div className="rounded-xl border bg-white p-4 animate-pulse space-y-3">
+              <div className="flex justify-between mb-2">
+                <div className="h-4 w-32 bg-gray-200 rounded" />
+                <div className="flex gap-2">
+                  <div className="h-8 w-48 bg-gray-200 rounded" />
+                  <div className="h-8 w-8 bg-gray-200 rounded" />
+                  <div className="h-8 w-24 bg-gray-200 rounded" />
+                </div>
+              </div>
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex gap-3 items-center">
+                  <div className="h-4 w-24 bg-gray-100 rounded" />
+                  <div className="h-4 w-32 bg-gray-100 rounded" />
+                  <div className="h-4 w-20 bg-gray-100 rounded flex-1" />
+                  <div className="h-4 w-16 bg-gray-100 rounded" />
+                  <div className="h-4 w-20 bg-gray-100 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -378,107 +459,93 @@ export default function SalesPage() {
             </div>
           )}
 
-          {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                {/* Search */}
-                <div className="lg:col-span-2">
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        type="search"
-                        placeholder="Search receipt, customer..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                      />
-                    </div>
-                    <Button onClick={handleSearch}>
-                      <Search className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Date Range */}
-                <Select value={dateRange} onValueChange={(value) => {
-                  setDateRange(value);
-                  setPage(1);
-                }}>
-                  <SelectTrigger>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="yesterday">Yesterday</SelectItem>
-                    <SelectItem value="week">Last 7 Days</SelectItem>
-                    <SelectItem value="month">Last 30 Days</SelectItem>
-                    <SelectItem value="all">All Time</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Store Filter */}
-                <Select value={selectedStore} onValueChange={(value) => {
-                  setSelectedStore(value);
-                  setPage(1);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Stores" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Stores</SelectItem>
-                    {stores.map((store) => (
-                      <SelectItem key={store.id} value={store.id}>
-                        {store.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Payment Method Filter */}
-                <Select value={selectedPayment} onValueChange={(value) => {
-                  setSelectedPayment(value);
-                  setPage(1);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Methods" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Payments</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="card">Card</SelectItem>
-                    <SelectItem value="gcash">GCash</SelectItem>
-                    <SelectItem value="bank">Bank Transfer</SelectItem>
-                    <SelectItem value="credit">Utang (Credit)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Sales Table */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between gap-2">
                 <div>
                   <CardTitle>Sales Transactions</CardTitle>
-                  <CardDescription>
-                    Showing {sales.length} of {totalCount} transactions
-                  </CardDescription>
+                  <CardDescription>Showing {sales.length} of {totalCount} transactions</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
+                <Button variant="outline" size="sm" onClick={exportToCSV}>
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1.5">Export</span>
                 </Button>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search receipt, customer..."
+                    className="pl-8 bg-gray-50 border-gray-200 rounded-lg"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={(dateRange !== 'today' || selectedStore !== 'all' || selectedPayment !== 'all') ? "border-[#E8302A] text-[#E8302A]" : ""}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-64">
+                    <p className="text-sm font-medium mb-3">Filters</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Date Range</p>
+                        <Select value={dateRange} onValueChange={(v) => { setDateRange(v); setPage(1); }}>
+                          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="yesterday">Yesterday</SelectItem>
+                            <SelectItem value="week">Last 7 Days</SelectItem>
+                            <SelectItem value="month">Last 30 Days</SelectItem>
+                            <SelectItem value="all">All Time</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {stores.length > 1 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Store</p>
+                          <Select value={selectedStore} onValueChange={(v) => { setSelectedStore(v); setPage(1); }}>
+                            <SelectTrigger className="w-full"><SelectValue placeholder="All Stores" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Stores</SelectItem>
+                              {stores.map((store) => (
+                                <SelectItem key={store.id} value={store.id}>{store.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Payment Method</p>
+                        <Select value={selectedPayment} onValueChange={(v) => { setSelectedPayment(v); setPage(1); }}>
+                          <SelectTrigger className="w-full"><SelectValue placeholder="All Payments" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Payments</SelectItem>
+                            <SelectItem value="cash">Cash</SelectItem>
+                            <SelectItem value="card">Card</SelectItem>
+                            <SelectItem value="gcash">GCash</SelectItem>
+                            <SelectItem value="bank">Bank Transfer</SelectItem>
+                            <SelectItem value="credit">Utang (Credit)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {(dateRange !== 'today' || selectedStore !== 'all' || selectedPayment !== 'all') && (
+                        <Button variant="ghost" size="sm" className="w-full text-gray-500 text-xs"
+                          onClick={() => { setDateRange('today'); setSelectedStore('all'); setSelectedPayment('all'); setPage(1); }}>
+                          Clear filters
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </CardHeader>
             <CardContent>

@@ -30,12 +30,14 @@ import {
   TrendingUp,
   TrendingDown,
   Download,
+  SlidersHorizontal,
   Loader2,
   AlertCircle,
   Percent,
   Receipt,
   Store,
 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
@@ -223,8 +225,38 @@ export default function FinancialReportsPage() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} />
         <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-36 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto flex gap-2">
+              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="rounded-xl border bg-white p-4 animate-pulse">
+                  <div className="h-4 w-32 bg-gray-200 rounded mb-4" />
+                  <div className="h-48 bg-gray-100 rounded-lg" />
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl border bg-white p-4 animate-pulse">
+              <div className="h-4 w-36 bg-gray-200 rounded mb-4" />
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="flex-1 h-3 bg-gray-100 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -270,44 +302,59 @@ export default function FinancialReportsPage() {
           )}
 
           {/* Page Header with Filters */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="hidden md:block">
-              <h1 className="text-3xl font-bold tracking-tight">Financial Reports</h1>
-              <p className="text-muted-foreground mt-1">Revenue, profitability, and tax analytics</p>
+              <h1 className="text-2xl font-bold tracking-tight">Financial Reports</h1>
+              <p className="text-muted-foreground text-sm mt-0.5">Revenue, profitability, and tax analytics</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {stores.length > 1 && (
-                <Select value={selectedStore?.id ?? 'all'} onValueChange={(v) => {
-                  if (v === 'all') selectStore(null as any)
-                  else { const s = stores.find(x => x.id === v); if (s) selectStore(s) }
-                }}>
-                  <SelectTrigger className="w-[150px]">
-                    <Store className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="All Stores" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Stores</SelectItem>
-                    {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="week">Last 7 Days</SelectItem>
-                  <SelectItem value="month">Last 30 Days</SelectItem>
-                  <SelectItem value="quarter">Last Quarter</SelectItem>
-                  <SelectItem value="year">Last Year</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" onClick={exportCSV}>
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
+            <div className="flex items-center gap-2 ml-auto">
+              <Button variant="outline" size="sm" onClick={exportCSV}>
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline ml-1.5">Export CSV</span>
               </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={(dateRange !== 'week' || (stores.length > 1 && selectedStore?.id)) ? "border-[#E8302A] text-[#E8302A]" : ""}
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-64">
+                  <p className="text-sm font-medium mb-3">Filters</p>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Date Range</p>
+                      <Select value={dateRange} onValueChange={setDateRange}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="week">Last 7 Days</SelectItem>
+                          <SelectItem value="month">Last 30 Days</SelectItem>
+                          <SelectItem value="quarter">Last Quarter</SelectItem>
+                          <SelectItem value="year">Last Year</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {stores.length > 1 && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Store</p>
+                        <Select value={selectedStore?.id ?? 'all'} onValueChange={(v) => {
+                          if (v === 'all') selectStore(null as any)
+                          else { const s = stores.find(x => x.id === v); if (s) selectStore(s) }
+                        }}>
+                          <SelectTrigger className="w-full"><SelectValue placeholder="All Stores" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Stores</SelectItem>
+                            {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 

@@ -16,10 +16,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
   Folder,
   Plus,
   Search,
+  SlidersHorizontal,
   MoreHorizontal,
   Eye,
   Pencil,
@@ -27,7 +33,6 @@ import {
   RefreshCw,
   FolderOpen,
   Package,
-  Filter
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -148,8 +153,28 @@ export default function CategoriesPage() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} />
         <SidebarInset>
-          <div className="flex items-center justify-center min-h-screen">
-            <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-24 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            <div className="rounded-xl border bg-white p-4 animate-pulse">
+              <div className="flex justify-between mb-4">
+                <div className="h-4 w-28 bg-gray-200 rounded" />
+                <div className="h-8 w-28 bg-gray-200 rounded" />
+              </div>
+              <div className="flex gap-2 mb-4">
+                <div className="h-9 flex-1 bg-gray-100 rounded-lg" />
+                <div className="h-9 w-9 bg-gray-100 rounded" />
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {[...Array(8)].map((_, i) => <div key={i} className="h-24 bg-gray-100 rounded-xl" />)}
+              </div>
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -186,24 +211,6 @@ export default function CategoriesPage() {
             </Breadcrumb>
           </div>
           <div className="ml-auto px-4 flex items-center gap-2 shrink-0">
-            <div className="relative hidden sm:block w-48">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="search"
-                placeholder="Search categories..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button
-              variant={showInactive ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowInactive(!showInactive)}
-            >
-              <Filter className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">{showInactive ? "Hide Inactive" : "Show All"}</span>
-            </Button>
             <UserMenuDropdown />
           </div>
         </header>
@@ -266,10 +273,52 @@ export default function CategoriesPage() {
 
           {/* Categories Grid */}
           <Card>
-            <CardHeader>
-              <div className="flex flex-wrap justify-between items-center gap-2">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between gap-2">
                 <CardTitle>Categories</CardTitle>
-                <AddCategoryModal onCategoryAdded={handleCategoryAdded} />
+                <AddCategoryModal
+                  onCategoryAdded={handleCategoryAdded}
+                  trigger={
+                    <Button className="bg-[#E8302A] hover:bg-[#B91C1C] shrink-0">
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden sm:inline ml-1.5">Add Category</span>
+                    </Button>
+                  }
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search categories..."
+                    className="pl-8 bg-gray-50 border-gray-200 rounded-lg"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={!showInactive ? "border-[#E8302A] text-[#E8302A]" : ""}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56">
+                    <p className="text-sm font-medium mb-3">Filters</p>
+                    <button
+                      onClick={() => setShowInactive(!showInactive)}
+                      className="flex items-center justify-between w-full text-sm py-1.5"
+                    >
+                      <span className="text-gray-700">Show inactive</span>
+                      <div className={`w-8 h-4 rounded-full transition-colors ${showInactive ? 'bg-[#E8302A]' : 'bg-gray-200'} relative`}>
+                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${showInactive ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                      </div>
+                    </button>
+                  </PopoverContent>
+                </Popover>
               </div>
             </CardHeader>
             <CardContent className="p-0">

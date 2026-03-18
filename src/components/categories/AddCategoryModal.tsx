@@ -38,7 +38,7 @@ const CATEGORY_ICONS = [
   { value: 'layers', icon: Layers, label: 'Layers' },
 ]
 
-export default function AddCategoryModal({ onCategoryAdded }) {
+export default function AddCategoryModal({ onCategoryAdded, trigger = null }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -107,10 +107,12 @@ export default function AddCategoryModal({ onCategoryAdded }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
-        </Button>
+        {trigger || (
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Category
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

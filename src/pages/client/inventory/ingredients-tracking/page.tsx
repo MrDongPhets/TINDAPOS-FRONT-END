@@ -33,9 +33,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
   BarChart3,
   Search,
+  SlidersHorizontal,
   RefreshCw,
   TrendingUp,
   TrendingDown,
@@ -59,6 +65,7 @@ export default function IngredientsTrackingPage() {
   const [selectedIngredient, setSelectedIngredient] = useState(null)
   const [movementFilter, setMovementFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('today')
+  const [stockStatusFilter, setStockStatusFilter] = useState('all')
   
   // Modal states
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false)
@@ -182,11 +189,13 @@ export default function IngredientsTrackingPage() {
     setShowAdjustmentModal(true)
   }
 
-  // Filter ingredients based on search
+  // Filter ingredients based on search and stock status
   const filteredIngredients = ingredients.filter(ingredient => {
     const matchesSearch = ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ingredient.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
+    const status = getStockStatus(ingredient).status
+    const matchesStatus = stockStatusFilter === 'all' || status === stockStatusFilter
+    return matchesSearch && matchesStatus
   })
 
   // Filter movements
@@ -227,8 +236,32 @@ export default function IngredientsTrackingPage() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} />
         <SidebarInset>
-          <div className="flex items-center justify-center min-h-screen">
-            <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-36 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            {[0, 1].map((j) => (
+              <div key={j} className="rounded-xl border bg-white p-4 animate-pulse">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="h-4 w-40 bg-gray-200 rounded" />
+                  <div className="h-8 w-8 bg-gray-100 rounded" />
+                </div>
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="flex-1 h-3 bg-gray-100 rounded" />
+                      <div className="h-3 w-16 bg-gray-100 rounded" />
+                      <div className="h-6 w-16 bg-gray-100 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -324,22 +357,51 @@ export default function IngredientsTrackingPage() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="search"
-              placeholder="Search ingredients..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
           {/* Stock Levels Table */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Ingredient Stock Levels</CardTitle>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search ingredients..."
+                    className="pl-8 bg-gray-50 border-gray-200 rounded-lg"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={stockStatusFilter !== "all" ? "border-[#E8302A] text-[#E8302A]" : ""}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56">
+                    <p className="text-sm font-medium mb-3">Filters</p>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Stock Status</p>
+                      <Select value={stockStatusFilter} onValueChange={setStockStatusFilter}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="in-stock">In Stock</SelectItem>
+                          <SelectItem value="low-stock">Low Stock</SelectItem>
+                          <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {stockStatusFilter !== "all" && (
+                      <Button variant="ghost" size="sm" className="w-full text-gray-500 text-xs mt-2"
+                        onClick={() => setStockStatusFilter("all")}>Clear filters</Button>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -406,33 +468,56 @@ export default function IngredientsTrackingPage() {
 
           {/* Recent Movements */}
           <Card>
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle>Recent Ingredient Movements</CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Select value={movementFilter} onValueChange={setMovementFilter}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Movement Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="in">Stock In</SelectItem>
-                    <SelectItem value="out">Stock Out</SelectItem>
-                    <SelectItem value="adjustment">Adjustment</SelectItem>
-                    <SelectItem value="usage">Usage</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="w-28">
-                    <SelectValue placeholder="Period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="all">All Time</SelectItem>
-                  </SelectContent>
-                </Select>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle>Recent Ingredient Movements</CardTitle>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={(movementFilter !== "all" || dateFilter !== "today") ? "border-[#E8302A] text-[#E8302A]" : ""}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56">
+                    <p className="text-sm font-medium mb-3">Filters</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Movement Type</p>
+                        <Select value={movementFilter} onValueChange={setMovementFilter}>
+                          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            <SelectItem value="in">Stock In</SelectItem>
+                            <SelectItem value="out">Stock Out</SelectItem>
+                            <SelectItem value="adjustment">Adjustment</SelectItem>
+                            <SelectItem value="usage">Usage</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Period</p>
+                        <Select value={dateFilter} onValueChange={setDateFilter}>
+                          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="week">This Week</SelectItem>
+                            <SelectItem value="month">This Month</SelectItem>
+                            <SelectItem value="all">All Time</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {(movementFilter !== "all" || dateFilter !== "today") && (
+                        <Button variant="ghost" size="sm" className="w-full text-gray-500 text-xs"
+                          onClick={() => { setMovementFilter("all"); setDateFilter("today") }}>
+                          Clear filters
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </CardHeader>
             <CardContent>

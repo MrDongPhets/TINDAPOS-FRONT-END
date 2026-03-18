@@ -23,13 +23,11 @@ import {
   Package,
   DollarSign,
   ShoppingCart,
-  Users,
   BarChart3,
   ArrowUpRight,
   Loader2,
   AlertCircle,
-  Calendar,
-  Store
+  Store,
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
@@ -162,8 +160,27 @@ export default function ReportsPage() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} />
         <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-28 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="rounded-xl border bg-white p-4 animate-pulse space-y-3">
+                  <div className="h-10 w-10 bg-gray-200 rounded-lg" />
+                  <div className="h-4 w-32 bg-gray-200 rounded" />
+                  <div className="h-3 w-full bg-gray-100 rounded" />
+                  <div className="space-y-2 pt-2">
+                    {[...Array(4)].map((_, j) => <div key={j} className="h-3 bg-gray-100 rounded w-3/4" />)}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -205,19 +222,9 @@ export default function ReportsPage() {
           )}
 
           {/* Page Title */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="hidden md:block">
-              <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
-              <p className="text-muted-foreground mt-1">
-                Comprehensive business insights and data analysis
-              </p>
-            </div>
-            <div className="items-start sm:items-end">
-              <Button variant="outline" size="sm">
-                <Calendar className="h-4 w-4 mr-2" />
-                Select Period
-              </Button>
-            </div>
+          <div className="hidden md:block">
+            <h1 className="text-2xl font-bold tracking-tight">Reports & Analytics</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">Comprehensive business insights and data analysis</p>
           </div>
 
           {/* Quick Stats */}

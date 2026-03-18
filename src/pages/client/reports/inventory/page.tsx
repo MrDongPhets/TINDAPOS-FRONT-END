@@ -25,13 +25,15 @@ import {
   TrendingUp,
   AlertTriangle,
   Download,
+  SlidersHorizontal,
   Loader2,
   AlertCircle,
   DollarSign,
   BarChart3,
   Package2,
-  Store
+  Store,
 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
@@ -195,8 +197,32 @@ export default function InventoryReportsPage() {
       <SidebarProvider>
         <AppSidebar userType="client" user={user} />
         <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-44 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto flex gap-2">
+              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-xl border bg-white p-4 animate-pulse space-y-3">
+                <div className="h-4 w-40 bg-gray-200 rounded" />
+                <div className="h-48 bg-gray-100 rounded" />
+              </div>
+              <div className="rounded-xl border bg-white p-4 animate-pulse space-y-3">
+                <div className="h-4 w-40 bg-gray-200 rounded" />
+                <div className="h-48 bg-gray-100 rounded" />
+              </div>
+            </div>
+            <div className="rounded-xl border bg-white p-4 animate-pulse space-y-3">
+              <div className="h-4 w-32 bg-gray-200 rounded" />
+              {[...Array(5)].map((_, i) => <div key={i} className="h-10 bg-gray-100 rounded" />)}
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>
@@ -242,31 +268,41 @@ export default function InventoryReportsPage() {
           )}
 
           {/* Page Header */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="hidden md:block">
-              <h1 className="text-3xl font-bold tracking-tight">Inventory Reports</h1>
-              <p className="text-muted-foreground mt-1">Stock levels, valuations, and movement analysis</p>
+              <h1 className="text-2xl font-bold tracking-tight">Inventory Reports</h1>
+              <p className="text-muted-foreground text-sm mt-0.5">Stock levels, valuations, and movement analysis</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {stores.length > 1 && (
-                <Select value={selectedStore?.id ?? 'all'} onValueChange={(v) => {
-                  if (v === 'all') selectStore(null as any)
-                  else { const s = stores.find(x => x.id === v); if (s) selectStore(s) }
-                }}>
-                  <SelectTrigger className="w-[150px]">
-                    <Store className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="All Stores" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Stores</SelectItem>
-                    {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-              <Button variant="outline" onClick={exportCSV}>
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
+            <div className="flex items-center gap-2 ml-auto">
+              <Button variant="outline" size="sm" onClick={exportCSV}>
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline ml-1.5">Export CSV</span>
               </Button>
+              {stores.length > 1 && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className={selectedStore?.id ? "border-[#E8302A] text-[#E8302A]" : ""}>
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56">
+                    <p className="text-sm font-medium mb-3">Filters</p>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Store</p>
+                      <Select value={selectedStore?.id ?? 'all'} onValueChange={(v) => {
+                        if (v === 'all') selectStore(null as any)
+                        else { const s = stores.find(x => x.id === v); if (s) selectStore(s) }
+                      }}>
+                        <SelectTrigger className="w-full"><SelectValue placeholder="All Stores" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Stores</SelectItem>
+                          {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
           </div>
 

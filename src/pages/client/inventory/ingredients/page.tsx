@@ -41,15 +41,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
   Beaker,
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Eye, 
-  Edit, 
+  Plus,
+  Search,
+  SlidersHorizontal,
+  MoreHorizontal,
+  Eye,
+  Edit,
   Trash2,
-  RefreshCw,
   Loader2,
   AlertCircle,
   CheckCircle,
@@ -258,12 +263,46 @@ export default function IngredientsPage() {
 
   if (loading && stores.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Loading ingredients...</p>
-        </div>
-      </div>
+      <SidebarProvider>
+        <AppSidebar userType="client" user={user} />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+            <div className="h-4 w-36 rounded bg-gray-200 animate-pulse ml-2" />
+            <div className="ml-auto flex gap-2">
+              <div className="h-8 w-28 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+            </div>
+          </header>
+          <div className="flex flex-col gap-4 p-4 pt-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <div key={i} className="rounded-2xl bg-gray-200 animate-pulse h-24" />)}
+            </div>
+            <div className="rounded-xl border bg-white p-4 animate-pulse space-y-3">
+              <div className="flex justify-between mb-2">
+                <div className="h-4 w-40 bg-gray-200 rounded" />
+                <div className="h-8 w-28 bg-gray-200 rounded" />
+              </div>
+              <div className="flex gap-2 mb-3">
+                <div className="h-9 flex-1 bg-gray-100 rounded" />
+                <div className="h-9 w-9 bg-gray-100 rounded" />
+              </div>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex gap-3 items-center py-2">
+                  <div className="h-10 w-10 rounded bg-gray-200" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 w-32 bg-gray-200 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
+                  </div>
+                  <div className="h-5 w-16 bg-gray-100 rounded-full" />
+                  <div className="h-4 w-12 bg-gray-100 rounded" />
+                  <div className="h-8 w-8 bg-gray-100 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     )
   }
 
@@ -396,36 +435,63 @@ export default function IngredientsPage() {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search ingredients by name or SKU..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={stockFilter} onValueChange={setStockFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Stock Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="good">In Stock</SelectItem>
-                <SelectItem value="low">Low Stock</SelectItem>
-                <SelectItem value="out">Out of Stock</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Ingredients Table */}
           <Card>
-            <CardHeader>
-              <div className="flex flex-wrap justify-between items-center gap-2">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between gap-2">
                 <CardTitle>Ingredients List</CardTitle>
-                <AddIngredientModal onIngredientAdded={handleIngredientAdded} />
+                <AddIngredientModal
+                  onIngredientAdded={handleIngredientAdded}
+                  trigger={
+                    <Button className="bg-[#E8302A] hover:bg-[#B91C1C] shrink-0">
+                      <Plus className="h-4 w-4" />
+                      <span className="hidden sm:inline ml-1.5">Add Ingredient</span>
+                    </Button>
+                  }
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search ingredients..."
+                    className="pl-8 bg-gray-50 border-gray-200 rounded-lg"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={stockFilter !== "all" ? "border-[#E8302A] text-[#E8302A]" : ""}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56">
+                    <p className="text-sm font-medium mb-3">Filters</p>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Stock Status</p>
+                      <Select value={stockFilter} onValueChange={setStockFilter}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="good">In Stock</SelectItem>
+                          <SelectItem value="low">Low Stock</SelectItem>
+                          <SelectItem value="out">Out of Stock</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {stockFilter !== "all" && (
+                      <Button variant="ghost" size="sm" className="w-full text-gray-500 text-xs mt-2"
+                        onClick={() => setStockFilter("all")}>Clear filters</Button>
+                    )}
+                  </PopoverContent>
+                </Popover>
               </div>
             </CardHeader>
             <CardContent className="p-0">
