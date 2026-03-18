@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Download, Smartphone, Zap, WifiOff } from 'lucide-react'
+import { X, Download, Smartphone, Zap, WifiOff, AlertTriangle, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 function isStandalone(): boolean {
@@ -48,8 +48,6 @@ export function PWAInstallModal() {
   }
 
   const handleDismiss = () => {
-    // Only hide for this page load — no localStorage persistence
-    // Browser will re-fire beforeinstallprompt on next visit
     setShow(false)
   }
 
@@ -78,7 +76,6 @@ export function PWAInstallModal() {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
                 <img src="/logo.png" alt="TindaPOS" className="w-9 h-9 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                <span className="text-[#E8302A] font-black text-lg hidden">T</span>
               </div>
               <div>
                 <p className="text-white font-bold text-lg leading-tight">TindaPOS</p>
@@ -89,8 +86,8 @@ export function PWAInstallModal() {
 
           {/* Content */}
           <div className="px-5 pt-4 pb-5 -mt-4">
-            {/* White card that overlaps header */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
+            {/* Benefits card overlapping header */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-3">
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center">
@@ -113,9 +110,27 @@ export function PWAInstallModal() {
               </div>
             </div>
 
-            <p className="text-sm text-gray-500 text-center mb-4">
-              Add TindaPOS to your home screen for a full-screen app experience — no browser bar.
-            </p>
+            {/* Important notices */}
+            <div className="space-y-2 mb-4">
+              <div className="flex gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-amber-800 mb-0.5">Business account required</p>
+                  <p className="text-xs text-amber-700 leading-snug">
+                    Registration is only available on the website. Make sure you have an account before installing.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2.5 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                <Users className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-blue-800 mb-0.5">Staff &amp; cashier login</p>
+                  <p className="text-xs text-blue-700 leading-snug">
+                    Staff login is only accessible inside the installed app, not in the browser.
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <Button
               onClick={handleInstall}
