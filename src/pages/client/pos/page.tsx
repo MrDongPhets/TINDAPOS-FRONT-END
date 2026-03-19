@@ -153,7 +153,7 @@ export default function POSPage() {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/pos/categories`, { headers: getAuthHeaders() })
       const data = await response.json()
-      setCategories(data.categories || [])
+      setCategories((data.categories || []).filter((c: any) => c.is_active !== false))
     } catch (error) {
       logger.error('Fetch categories error:', error)
     }
