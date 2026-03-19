@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     // Skip PWA in desktop (Electron) mode — service workers conflict with Electron
     ...(mode !== 'desktop' ? [VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo-v2.png'],
+      includeAssets: ['NEW-pos-logo.png', 'android-app-logo.png'],
       manifest: {
         name: 'TindaPOS',
         short_name: 'TindaPOS',
@@ -23,16 +23,16 @@ export default defineConfig(({ mode }) => ({
         start_url: '/login',
         icons: [
           {
-            src: 'logo-v2.png',
+            src: 'android-app-logo.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: 'logo-v2.png',
+            src: 'android-app-logo.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ]
       },

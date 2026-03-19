@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="text-center mb-6">
-        <img src="/logo.png" alt="TindaPOS" className="w-16 h-16 mx-auto mb-4 object-contain" />
+        <img src="/NEW-pos-logo.png" alt="TindaPOS" className="w-16 h-16 mx-auto mb-4 object-contain" />
         <h1 className="text-2xl font-bold text-gray-900">TindaPOS</h1>
         <p className="text-gray-600">Ang POS para sa bawat tindahan.</p>
       </div>
