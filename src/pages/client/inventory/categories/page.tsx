@@ -33,6 +33,26 @@ import {
   RefreshCw,
   FolderOpen,
   Package,
+  Coffee,
+  Wine,
+  Utensils,
+  Apple,
+  Leaf,
+  Fish,
+  Sparkles,
+  Heart,
+  Snowflake,
+  Flame,
+  Droplets,
+  ShoppingBag,
+  Baby,
+  Shirt,
+  Pill,
+  Beef,
+  IceCream,
+  Tag,
+  Layers,
+  Archive,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -53,7 +73,7 @@ export default function CategoriesPage() {
   const [totalCategories, setTotalCategories] = useState(0)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [showInactive, setShowInactive] = useState(true)
+  const [showInactive, setShowInactive] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
   
   // Modal states
@@ -140,9 +160,29 @@ export default function CategoriesPage() {
 
   const getIconComponent = (iconName) => {
     const iconMap = {
-      folder: Folder,
+      'folder': Folder,
       'folder-open': FolderOpen,
-      // Add more icon mappings as needed
+      'archive': Archive,
+      'tag': Tag,
+      'layers': Layers,
+      'coffee': Coffee,
+      'wine': Wine,
+      'utensils': Utensils,
+      'beef': Beef,
+      'fish': Fish,
+      'apple': Apple,
+      'leaf': Leaf,
+      'ice-cream': IceCream,
+      'snowflake': Snowflake,
+      'package': Package,
+      'flame': Flame,
+      'droplets': Droplets,
+      'sparkles': Sparkles,
+      'heart': Heart,
+      'pill': Pill,
+      'baby': Baby,
+      'shirt': Shirt,
+      'shopping-bag': ShoppingBag,
     }
     const IconComponent = iconMap[iconName] || Folder
     return <IconComponent className="h-4 w-4" />

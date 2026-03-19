@@ -158,7 +158,11 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
     try {
       const data = await makeApiCall('/client/dashboard/stores')
       if (data) {
-        setStores(data.stores || [])
+        const storeList = data.stores || []
+        setStores(storeList)
+        if (storeList.length === 1) {
+          handleInputChange('store_id', storeList[0].id)
+        }
       }
     } catch (error) {
       logger.error('Failed to fetch stores:', error)
@@ -355,7 +359,7 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
 
                 <div className="space-y-2">
                   <Label htmlFor="store_id">Store *</Label>
-                  <Select onValueChange={(value) => handleInputChange('store_id', value)}>
+                  <Select value={formData.store_id || ""} onValueChange={(value) => handleInputChange('store_id', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select store" />
                     </SelectTrigger>
@@ -422,44 +426,9 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="manila_price">Manila Price</Label>
-                  <Input
-                    id="manila_price"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.manila_price}
-                    onChange={(e) => handleInputChange('manila_price', e.target.value)}
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="delivery_price">Delivery Price</Label>
-                  <Input
-                    id="delivery_price"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.delivery_price}
-                    onChange={(e) => handleInputChange('delivery_price', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="wholesale_price">Wholesale Price</Label>
-                  <Input
-                    id="wholesale_price"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.wholesale_price}
-                    onChange={(e) => handleInputChange('wholesale_price', e.target.value)}
-                  />
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="cost_price">
                     Cost Price {isComposite ? "(Auto from Recipe)" : "(Supplier)"}
@@ -601,7 +570,7 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                     value={formData.image_url}
                     onChange={(url) => handleInputChange('image_url', url)}
                     disabled={loading}
-                    maxSize={5 * 1024 * 1024} // 5MB
+                    maxSize={20 * 1024 * 1024} // 20MB — compressed by backend before R2
                   />
                 </div>
               </div>

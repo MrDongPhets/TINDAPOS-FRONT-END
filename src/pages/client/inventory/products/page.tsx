@@ -279,7 +279,7 @@ export default function ProductsPage() {
   const getStockStatus = (product) => {
     if (product.stock_quantity <= 0) {
       return { status: 'out-of-stock', color: 'bg-red-100 text-red-800 border-red-200', text: 'Out of Stock', icon: XCircle }
-    } else if (product.stock_quantity <= product.min_stock_level) {
+    } else if (product.stock_quantity < product.min_stock_level) {
       return { status: 'low-stock', color: 'bg-orange-100 text-orange-800 border-orange-200', text: 'Low Stock', icon: AlertCircle }
     } else {
       return { status: 'in-stock', color: 'bg-green-100 text-green-800 border-green-200', text: 'In Stock', icon: CheckCircle }

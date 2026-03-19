@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Loader2, Folder, FolderOpen, Archive, Tag, Layers } from "lucide-react"
+import { Loader2, Folder, FolderOpen, Archive, Tag, Layers, Coffee, Wine, Utensils, Apple, Leaf, Fish, Package, Sparkles, Heart, Snowflake, Flame, Droplets, ShoppingBag, Baby, Shirt, Pill, Beef, IceCream } from "lucide-react"
 import { toast } from "sonner"
 import API_CONFIG from '@/config/api';
 
@@ -30,11 +30,28 @@ const CATEGORY_COLORS = [
 ]
 
 const CATEGORY_ICONS = [
-  { value: 'folder', icon: Folder, label: 'Folder' },
-  { value: 'folder-open', icon: FolderOpen, label: 'Open Folder' },
-  { value: 'archive', icon: Archive, label: 'Archive' },
+  { value: 'coffee', icon: Coffee, label: 'Beverages' },
+  { value: 'wine', icon: Wine, label: 'Alcoholic Drinks' },
+  { value: 'utensils', icon: Utensils, label: 'Food' },
+  { value: 'beef', icon: Beef, label: 'Meat' },
+  { value: 'fish', icon: Fish, label: 'Seafood' },
+  { value: 'apple', icon: Apple, label: 'Fruits' },
+  { value: 'leaf', icon: Leaf, label: 'Vegetables' },
+  { value: 'ice-cream', icon: IceCream, label: 'Ice Cream' },
+  { value: 'snowflake', icon: Snowflake, label: 'Frozen' },
+  { value: 'package', icon: Package, label: 'Canned/Packaged' },
+  { value: 'flame', icon: Flame, label: 'Spicy/Hot' },
+  { value: 'droplets', icon: Droplets, label: 'Liquids' },
+  { value: 'sparkles', icon: Sparkles, label: 'Hygiene' },
+  { value: 'heart', icon: Heart, label: 'Health' },
+  { value: 'pill', icon: Pill, label: 'Medicine' },
+  { value: 'baby', icon: Baby, label: 'Baby' },
+  { value: 'shirt', icon: Shirt, label: 'Clothing' },
+  { value: 'shopping-bag', icon: ShoppingBag, label: 'General' },
   { value: 'tag', icon: Tag, label: 'Tag' },
-  { value: 'layers', icon: Layers, label: 'Layers' },
+  { value: 'layers', icon: Layers, label: 'Mixed' },
+  { value: 'archive', icon: Archive, label: 'Archive' },
+  { value: 'folder', icon: Folder, label: 'Folder' },
 ]
 
 export default function EditCategoryModal({ category, open, onOpenChange, onCategoryUpdated }) {

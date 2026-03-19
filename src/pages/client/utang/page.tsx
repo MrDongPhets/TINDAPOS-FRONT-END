@@ -39,6 +39,7 @@ import {
   Phone,
   User,
   Loader2,
+  Pencil,
 } from 'lucide-react'
 
 function formatCurrency(amount: number) {
@@ -78,6 +79,11 @@ export default function UtangPage() {
   const [chargeAmount, setChargeAmount] = useState('')
   const [chargeNotes, setChargeNotes] = useState('')
   const [chargeLoading, setChargeLoading] = useState(false)
+
+  // Edit customer dialog
+  const [showEdit, setShowEdit] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', phone: '', notes: '' })
+  const [editLoading, setEditLoading] = useState(false)
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -187,6 +193,30 @@ export default function UtangPage() {
       toast({ title: err.message || 'Failed to record utang', variant: 'destructive' })
     } finally {
       setChargeLoading(false)
+    }
+  }
+
+  const handleEditCustomer = async () => {
+    if (!editForm.name.trim()) {
+      toast({ title: 'Name is required', variant: 'destructive' })
+      return
+    }
+    setEditLoading(true)
+    try {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/client/utang/customers/${selectedCustomer.id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editForm)
+      })
+      if (!res.ok) throw new Error((await res.json()).error)
+      toast({ title: 'Customer updated' })
+      setShowEdit(false)
+      setSelectedCustomer((prev: any) => ({ ...prev, ...editForm }))
+      fetchCustomers()
+    } catch (err: any) {
+      toast({ title: err.message || 'Failed to update customer', variant: 'destructive' })
+    } finally {
+      setEditLoading(false)
     }
   }
 
@@ -352,28 +382,43 @@ export default function UtangPage() {
           <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
             <SheetHeader className="pb-4 border-b">
               <SheetTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                {selectedCustomer?.name}
+                <div className="h-9 w-9 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <User className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1">
+                    <span className="font-semibold truncate">{selectedCustomer?.name}</span>
+                    <button
+                      onClick={() => {
+                        setEditForm({ name: selectedCustomer?.name || '', phone: selectedCustomer?.phone || '', notes: selectedCustomer?.notes || '' })
+                        setShowEdit(true)
+                      }}
+                      className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 shrink-0"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {selectedCustomer?.phone && (
+                    <p className="text-sm text-gray-500 flex items-center gap-1 font-normal">
+                      <Phone className="h-3 w-3" />{selectedCustomer.phone}
+                    </p>
+                  )}
+                </div>
               </SheetTitle>
-              {selectedCustomer?.phone && (
-                <p className="text-sm text-gray-500 flex items-center gap-1">
-                  <Phone className="h-3 w-3" />{selectedCustomer.phone}
-                </p>
-              )}
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-between pt-3">
                 <div>
-                  <p className="text-sm text-gray-500">Outstanding Balance</p>
+                  <p className="text-xs text-gray-500">Outstanding Balance</p>
                   <p className={`text-2xl font-bold ${(selectedCustomer?.balance || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
                     {formatCurrency(selectedCustomer?.balance || 0)}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowCharge(true)} className="border-red-300 text-red-700">
+                  <Button variant="outline" size="sm" onClick={() => setShowCharge(true)} className="border-red-300 text-red-700">
                     <ArrowUpCircle className="h-4 w-4 mr-1" />
                     Utang
                   </Button>
                   {(selectedCustomer?.balance || 0) > 0 && (
-                    <Button onClick={() => setShowPayment(true)} className="bg-[#E8302A] hover:bg-[#B91C1C]">
+                    <Button size="sm" onClick={() => setShowPayment(true)} className="bg-[#E8302A] hover:bg-[#B91C1C]">
                       <ArrowDownCircle className="h-4 w-4 mr-1" />
                       Pay
                     </Button>
@@ -504,6 +549,50 @@ export default function UtangPage() {
                 <Button variant="outline" onClick={() => setShowPayment(false)} className="flex-1">Cancel</Button>
                 <Button onClick={handleRecordPayment} disabled={paymentLoading} className="flex-1 bg-[#E8302A] hover:bg-[#B91C1C]">
                   {paymentLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Record Payment'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+        {/* Edit Customer Dialog */}
+        <Dialog open={showEdit} onOpenChange={setShowEdit}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Customer</DialogTitle>
+              <DialogDescription>Update customer name and contact details</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label>Name *</Label>
+                <Input
+                  placeholder="Customer name"
+                  value={editForm.name}
+                  onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  placeholder="Phone number (optional)"
+                  value={editForm.phone}
+                  onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Input
+                  placeholder="Notes (optional)"
+                  value={editForm.notes}
+                  onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setShowEdit(false)} className="flex-1">Cancel</Button>
+                <Button onClick={handleEditCustomer} disabled={editLoading} className="flex-1 bg-[#E8302A] hover:bg-[#B91C1C]">
+                  {editLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Changes'}
                 </Button>
               </div>
             </div>

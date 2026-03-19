@@ -24,7 +24,7 @@ export function ImageUpload({
   onChange, 
   disabled = false,
   accept = "image/*",
-  maxSize = 5 * 1024 * 1024, // 5MB default
+  maxSize = 20 * 1024 * 1024, // 20MB default — compressed by backend before R2
   className = ""
 }) {
   const [uploading, setUploading] = useState(false)

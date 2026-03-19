@@ -203,24 +203,6 @@ export function ViewProductModal({ product, open, onOpenChange }) {
                 <p className="text-xs text-gray-500">Default Price</p>
                 <p className="text-sm font-medium">{formatCurrency(product.default_price)}</p>
               </div>
-              {product.manila_price && (
-                <div>
-                  <p className="text-xs text-gray-500">Manila Price</p>
-                  <p className="text-sm font-medium">{formatCurrency(product.manila_price)}</p>
-                </div>
-              )}
-              {product.delivery_price && (
-                <div>
-                  <p className="text-xs text-gray-500">Delivery Price</p>
-                  <p className="text-sm font-medium">{formatCurrency(product.delivery_price)}</p>
-                </div>
-              )}
-              {product.wholesale_price && (
-                <div>
-                  <p className="text-xs text-gray-500">Wholesale Price</p>
-                  <p className="text-sm font-medium">{formatCurrency(product.wholesale_price)}</p>
-                </div>
-              )}
               {product.cost_price > 0 && (() => {
                 const profit = product.default_price - product.cost_price
                 const margin = (profit / product.default_price) * 100
@@ -830,44 +812,6 @@ export function EditProductModal({ product, open, onOpenChange, onProductUpdated
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="manila_price">Manila Price</Label>
-                  <Input
-                    id="manila_price"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.manila_price}
-                    onChange={(e) => handleInputChange('manila_price', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="delivery_price">Delivery Price</Label>
-                  <Input
-                    id="delivery_price"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.delivery_price}
-                    onChange={(e) => handleInputChange('delivery_price', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="wholesale_price">Wholesale Price</Label>
-                  <Input
-                    id="wholesale_price"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.wholesale_price}
-                    onChange={(e) => handleInputChange('wholesale_price', e.target.value)}
-                    disabled={loading}
-                  />
-                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="cost_price">

@@ -8,14 +8,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Folder, FolderOpen, Archive, Tag, Layers, Calendar, Package } from "lucide-react"
+import { Folder, FolderOpen, Archive, Tag, Layers, Calendar, Package, Coffee, Wine, Utensils, Apple, Leaf, Fish, Sparkles, Heart, Snowflake, Flame, Droplets, ShoppingBag, Baby, Shirt, Pill, Beef, IceCream } from "lucide-react"
 
 const CATEGORY_ICONS = [
-  { value: 'folder', icon: Folder },
-  { value: 'folder-open', icon: FolderOpen },
-  { value: 'archive', icon: Archive },
+  { value: 'coffee', icon: Coffee },
+  { value: 'wine', icon: Wine },
+  { value: 'utensils', icon: Utensils },
+  { value: 'beef', icon: Beef },
+  { value: 'fish', icon: Fish },
+  { value: 'apple', icon: Apple },
+  { value: 'leaf', icon: Leaf },
+  { value: 'ice-cream', icon: IceCream },
+  { value: 'snowflake', icon: Snowflake },
+  { value: 'package', icon: Package },
+  { value: 'flame', icon: Flame },
+  { value: 'droplets', icon: Droplets },
+  { value: 'sparkles', icon: Sparkles },
+  { value: 'heart', icon: Heart },
+  { value: 'pill', icon: Pill },
+  { value: 'baby', icon: Baby },
+  { value: 'shirt', icon: Shirt },
+  { value: 'shopping-bag', icon: ShoppingBag },
   { value: 'tag', icon: Tag },
   { value: 'layers', icon: Layers },
+  { value: 'archive', icon: Archive },
+  { value: 'folder', icon: Folder },
 ]
 
 export default function ViewCategoryModal({ category, open, onOpenChange }) {
