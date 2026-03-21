@@ -89,12 +89,12 @@ export function ViewProductModal({ product, open, onOpenChange }) {
         text: 'Out of Stock',
         description: 'No stock available'
       }
-    } else if (product.stock_quantity <= product.min_stock_level) {
-      return { 
-        status: 'low-stock', 
-        color: 'bg-orange-100 text-orange-800 border-orange-200', 
+    } else if (product.stock_quantity <= Math.ceil((product.max_stock_level || 0) * 0.3) && product.max_stock_level > 0) {
+      return {
+        status: 'low-stock',
+        color: 'bg-orange-100 text-orange-800 border-orange-200',
         text: 'Low Stock',
-        description: 'Below minimum level'
+        description: 'Below 30% of max stock'
       }
     } else {
       return { 
@@ -265,8 +265,10 @@ export function ViewProductModal({ product, open, onOpenChange }) {
                   <p className="text-lg font-bold">{product.stock_quantity || 0}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Min Level</p>
-                  <p className="text-lg font-medium">{product.min_stock_level || 'N/A'}</p>
+                  <p className="text-xs text-gray-500">Low Stock At</p>
+                  <p className="text-lg font-medium">
+                    {product.max_stock_level ? `≤${Math.ceil(product.max_stock_level * 0.3)}` : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Max Level</p>
@@ -882,27 +884,16 @@ export function EditProductModal({ product, open, onOpenChange, onProductUpdated
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="min_stock_level">Min Stock Level</Label>
-                    <Input
-                      id="min_stock_level"
-                      type="number"
-                      placeholder="0"
-                      value={formData.min_stock_level}
-                      onChange={(e) => handleInputChange('min_stock_level', e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="max_stock_level">Max Stock Level</Label>
                     <Input
                       id="max_stock_level"
                       type="number"
-                      placeholder="0"
+                      placeholder="e.g. 50"
                       value={formData.max_stock_level}
                       onChange={(e) => handleInputChange('max_stock_level', e.target.value)}
                       disabled={loading}
                     />
+                    <p className="text-xs text-gray-400">Low stock alert at 30% of this value</p>
                   </div>
                 </div>
 

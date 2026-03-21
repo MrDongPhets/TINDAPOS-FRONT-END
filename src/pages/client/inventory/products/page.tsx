@@ -71,7 +71,8 @@ import {
   ChefHat,
   Factory,
   Calendar,
-  RefreshCw
+  RefreshCw,
+  Layers
 } from "lucide-react"
 import { SimpleStoreSelector } from "@/components/store/SimpleStoreSelector"
 import { useStores } from "@/hooks/useStores"
@@ -84,6 +85,7 @@ import {
 import { ProductRecipeModal } from "@/components/inventory/ProductRecipeModal"
 import { ManufactureProductModal } from "@/components/inventory/ManufactureProductModal"
 import StockAdjustmentModal from "@/components/inventory/StockAdjustmentModal"
+import BulkStockAdjustSheet from "@/components/inventory/BulkStockAdjustSheet"
 import API_CONFIG from "@/config/api"
 import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
@@ -124,6 +126,7 @@ export default function ProductsPage() {
   const [showRecipeModal, setShowRecipeModal] = useState(false)
   const [showManufactureModal, setShowManufactureModal] = useState(false)
   const [showAdjustStockModal, setShowAdjustStockModal] = useState(false)
+  const [showBulkAdjust, setShowBulkAdjust] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem('userData')
@@ -279,11 +282,12 @@ export default function ProductsPage() {
   const getStockStatus = (product) => {
     if (product.stock_quantity <= 0) {
       return { status: 'out-of-stock', color: 'bg-red-100 text-red-800 border-red-200', text: 'Out of Stock', icon: XCircle }
-    } else if (product.stock_quantity < product.min_stock_level) {
-      return { status: 'low-stock', color: 'bg-orange-100 text-orange-800 border-orange-200', text: 'Low Stock', icon: AlertCircle }
-    } else {
-      return { status: 'in-stock', color: 'bg-green-100 text-green-800 border-green-200', text: 'In Stock', icon: CheckCircle }
     }
+    const threshold = product.max_stock_level ? Math.ceil(product.max_stock_level * 0.3) : 5
+    if (product.stock_quantity <= threshold) {
+      return { status: 'low-stock', color: 'bg-orange-100 text-orange-800 border-orange-200', text: 'Low Stock', icon: AlertCircle }
+    }
+    return { status: 'in-stock', color: 'bg-green-100 text-green-800 border-green-200', text: 'In Stock', icon: CheckCircle }
   }
 
   // Aggregate products by SKU when viewing all stores
@@ -425,6 +429,7 @@ export default function ProductsPage() {
   }
 
   return (
+    <>
     <SidebarProvider>
       <AppSidebar userType="client" user={user} />
       <SidebarInset>
@@ -525,15 +530,21 @@ export default function ProductsPage() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between gap-2">
                 <CardTitle>Products List</CardTitle>
-                <AddProductModal
-                  onProductAdded={handleProductAdded}
-                  trigger={
-                    <Button className="bg-[#E8302A] hover:bg-[#B91C1C] shrink-0">
-                      <Plus className="h-4 w-4" />
-                      <span className="hidden sm:inline ml-1.5">Add Product</span>
-                    </Button>
-                  }
-                />
+                <div className="flex items-center gap-2">
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white shrink-0" onClick={() => setShowBulkAdjust(true)}>
+                    <Layers className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-1.5">Bulk Adjust</span>
+                  </Button>
+                  <AddProductModal
+                    onProductAdded={handleProductAdded}
+                    trigger={
+                      <Button className="bg-[#E8302A] hover:bg-[#B91C1C] text-white shrink-0">
+                        <Plus className="h-4 w-4" />
+                        <span className="hidden sm:inline ml-1.5">Add Product</span>
+                      </Button>
+                    }
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="relative flex-1">
@@ -980,9 +991,18 @@ export default function ProductsPage() {
               onOpenChange={setShowAdjustStockModal}
               onStockUpdated={handleRefresh}
             />
+
           </>
         )}
       </SidebarInset>
     </SidebarProvider>
+
+    <BulkStockAdjustSheet
+      open={showBulkAdjust}
+      onClose={() => setShowBulkAdjust(false)}
+      products={products}
+      onSaved={handleRefresh}
+    />
+    </>
   )
 }

@@ -1,17 +1,33 @@
 import { formatCurrency } from '@/lib/utils'
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Plus, Minus, X, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 
 export default function CartItem({ item, onUpdateQuantity, onRemove }) {
-  const handleQuantityChange = (newQuantity) => {
-    const quantity = parseInt(newQuantity) || 0
-    if (quantity >= 0 && quantity <= item.stock_quantity) {
+  const [inputValue, setInputValue] = useState(String(item.quantity))
+
+  useEffect(() => {
+    setInputValue(String(item.quantity))
+  }, [item.quantity])
+
+  const commitQuantity = (val: string) => {
+    const quantity = parseInt(val) || 0
+    if (quantity <= 0) {
+      onUpdateQuantity(item.product_id, 0) // removes item
+    } else if (quantity <= item.stock_quantity) {
       onUpdateQuantity(item.product_id, quantity)
+    } else {
+      setInputValue(String(item.stock_quantity))
+      onUpdateQuantity(item.product_id, item.stock_quantity)
     }
+  }
+
+  const handleQuantityChange = (newQuantity: number) => {
+    onUpdateQuantity(item.product_id, newQuantity <= 0 ? 0 : Math.min(newQuantity, item.stock_quantity))
   }
 
   const itemTotal = item.price * item.quantity - (item.discount_amount || 0)
@@ -64,8 +80,10 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
 
               <Input
                 type="number"
-                value={item.quantity}
-                onChange={(e) => handleQuantityChange(e.target.value)}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onBlur={(e) => commitQuantity(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && commitQuantity(inputValue)}
                 className="h-8 w-16 text-center"
                 min="0"
                 max={item.stock_quantity}

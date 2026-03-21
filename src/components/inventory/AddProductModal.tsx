@@ -495,25 +495,15 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="min_stock_level">Min Stock Level</Label>
-                    <Input
-                      id="min_stock_level"
-                      type="number"
-                      placeholder="0"
-                      value={formData.min_stock_level}
-                      onChange={(e) => handleInputChange('min_stock_level', e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="max_stock_level">Max Stock Level</Label>
                     <Input
                       id="max_stock_level"
                       type="number"
-                      placeholder="0"
+                      placeholder="e.g. 50"
                       value={formData.max_stock_level}
                       onChange={(e) => handleInputChange('max_stock_level', e.target.value)}
                     />
+                    <p className="text-xs text-gray-400">Low stock alert at 30% of this value</p>
                   </div>
                 </div>
 
