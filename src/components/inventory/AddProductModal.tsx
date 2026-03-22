@@ -342,7 +342,7 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                       <ArrowRight className="h-4 w-4 shrink-0" />
                     </button>
                   ) : (
-                    <Select onValueChange={(value) => handleInputChange('category_id', value)}>
+                    <Select value={formData.category_id || ""} onValueChange={(value) => handleInputChange('category_id', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
