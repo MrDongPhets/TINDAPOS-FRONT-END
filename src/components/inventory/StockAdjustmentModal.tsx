@@ -56,8 +56,6 @@ export default function StockAdjustmentModal({ product, open, onOpenChange, onSt
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
       }
-      if (formData.cost_price !== '') payload.cost_price = parseFloat(formData.cost_price)
-      if (formData.selling_price !== '') payload.selling_price = parseFloat(formData.selling_price)
 
       const response = await fetch(`${API_CONFIG.BASE_URL}/client/inventory/adjust-stock`, {
         method: 'POST',
@@ -77,8 +75,6 @@ export default function StockAdjustmentModal({ product, open, onOpenChange, onSt
         setFormData({
           adjustment_type: '',
           quantity: '',
-          cost_price: '',
-          selling_price: '',
           reason: '',
           notes: ''
         })
