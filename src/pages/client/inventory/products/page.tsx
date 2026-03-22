@@ -279,6 +279,7 @@ export default function ProductsPage() {
     setShowManufactureModal(true)
   }
 
+
   const getStockStatus = (product) => {
     if (product.stock_quantity <= 0) {
       return { status: 'out-of-stock', color: 'bg-red-100 text-red-800 border-red-200', text: 'Out of Stock', icon: XCircle }
@@ -915,6 +916,7 @@ export default function ProductsPage() {
                                   </DropdownMenuItem>
                                 )}
 
+
                                 <DropdownMenuSeparator />
                                 
                                 <DropdownMenuItem 
@@ -1003,6 +1005,7 @@ export default function ProductsPage() {
       products={products}
       onSaved={handleRefresh}
     />
+
     </>
   )
 }

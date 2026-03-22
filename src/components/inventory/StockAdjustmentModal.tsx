@@ -39,6 +39,7 @@ export default function StockAdjustmentModal({ product, open, onOpenChange, onSt
       return
     }
 
+
     if (parseInt(formData.quantity) <= 0) {
       toast.error('Quantity must be greater than 0')
       return
@@ -48,17 +49,23 @@ export default function StockAdjustmentModal({ product, open, onOpenChange, onSt
 
     try {
       const token = localStorage.getItem('authToken')
+      const payload: Record<string, unknown> = {
+        product_id: product.id,
+        adjustment_type: formData.adjustment_type,
+        quantity: parseInt(formData.quantity),
+        reason: formData.reason || undefined,
+        notes: formData.notes || undefined,
+      }
+      if (formData.cost_price !== '') payload.cost_price = parseFloat(formData.cost_price)
+      if (formData.selling_price !== '') payload.selling_price = parseFloat(formData.selling_price)
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/client/inventory/adjust-stock`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          product_id: product.id,
-          ...formData,
-          quantity: parseInt(formData.quantity)
-        })
+        body: JSON.stringify(payload)
       })
 
       const data = await response.json()
@@ -70,6 +77,8 @@ export default function StockAdjustmentModal({ product, open, onOpenChange, onSt
         setFormData({
           adjustment_type: '',
           quantity: '',
+          cost_price: '',
+          selling_price: '',
           reason: '',
           notes: ''
         })
@@ -164,6 +173,7 @@ export default function StockAdjustmentModal({ product, open, onOpenChange, onSt
               required
             />
           </div>
+
 
           {/* Preview */}
           {formData.adjustment_type && formData.quantity && (

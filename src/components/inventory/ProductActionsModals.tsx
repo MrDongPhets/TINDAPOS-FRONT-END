@@ -59,6 +59,22 @@ import API_CONFIG from "@/config/api"
 // 1. VIEW PRODUCT MODAL - WITH EARLIEST EXPIRY DATE (FIFO)
 // ========================================
 export function ViewProductModal({ product, open, onOpenChange }) {
+  const [batches, setBatches] = useState([])
+  const [batchesLoading, setBatchesLoading] = useState(false)
+
+  useEffect(() => {
+    if (!open || !product || product.is_composite) return
+    setBatchesLoading(true)
+    const token = localStorage.getItem('authToken')
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/client/products/${product.id}/batches`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(d => setBatches(d.batches || []))
+      .catch(() => setBatches([]))
+      .finally(() => setBatchesLoading(false))
+  }, [open, product?.id])
+
   if (!product) return null
 
   const formatDate = (dateString) => {
@@ -408,6 +424,66 @@ export function ViewProductModal({ product, open, onOpenChange }) {
                     Showing the earliest expiring batch for FIFO (First In, First Out) inventory management.
                   </AlertDescription>
                 </Alert>
+              </div>
+            </>
+          )}
+
+          {/* FIFO Batch History — hidden for now, re-enable when needed */}
+          {false && !product.is_composite && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-blue-600" />
+                  Cost Batch History (FIFO)
+                  {batches.length > 0 && (
+                    <span className="text-xs font-normal text-gray-500">· {batches.length} batch{batches.length !== 1 ? 'es' : ''}</span>
+                  )}
+                </h3>
+                {batchesLoading ? (
+                  <p className="text-xs text-gray-400">Loading...</p>
+                ) : batches.length === 0 ? (
+                  <p className="text-xs text-gray-400">No batch records yet. Batches are created when you add or restock products.</p>
+                ) : (
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-gray-500 px-2 pb-1 border-b">
+                      <span>Date</span>
+                      <span className="text-right">Cost/unit</span>
+                      <span className="text-right">Sell Price</span>
+                      <span className="text-right">Received</span>
+                      <span className="text-right">Remaining</span>
+                    </div>
+                    {(() => {
+                      const trackedRemaining = batches.reduce((sum: number, b: any) => sum + (b.qty_remaining || 0), 0)
+                      const untracked = (product.stock_quantity || 0) - trackedRemaining
+                      return (
+                        <>
+                          {untracked > 0 && (
+                            <div className="grid grid-cols-5 gap-2 text-xs px-2 py-1.5 rounded bg-gray-100 text-gray-500 italic">
+                              <span>Legacy</span>
+                              <span className="text-right">{product.cost_price ? `₱${parseFloat(product.cost_price).toFixed(2)}` : '—'}</span>
+                              <span className="text-right">{product.default_price ? `₱${parseFloat(product.default_price).toFixed(2)}` : '—'}</span>
+                              <span className="text-right">—</span>
+                              <span className="text-right font-semibold text-gray-600">{untracked} <span className="text-orange-500">←next</span></span>
+                            </div>
+                          )}
+                          {batches.map((batch: any, i: number) => (
+                            <div key={batch.id} className={`grid grid-cols-5 gap-2 text-xs px-2 py-1.5 rounded ${batch.qty_remaining === 0 ? 'bg-gray-50 text-gray-400' : 'bg-blue-50 text-gray-700'}`}>
+                              <span>{new Date(batch.received_at).toLocaleDateString()}</span>
+                              <span className="text-right font-medium">₱{parseFloat(batch.cost_price).toFixed(2)}</span>
+                              <span className="text-right font-medium text-green-700">₱{batch.selling_price ? parseFloat(batch.selling_price).toFixed(2) : parseFloat(product.default_price).toFixed(2)}</span>
+                              <span className="text-right">{batch.qty_received}</span>
+                              <span className={`text-right font-semibold ${batch.qty_remaining === 0 ? 'text-gray-400' : 'text-blue-700'}`}>
+                                {batch.qty_remaining === 0 ? 'Depleted' : batch.qty_remaining}
+                                {untracked === 0 && i === 0 && batch.qty_remaining > 0 && <span className="ml-1 text-orange-500">←next</span>}
+                              </span>
+                            </div>
+                          ))}
+                        </>
+                      )
+                    })()}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1054,13 +1130,14 @@ export function DeleteProductDialog({ product, open, onOpenChange, onProductDele
             <AlertCircle className="h-5 w-5 text-red-600" />
             Delete Product
           </AlertDialogTitle>
-          <AlertDialogDescription>
-            <p className="mb-2">
-              Are you sure you want to delete <strong>{product.name}</strong>?
-            </p>
-            <p className="text-sm text-gray-600">
-              This action cannot be undone. The product will be permanently removed from your inventory.
-            </p>
+          <AlertDialogDescription asChild>
+            <div>
+              <span className="block mb-2">
+                Are you sure you want to delete <strong>{product.name}</strong>?
+              </span>
+              <span className="block text-sm text-gray-600">
+                This action cannot be undone. The product will be permanently removed from your inventory.
+              </span>
             {product.is_composite && (
               <Alert className="mt-3 bg-purple-50 border-purple-200">
                 <Info className="h-4 w-4 text-purple-600" />
@@ -1075,6 +1152,7 @@ export function DeleteProductDialog({ product, open, onOpenChange, onProductDele
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

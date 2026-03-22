@@ -12,6 +12,7 @@ interface Product {
   sku: string
   stock_quantity: number
   max_stock_level: number
+  cost_price?: number
   image_url?: string
   categories?: { name: string }
   is_composite?: boolean
@@ -24,6 +25,7 @@ interface AdjustRow {
   image_url?: string
   category: string
   current_stock: number
+  current_cost: number
   max_stock: number
   new_stock: string
 }
@@ -56,6 +58,7 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
           image_url: p.image_url,
           category: p.categories?.name || '',
           current_stock: p.stock_quantity,
+          current_cost: p.cost_price || 0,
           max_stock: p.max_stock_level || 0,
           new_stock: String(p.stock_quantity)
         }))
@@ -65,12 +68,14 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
     }
   }, [open, products])
 
-  const updateRow = (product_id: string, value: string) => {
+  const updateStock = (product_id: string, value: string) => {
     setRows(prev => prev.map(r => r.product_id === product_id ? { ...r, new_stock: value } : r))
   }
 
   const resetRow = (product_id: string) => {
-    setRows(prev => prev.map(r => r.product_id === product_id ? { ...r, new_stock: String(r.current_stock) } : r))
+    setRows(prev => prev.map(r =>
+      r.product_id === product_id ? { ...r, new_stock: String(r.current_stock) } : r
+    ))
   }
 
   const changedRows = rows.filter(r => {
@@ -169,54 +174,57 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
             const isChanged = !isNaN(parsed) && parsed !== row.current_stock
 
             return (
-              <div key={row.product_id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${isChanged ? 'border-orange-300 bg-orange-50' : 'border-gray-100 bg-white'}`}>
-                {/* Image */}
-                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {row.image_url
-                    ? <img src={row.image_url} alt={row.name} className="w-full h-full object-cover" />
-                    : <Package className="h-4 w-4 text-gray-400" />
-                  }
+              <div key={row.product_id} className={`flex flex-col gap-2 p-3 rounded-xl border transition-colors ${isChanged ? 'border-orange-300 bg-orange-50' : 'border-gray-100 bg-white'}`}>
+                <div className="flex items-center gap-3">
+                  {/* Image */}
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {row.image_url
+                      ? <img src={row.image_url} alt={row.name} className="w-full h-full object-cover" />
+                      : <Package className="h-4 w-4 text-gray-400" />
+                    }
+                  </div>
+
+                  {/* Name + category */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{row.name}</p>
+                    <p className="text-xs text-gray-400">
+                      {row.category || 'No category'} · Stock: <span className={isLowStock(row) ? 'text-orange-600 font-medium' : ''}>{row.current_stock}</span>
+                    </p>
+                  </div>
+
+                  {/* +/- controls */}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline" size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => updateStock(row.product_id, String(Math.max(0, (parseInt(row.new_stock) || 0) - 1)))}
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={row.new_stock}
+                      onChange={e => updateStock(row.product_id, e.target.value)}
+                      className={`h-8 w-16 text-center ${isChanged ? 'border-orange-400 font-semibold' : ''}`}
+                    />
+                    <Button
+                      variant="outline" size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => updateStock(row.product_id, String((parseInt(row.new_stock) || 0) + 1))}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+
+                  {/* Reset */}
+                  {isChanged && (
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400" onClick={() => resetRow(row.product_id)}>
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </div>
 
-                {/* Name + category */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{row.name}</p>
-                  <p className="text-xs text-gray-400">
-                    {row.category || 'No category'} · Stock: <span className={isLowStock(row) ? 'text-orange-600 font-medium' : ''}>{row.current_stock}</span>
-                  </p>
-                </div>
-
-                {/* +/- controls */}
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline" size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => updateRow(row.product_id, String(Math.max(0, (parseInt(row.new_stock) || 0) - 1)))}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={row.new_stock}
-                    onChange={e => updateRow(row.product_id, e.target.value)}
-                    className={`h-8 w-16 text-center ${isChanged ? 'border-orange-400 font-semibold' : ''}`}
-                  />
-                  <Button
-                    variant="outline" size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => updateRow(row.product_id, String((parseInt(row.new_stock) || 0) + 1))}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
-
-                {/* Reset */}
-                {isChanged && (
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400" onClick={() => resetRow(row.product_id)}>
-                    <RotateCcw className="h-3.5 w-3.5" />
-                  </Button>
-                )}
               </div>
             )
           })}
