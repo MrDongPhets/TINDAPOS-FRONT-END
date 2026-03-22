@@ -342,18 +342,28 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                       <ArrowRight className="h-4 w-4 shrink-0" />
                     </button>
                   ) : (
-                    <Select value={formData.category_id || ""} onValueChange={(value) => handleInputChange('category_id', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <>
+                      <Select value={formData.category_id || ""} onValueChange={(value) => handleInputChange('category_id', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <button
+                        type="button"
+                        onClick={() => { setOpen(false); navigate('/client/inventory/categories') }}
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add new category
+                      </button>
+                    </>
                   )}
                 </div>
 

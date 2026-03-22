@@ -649,11 +649,14 @@ export default function InventoryTrackingPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className={`font-semibold ${
-                              ['in', 'manufacturing'].includes(movement.display_type) ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {['in', 'manufacturing'].includes(movement.display_type) ? '+' : '-'}{movement.quantity}
-                            </span>
+                            {(() => {
+                              const isIncrease = movement.new_stock > movement.previous_stock
+                              return (
+                                <span className={`font-semibold ${isIncrease ? 'text-green-600' : 'text-red-600'}`}>
+                                  {isIncrease ? '+' : '-'}{movement.quantity}
+                                </span>
+                              )
+                            })()}
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">{movement.previous_stock}</TableCell>
                           <TableCell className="hidden lg:table-cell">{movement.new_stock}</TableCell>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Package, Save, RotateCcw, Plus, Minus } from 'lucide-react'
+import { Package, Save, Plus, Minus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useApiClient } from '@/hooks/useApiClient'
 
@@ -25,9 +25,8 @@ interface AdjustRow {
   image_url?: string
   category: string
   current_stock: number
-  current_cost: number
   max_stock: number
-  new_stock: string
+  add_qty: string
 }
 
 interface Props {
@@ -58,9 +57,8 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
           image_url: p.image_url,
           category: p.categories?.name || '',
           current_stock: p.stock_quantity,
-          current_cost: p.cost_price || 0,
           max_stock: p.max_stock_level || 0,
-          new_stock: String(p.stock_quantity)
+          add_qty: '0'
         }))
       )
       setSearch('')
@@ -68,24 +66,29 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
     }
   }, [open, products])
 
-  const updateStock = (product_id: string, value: string) => {
-    setRows(prev => prev.map(r => r.product_id === product_id ? { ...r, new_stock: value } : r))
+  const updateQty = (product_id: string, value: string) => {
+    setRows(prev => prev.map(r => r.product_id === product_id ? { ...r, add_qty: value } : r))
   }
 
-  const resetRow = (product_id: string) => {
-    setRows(prev => prev.map(r =>
-      r.product_id === product_id ? { ...r, new_stock: String(r.current_stock) } : r
-    ))
+  const stepQty = (product_id: string, delta: number) => {
+    setRows(prev => prev.map(r => {
+      if (r.product_id !== product_id) return r
+      const current = parseInt(r.add_qty) || 0
+      const next = current + delta
+      // Can't reduce stock below 0
+      const min = -r.current_stock
+      return { ...r, add_qty: String(Math.max(min, next)) }
+    }))
   }
 
   const changedRows = rows.filter(r => {
-    const parsed = parseInt(r.new_stock)
-    return !isNaN(parsed) && parsed !== r.current_stock
+    const parsed = parseInt(r.add_qty)
+    return !isNaN(parsed) && parsed !== 0
   })
 
   const handleSave = async () => {
     if (changedRows.length === 0) {
-      toast({ title: 'No changes', description: 'No stock values were changed.' })
+      toast({ title: 'No changes', description: 'No quantities were entered.' })
       return
     }
 
@@ -93,7 +96,7 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
     const result = await post('/client/products/bulk-adjust', {
       adjustments: changedRows.map(r => ({
         product_id: r.product_id,
-        new_stock: parseInt(r.new_stock)
+        add_qty: parseInt(r.add_qty)
       }))
     })
 
@@ -170,11 +173,12 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
             </div>
           )}
           {filtered.map(row => {
-            const parsed = parseInt(row.new_stock)
-            const isChanged = !isNaN(parsed) && parsed !== row.current_stock
+            const delta = parseInt(row.add_qty) || 0
+            const isChanged = delta !== 0
+            const newTotal = row.current_stock + delta
 
             return (
-              <div key={row.product_id} className={`flex flex-col gap-2 p-3 rounded-xl border transition-colors ${isChanged ? 'border-orange-300 bg-orange-50' : 'border-gray-100 bg-white'}`}>
+              <div key={row.product_id} className={`flex flex-col gap-2 p-3 rounded-xl border transition-colors ${isChanged ? (delta > 0 ? 'border-green-300 bg-green-50' : 'border-red-200 bg-red-50') : 'border-gray-100 bg-white'}`}>
                 <div className="flex items-center gap-3">
                   {/* Image */}
                   <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -184,47 +188,45 @@ export default function BulkStockAdjustSheet({ open, onClose, products, onSaved 
                     }
                   </div>
 
-                  {/* Name + category */}
+                  {/* Name + stock info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{row.name}</p>
                     <p className="text-xs text-gray-400">
-                      {row.category || 'No category'} · Stock: <span className={isLowStock(row) ? 'text-orange-600 font-medium' : ''}>{row.current_stock}</span>
+                      {row.category || 'No category'} · Stock:{' '}
+                      <span className={isLowStock(row) && !isChanged ? 'text-orange-600 font-medium' : ''}>{row.current_stock}</span>
+                      {isChanged && (
+                        <span className={`font-semibold ml-1 ${delta > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          → {newTotal}
+                        </span>
+                      )}
                     </p>
                   </div>
 
-                  {/* +/- controls */}
+                  {/* +/- qty input */}
                   <div className="flex items-center gap-1">
                     <Button
                       variant="outline" size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={() => updateStock(row.product_id, String(Math.max(0, (parseInt(row.new_stock) || 0) - 1)))}
+                      onClick={() => stepQty(row.product_id, -1)}
+                      disabled={delta <= -row.current_stock}
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
                     <Input
                       type="number"
-                      min="0"
-                      value={row.new_stock}
-                      onChange={e => updateStock(row.product_id, e.target.value)}
-                      className={`h-8 w-16 text-center ${isChanged ? 'border-orange-400 font-semibold' : ''}`}
+                      value={row.add_qty}
+                      onChange={e => updateQty(row.product_id, e.target.value)}
+                      className={`h-8 w-16 text-center ${isChanged ? (delta > 0 ? 'border-green-400 font-semibold text-green-700' : 'border-red-400 font-semibold text-red-700') : ''}`}
                     />
                     <Button
                       variant="outline" size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={() => updateStock(row.product_id, String((parseInt(row.new_stock) || 0) + 1))}
+                      onClick={() => stepQty(row.product_id, 1)}
                     >
                       <Plus className="h-3 w-3" />
                     </Button>
                   </div>
-
-                  {/* Reset */}
-                  {isChanged && (
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400" onClick={() => resetRow(row.product_id)}>
-                      <RotateCcw className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
                 </div>
-
               </div>
             )
           })}
