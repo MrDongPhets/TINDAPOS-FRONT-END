@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Download, Smartphone, Zap, WifiOff, AlertTriangle, Users } from 'lucide-react'
+import { X, Download, Smartphone, Zap, WifiOff, AlertTriangle, Users, Share, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 function isStandalone(): boolean {
@@ -9,24 +9,48 @@ function isStandalone(): boolean {
   )
 }
 
+function isIOS(): boolean {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+}
+
+function isSafariBrowser(): boolean {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+}
+
+const DISMISS_KEY = 'pwa_install_dismissed'
+const DISMISS_DAYS = 7
+
+function wasDismissedRecently(): boolean {
+  const ts = localStorage.getItem(DISMISS_KEY)
+  if (!ts) return false
+  return Date.now() - parseInt(ts) < DISMISS_DAYS * 24 * 60 * 60 * 1000
+}
+
 export function PWAInstallModal() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [show, setShow] = useState(false)
   const [installing, setInstalling] = useState(false)
+  const [iosMode, setIosMode] = useState(false)
 
   useEffect(() => {
-    // Already installed as PWA — never show
     if (isStandalone()) return
+    if (wasDismissedRecently()) return
+
+    const ios = isIOS() && isSafariBrowser()
+
+    if (ios) {
+      setIosMode(true)
+      setTimeout(() => setShow(true), 1500)
+      return
+    }
 
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e)
-      // Short delay so page renders before modal appears
       setTimeout(() => setShow(true), 800)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
-
     window.addEventListener('appinstalled', () => {
       setShow(false)
       setDeferredPrompt(null)
@@ -48,6 +72,7 @@ export function PWAInstallModal() {
   }
 
   const handleDismiss = () => {
+    localStorage.setItem(DISMISS_KEY, String(Date.now()))
     setShow(false)
   }
 
@@ -86,7 +111,7 @@ export function PWAInstallModal() {
 
           {/* Content */}
           <div className="px-5 pt-4 pb-5 -mt-4">
-            {/* Benefits card overlapping header */}
+            {/* Benefits */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-3">
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="flex flex-col items-center gap-1.5">
@@ -110,36 +135,63 @@ export function PWAInstallModal() {
               </div>
             </div>
 
-            {/* Important notices */}
-            <div className="space-y-2 mb-4">
-              <div className="flex gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-semibold text-amber-800 mb-0.5">Business account required</p>
-                  <p className="text-xs text-amber-700 leading-snug">
-                    Registration is only available on the website. Make sure you have an account before installing.
+            {iosMode ? (
+              /* iOS Safari: show step-by-step instructions */
+              <div className="space-y-2 mb-4">
+                <p className="text-sm font-semibold text-gray-800 mb-2">How to install on iPhone/iPad:</p>
+                <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">1</div>
+                  <p className="text-xs text-blue-900 leading-snug">
+                    Tap the <Share className="inline w-3.5 h-3.5 mx-0.5 -mt-0.5" /> <strong>Share</strong> button at the bottom of Safari
+                  </p>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">2</div>
+                  <p className="text-xs text-blue-900 leading-snug">
+                    Scroll down and tap <Plus className="inline w-3.5 h-3.5 mx-0.5 -mt-0.5" /> <strong>Add to Home Screen</strong>
+                  </p>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">3</div>
+                  <p className="text-xs text-blue-900 leading-snug">
+                    Tap <strong>Add</strong> in the top-right corner
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2.5 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                <Users className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-semibold text-blue-800 mb-0.5">Staff &amp; cashier login</p>
-                  <p className="text-xs text-blue-700 leading-snug">
-                    Staff login is only accessible inside the installed app, not in the browser.
-                  </p>
+            ) : (
+              /* Chrome/Android: show notices + install button */
+              <div className="space-y-2 mb-4">
+                <div className="flex gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-amber-800 mb-0.5">Business account required</p>
+                    <p className="text-xs text-amber-700 leading-snug">
+                      Registration is only available on the website. Make sure you have an account before installing.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2.5 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                  <Users className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-blue-800 mb-0.5">Staff &amp; cashier login</p>
+                    <p className="text-xs text-blue-700 leading-snug">
+                      Staff login is only accessible inside the installed app, not in the browser.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            <Button
-              onClick={handleInstall}
-              disabled={installing}
-              className="w-full bg-[#E8302A] hover:bg-[#B91C1C] text-white font-semibold h-11 rounded-xl"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {installing ? 'Installing…' : 'Install App'}
-            </Button>
+            {!iosMode && (
+              <Button
+                onClick={handleInstall}
+                disabled={installing}
+                className="w-full bg-[#E8302A] hover:bg-[#B91C1C] text-white font-semibold h-11 rounded-xl"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {installing ? 'Installing…' : 'Install App'}
+              </Button>
+            )}
 
             <button
               onClick={handleDismiss}

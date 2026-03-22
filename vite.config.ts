@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => ({
             src: 'android-app-logo.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable'
+            purpose: 'any maskable'
           }
         ]
       },
