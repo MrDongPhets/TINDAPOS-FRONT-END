@@ -37,6 +37,7 @@ import ReportsPage from '@/pages/client/reports/page'
 import FinancialReportsPage from '@/pages/client/reports/financial/page'
 import InventoryReportsPage from '@/pages/client/reports/inventory/page'
 import SalesReportsPage from '@/pages/client/reports/sales/page'
+import ZReadingPage from '@/pages/client/reports/z-reading/page'
 import SalesPage from '@/pages/client/sales/page'
 import SaleDetailPage from '@/pages/client/sales/detail/page'
 import StaffPage from '@/pages/client/staff/page'
@@ -97,6 +98,7 @@ function App() {
         <Route path="/client/reports/financial" element={<FinancialReportsPage />} />
         <Route path="/client/reports/inventory" element={<InventoryReportsPage />} />
         <Route path="/client/reports/sales" element={<SalesReportsPage />} />
+        <Route path="/client/reports/z-reading" element={<ZReadingPage />} />
         <Route path="/client/sales" element={<SalesPage />} />
         <Route path="/client/sales/:id" element={<SaleDetailPage />} />
         <Route path="/client/staff" element={<StaffPage />} />

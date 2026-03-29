@@ -62,7 +62,8 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
     max_stock_level: "",
     unit: "pcs",
     weight: "",
-    image_url: ""
+    image_url: "",
+    vat_type: "vatable"
   })
   
   // Options for dropdowns
@@ -98,7 +99,8 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
         max_stock_level: "",
         unit: "pcs",
         weight: "",
-        image_url: ""
+        image_url: "",
+        vat_type: "vatable"
       })
       setError("")
       setSuccessMessage("")
@@ -472,6 +474,22 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                   </div>
                 )
               })()}
+            </div>
+
+            {/* VAT Type */}
+            <div className="space-y-2">
+              <Label>VAT Classification <span className="text-xs text-gray-400">(BIR)</span></Label>
+              <Select value={formData.vat_type} onValueChange={(value) => handleInputChange('vat_type', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vatable">VATable (12% VAT)</SelectItem>
+                  <SelectItem value="vat_exempt">VAT-Exempt</SelectItem>
+                  <SelectItem value="zero_rated">Zero-Rated</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-400">Most products are VATable. Medicine/basic goods may be exempt.</p>
             </div>
 
             {/* Expiry Date - Only for non-composite products */}

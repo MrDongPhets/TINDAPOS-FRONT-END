@@ -24,7 +24,8 @@ import {
   PackageSearch,
   ArrowRightLeft,
   Beaker,
-  HandCoins
+  HandCoins,
+  FileText
 } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
@@ -182,6 +183,11 @@ const clientNavigation = [
         name: "Financial Reports",
         href: "/client/reports/financial",
         icon: DollarSign,
+      },
+      {
+        name: "Z-Reading (BIR)",
+        href: "/client/reports/z-reading",
+        icon: FileText,
       }
     ]
   },

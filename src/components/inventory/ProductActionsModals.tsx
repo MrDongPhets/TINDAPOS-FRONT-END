@@ -555,7 +555,8 @@ export function EditProductModal({ product, open, onOpenChange, onProductUpdated
     max_stock_level: "",
     unit: "pcs",
     weight: "",
-    image_url: ""
+    image_url: "",
+    vat_type: "vatable"
   })
 
   // Initialize form data when product changes
@@ -580,7 +581,8 @@ export function EditProductModal({ product, open, onOpenChange, onProductUpdated
         max_stock_level: product.max_stock_level || "",
         unit: product.unit || "pcs",
         weight: product.weight || "",
-        image_url: product.image_url || ""
+        image_url: product.image_url || "",
+        vat_type: product.vat_type || "vatable"
       })
       fetchCategories()
       fetchStores()
@@ -925,6 +927,26 @@ export function EditProductModal({ product, open, onOpenChange, onProductUpdated
                   </div>
                 )
               })()}
+
+              {/* VAT Type */}
+              <div className="space-y-2">
+                <Label htmlFor="vat_type_edit">VAT Classification <span className="text-xs text-gray-400">(BIR)</span></Label>
+                <Select
+                  value={formData.vat_type}
+                  onValueChange={(value) => handleInputChange('vat_type', value)}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vatable">VATable (12% VAT)</SelectItem>
+                    <SelectItem value="vat_exempt">VAT-Exempt</SelectItem>
+                    <SelectItem value="zero_rated">Zero-Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400">Most products are VATable. Medicine/basic goods may be exempt.</p>
+              </div>
             </div>
 
             {/* Expiry Date - Only for non-composite products */}
