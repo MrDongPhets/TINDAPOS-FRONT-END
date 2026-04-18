@@ -19,7 +19,7 @@ import {
   MessageCircle
 } from "lucide-react"
 
-const FACEBOOK_PAGE_URL = "https://m.me/61582747590992"
+const FACEBOOK_PAGE_URL = "https://m.me/61578527823519"
 
 export default function DownloadPage() {
   const [androidStepsOpen, setAndroidStepsOpen] = useState(false)

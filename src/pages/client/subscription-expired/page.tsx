@@ -11,7 +11,7 @@ const PLANS = [
     stores: 1,
     icon: Store,
     color: 'border-[#E8302A]',
-    perks: ['1 store', 'Unlimited products', 'POS + offline mode', 'Sales reports', 'Utang tracker'],
+    perks: ['1 store', 'Up to 100 products', 'POS + offline mode', 'Sales reports', 'Utang tracker', 'Facebook support'],
   },
   {
     name: 'Laking Negosyo',
@@ -20,7 +20,7 @@ const PLANS = [
     stores: 5,
     icon: Building2,
     color: 'border-purple-400',
-    perks: ['Up to 5 stores', 'Unlimited products', 'POS + offline mode', 'Full reports', 'Staff management'],
+    perks: ['Up to 5 stores', 'Unlimited products', 'POS + offline mode', 'Full reports', 'Staff management', 'Email support (coming soon)'],
   },
 ]
 
@@ -93,7 +93,7 @@ export default function SubscriptionExpiredPage() {
               <li>We'll activate your account <strong>within the day</strong></li>
             </ol>
             <a
-              href="https://m.me/61582747590992"
+              href="https://m.me/61578527823519"
               target="_blank"
               rel="noopener noreferrer"
             >
