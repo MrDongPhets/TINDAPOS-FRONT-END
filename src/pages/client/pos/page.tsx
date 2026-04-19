@@ -3,7 +3,7 @@ import logger from '@/utils/logger';
 
 import { useState, useEffect } from 'react'
 import { localDb, generateLocalId } from '@/db/localDb'
-import { ArrowLeft, LogOut, Percent, RotateCcw, PauseCircle, ShoppingCart, X, Store as StoreIcon, Clock } from 'lucide-react'
+import { ArrowLeft, LogOut, Percent, RotateCcw, PauseCircle, ShoppingCart, X, Store as StoreIcon, Clock, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import API_CONFIG from '@/config/api'
@@ -31,6 +31,7 @@ import { formatCurrency } from '@/lib/utils'
 export default function POSPage() {
   const { toast } = useToast()
   const { isStaff, logout } = useAuth()
+  const navigate = useNavigate()
   const isOnline = useNetworkStatus()
 
   // State
@@ -446,10 +447,16 @@ export default function POSPage() {
       <div className="bg-white border-b px-3 py-2.5 shrink-0">
         <div className="flex items-center gap-2">
           {isStaff ? (
-            <Button variant="ghost" size="sm" className="gap-1.5 shrink-0 text-gray-600" onClick={logout}>
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="gap-1.5 shrink-0 text-gray-600" onClick={() => navigate('/pos/stock-count')}>
+                <ClipboardList className="h-4 w-4" />
+                <span className="hidden sm:inline">Stock Count</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-1.5 shrink-0 text-gray-600" onClick={logout}>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </div>
           ) : (
             <Link to="/client/dashboard">
               <Button variant="ghost" size="sm" className="gap-1.5 shrink-0 text-gray-600">

@@ -38,6 +38,8 @@ import FinancialReportsPage from '@/pages/client/reports/financial/page'
 import InventoryReportsPage from '@/pages/client/reports/inventory/page'
 import SalesReportsPage from '@/pages/client/reports/sales/page'
 import ZReadingPage from '@/pages/client/reports/z-reading/page'
+import StockCountPage from '@/pages/client/inventory/stock-count/page'
+import StockCountDetailPage from '@/pages/client/inventory/stock-count/detail/page'
 import SalesPage from '@/pages/client/sales/page'
 import SaleDetailPage from '@/pages/client/sales/detail/page'
 import StaffPage from '@/pages/client/staff/page'
@@ -53,6 +55,8 @@ import BillingSuccessPage from '@/pages/billing/success/page'
 
 // Staff POS
 import PosPage from '@/pages/pos/page'
+import PosStockCountPage from '@/pages/pos/stock-count/page'
+import PosStockCountDetailPage from '@/pages/pos/stock-count/detail/page'
 
 function AppContent() {
   useOfflineSync();
@@ -99,6 +103,8 @@ function App() {
         <Route path="/client/reports/inventory" element={<InventoryReportsPage />} />
         <Route path="/client/reports/sales" element={<SalesReportsPage />} />
         <Route path="/client/reports/z-reading" element={<ZReadingPage />} />
+        <Route path="/client/inventory/stock-count" element={<StockCountPage />} />
+        <Route path="/client/inventory/stock-count/:id" element={<StockCountDetailPage />} />
         <Route path="/client/sales" element={<SalesPage />} />
         <Route path="/client/sales/:id" element={<SaleDetailPage />} />
         <Route path="/client/staff" element={<StaffPage />} />
@@ -114,6 +120,8 @@ function App() {
 
         {/* Staff POS */}
         <Route path="/pos" element={<PosPage />} />
+        <Route path="/pos/stock-count" element={<PosStockCountPage />} />
+        <Route path="/pos/stock-count/:id" element={<PosStockCountDetailPage />} />
 
         {/* Root redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />

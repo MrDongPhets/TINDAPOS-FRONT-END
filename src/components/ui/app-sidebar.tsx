@@ -25,7 +25,8 @@ import {
   ArrowRightLeft,
   Beaker,
   HandCoins,
-  FileText
+  FileText,
+  ClipboardList
 } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
@@ -133,6 +134,11 @@ const clientNavigation = [
       href: "/client/inventory/ingredients",
       icon: Beaker,  
      },
+      {
+        name: "Stock Count",
+        href: "/client/inventory/stock-count",
+        icon: ClipboardList,
+      },
       {
         name: "Stock Movement",
         href: "/client/inventory/tracking",
