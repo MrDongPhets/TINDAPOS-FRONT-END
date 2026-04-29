@@ -51,6 +51,7 @@ export default function POSPage() {
   const [showReceipt, setShowReceipt] = useState(false)
   const [showMobileCart, setShowMobileCart] = useState(false)
   const [showHeldOrders, setShowHeldOrders] = useState(false)
+  const [discountFromCart, setDiscountFromCart] = useState(false)
   const [lastSale, setLastSale] = useState(null)
   const [lastCartItems, setLastCartItems] = useState([])
 
@@ -270,6 +271,10 @@ export default function POSPage() {
     let discount_amount = 0
     if (discount.type === 'percentage') discount_amount = (subtotal * discount.value) / 100
     else if (discount.type === 'fixed') discount_amount = discount.value
+    else if (discount.type === 'senior_citizen' || discount.type === 'pwd') {
+      // PH law: 20% of VAT-exclusive price (RA 9994 / RA 7277)
+      discount_amount = subtotal - (subtotal / 1.12) * 0.80
+    }
     return {
       subtotal,
       discount_amount,
@@ -558,7 +563,7 @@ export default function POSPage() {
         {/* Toolbar Icons */}
         <div className="flex items-center justify-around px-2 py-1.5 border-b border-gray-100">
           <button
-            onClick={() => setShowDiscount(true)}
+            onClick={() => { setDiscountFromCart(false); setShowDiscount(true) }}
             className="flex flex-col items-center gap-0.5 p-2 text-gray-500 hover:text-[#E8302A] transition-colors"
           >
             <Percent className="h-5 w-5" />
@@ -631,7 +636,7 @@ export default function POSPage() {
               discount={totals.discount_amount}
               total={totals.total}
               itemsCount={totals.items_count}
-              onApplyDiscount={() => { setShowMobileCart(false); setShowDiscount(true) }}
+              onApplyDiscount={() => { setDiscountFromCart(true); setShowMobileCart(false); setShowDiscount(true) }}
               onCheckout={() => { setShowMobileCart(false); setShowPayment(true) }}
               hasDiscount={discount.type !== null}
               onClearCart={() => setCart([])}
@@ -690,8 +695,12 @@ export default function POSPage() {
 
       <DiscountModal
         open={showDiscount}
-        onClose={() => setShowDiscount(false)}
-        onApply={(type, value) => { setDiscount({ type, value }); setShowDiscount(false) }}
+        onClose={() => { setShowDiscount(false); if (discountFromCart) setShowMobileCart(true) }}
+        onApply={(type, value) => {
+          setDiscount({ type, value })
+          setShowDiscount(false)
+          if (discountFromCart) setShowMobileCart(true)
+        }}
         currentDiscount={discount}
         subtotal={totals.subtotal}
       />

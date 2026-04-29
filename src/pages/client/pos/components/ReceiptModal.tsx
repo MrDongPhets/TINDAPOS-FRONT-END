@@ -11,6 +11,13 @@ import {
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 
+const discountLabel = (type: string | null) => {
+  if (type === 'senior_citizen') return 'Senior Citizen Disc.'
+  if (type === 'pwd') return 'PWD Discount'
+  if (type === 'percentage') return 'Discount'
+  return 'Discount'
+}
+
 export default function ReceiptModal({ open, onClose, sale, store, onNewSale, cartItems = [] }) {
   if (!sale) return null
 
@@ -207,7 +214,7 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
             </div>
             {sale.discount_amount > 0 && (
               <div className="flex justify-between text-green-600">
-                <span>Discount:</span>
+                <span>{discountLabel(sale.discount_type)}:</span>
                 <span>-{formatCurrency(parseFloat(sale.discount_amount))}</span>
               </div>
             )}
@@ -249,6 +256,12 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
                   <div className="flex justify-between font-medium text-gray-700">
                     <span>VAT 12%:</span>
                     <span>{formatCurrency(vatAmount)}</span>
+                  </div>
+                )}
+                {(sale.discount_type === 'senior_citizen' || sale.discount_type === 'pwd') && (
+                  <div className="flex justify-between font-medium text-blue-700 pt-1">
+                    <span>VAT:</span>
+                    <span>VAT-Exempt</span>
                   </div>
                 )}
               </div>
