@@ -136,7 +136,7 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl">
             Sale Completed! 🎉
@@ -178,7 +178,7 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
           <Separator className="my-3" />
 
           {/* Items */}
-          <div className="max-h-48 overflow-y-auto space-y-2 mb-4">
+          <div className="space-y-2 mb-4">
             {cartItems.length > 0 ? cartItems.map((item, index) => (
               <div key={index} className="text-sm">
                 <div className="flex justify-between">
