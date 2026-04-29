@@ -36,7 +36,7 @@ export function QuickActionsFAB() {
       {open && (
         <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
       )}
-      <div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-6 z-50 flex flex-col items-end gap-3">
+      <div className="hidden md:flex fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-6 z-50 flex-col items-end gap-3">
         {open && (
           <div className="flex flex-col items-end gap-2.5 mb-1">
             {[...QUICK_ACTIONS].reverse().map(({ label, icon: Icon, bg, path }, i) => (

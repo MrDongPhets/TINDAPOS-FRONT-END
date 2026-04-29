@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
 import { useOfflineSync } from '@/hooks/useOfflineSync'
 import { QuickActionsFAB } from '@/components/ui/QuickActionsFAB'
+import { MobileBottomNav } from '@/components/ui/MobileBottomNav'
 import { PWAInstallModal } from '@/components/pwa/PWAInstallModal'
 
 // Setup
@@ -69,6 +70,7 @@ function App() {
       <OfflineBanner />
       <AppContent />
       <QuickActionsFAB />
+      <MobileBottomNav />
       <PWAInstallModal />
       <Routes>
         {/* Setup (offline first-run) */}

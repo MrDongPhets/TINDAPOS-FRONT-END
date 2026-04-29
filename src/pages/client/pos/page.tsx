@@ -473,6 +473,12 @@ export default function POSPage() {
           </div>
 
           <div className="ml-auto">
+            {isStaff ? (
+              <div className="flex items-center gap-1.5 text-sm text-gray-600 font-medium px-2">
+                <StoreIcon className="h-3.5 w-3.5 text-gray-400" />
+                <span className="max-w-[140px] truncate">{selectedStore?.name || 'Loading...'}</span>
+              </div>
+            ) : (
             <Select
               value={selectedStore?.id}
               onValueChange={(storeId) => {
@@ -498,6 +504,7 @@ export default function POSPage() {
                 ))}
               </SelectContent>
             </Select>
+            )}
           </div>
         </div>
       </div>

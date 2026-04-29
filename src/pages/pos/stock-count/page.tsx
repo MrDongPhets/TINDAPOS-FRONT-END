@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useApiClient } from '@/hooks/useApiClient'
@@ -9,8 +9,7 @@ type StockCount = {
   id: string
   status: 'draft' | 'submitted' | 'approved'
   created_at: string
-  submitted_at: string | null
-  stores: { name: string }
+  stores: { id: string; name: string }
   users: { name: string }
 }
 
@@ -18,18 +17,24 @@ export default function PosStockCountPage() {
   const { get } = useApiClient()
   const navigate = useNavigate()
   const [stockCounts, setStockCounts] = useState<StockCount[]>([])
+  const [storeName, setStoreName] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     const init = async () => {
       setLoading(true)
-      const result = await get('/pos/stock-counts')
+      // Staff's store is already set from login — use it to filter
+      const storeId = localStorage.getItem('selectedStoreId') || ''
+      const url = storeId ? `/pos/stock-counts?store_id=${storeId}` : '/pos/stock-counts'
+      const result = await get(url)
       setLoading(false)
       if (result?.success) {
-        // Staff only sees draft counts (submitted/approved are done)
         const all = result.data?.stock_counts || []
-        setStockCounts(all.filter((sc: StockCount) => sc.status === 'draft'))
+        const drafts = all.filter((sc: StockCount) => sc.status === 'draft')
+        setStockCounts(drafts)
+        if (drafts.length > 0) setStoreName(drafts[0].stores?.name || '')
+        else if (all.length > 0) setStoreName(all[0].stores?.name || '')
       } else {
         setError(result?.error || 'Failed to load stock counts')
       }
@@ -48,11 +53,13 @@ export default function PosStockCountPage() {
           <h1 className="font-bold text-lg flex items-center gap-2">
             <ClipboardList className="h-5 w-5" /> Stock Count
           </h1>
-          <p className="text-xs text-gray-500">Open a draft to start counting</p>
+          <p className="text-xs text-gray-500">
+            {storeName ? storeName : 'Open a draft to start counting'}
+          </p>
         </div>
       </div>
 
-      <div className="p-4 max-w-lg mx-auto space-y-3 mt-2">
+      <div className="p-4 space-y-3">
         {error && (
           <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
             <AlertCircle className="h-4 w-4" /> {error}
@@ -66,7 +73,7 @@ export default function PosStockCountPage() {
         ) : stockCounts.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No pending stock counts</p>
+            <p className="font-medium text-gray-500">No pending stock counts</p>
             <p className="text-sm mt-1">Your owner/manager will create one when needed</p>
           </div>
         ) : (
@@ -74,7 +81,7 @@ export default function PosStockCountPage() {
             <div
               key={sc.id}
               onClick={() => navigate(`/pos/stock-count/${sc.id}`)}
-              className="bg-white border rounded-xl p-4 hover:border-gray-400 hover:shadow-sm cursor-pointer transition-all"
+              className="bg-white border rounded-xl p-4 hover:border-gray-300 hover:shadow-sm cursor-pointer transition-all"
             >
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -88,7 +95,7 @@ export default function PosStockCountPage() {
                     {new Date(sc.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-                <span className="text-gray-400 text-sm">Start →</span>
+                <span className="text-gray-400 text-sm shrink-0">Start →</span>
               </div>
             </div>
           ))
