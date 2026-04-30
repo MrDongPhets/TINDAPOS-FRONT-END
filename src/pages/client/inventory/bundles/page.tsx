@@ -55,6 +55,7 @@ export default function BundlesPage() {
   const [loading,      setLoading]      = useState(true)
   const [saving,       setSaving]       = useState(false)
   const [error,        setError]        = useState('')
+  const [formError,    setFormError]    = useState('')
 
   const [showModal,    setShowModal]    = useState(false)
   const [editing,      setEditing]      = useState<Bundle | null>(null)
@@ -91,12 +92,12 @@ export default function BundlesPage() {
   }
 
   const openCreate = () => {
-    setEditing(null); setForm(EMPTY_FORM); setBundleItems([]); setProducts([])
+    setEditing(null); setForm(EMPTY_FORM); setBundleItems([]); setProducts([]); setFormError('')
     setShowModal(true)
   }
 
   const openEdit = async (bundle: Bundle) => {
-    setEditing(bundle)
+    setFormError(''); setEditing(bundle)
     setForm({
       name: bundle.name,
       description: bundle.description || '',
@@ -133,15 +134,12 @@ export default function BundlesPage() {
   }
 
   const handleSave = async () => {
-    if (!form.name || !form.default_price || !form.store_id) {
-      toast({ title: 'Missing fields', description: 'Name, price, and store are required', variant: 'destructive' }); return
-    }
-    if (bundleItems.length === 0) {
-      toast({ title: 'No items', description: 'Add at least one product to the bundle', variant: 'destructive' }); return
-    }
-    if (bundleItems.some(i => !i.product_id)) {
-      toast({ title: 'Incomplete items', description: 'Select a product for each item', variant: 'destructive' }); return
-    }
+    setFormError('')
+    if (!form.name.trim()) { setFormError('Bundle name is required.'); return }
+    if (!form.default_price) { setFormError('Bundle price is required.'); return }
+    if (!form.store_id) { setFormError('Please select a store.'); return }
+    if (bundleItems.length === 0) { setFormError('Add at least one product to the bundle.'); return }
+    if (bundleItems.some(i => !i.product_id)) { setFormError('Select a product for every item in the bundle.'); return }
     setSaving(true)
     const payload = {
       name: form.name, description: form.description || null,
@@ -341,7 +339,7 @@ export default function BundlesPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label>Products in Bundle *</Label>
-                <Button type="button" size="sm" variant="outline" className="gap-1 h-7 text-xs"
+                <Button type="button" size="sm" className="gap-1 h-7 text-xs bg-[#E8302A] hover:bg-[#B91C1C] text-white"
                   onClick={addItem} disabled={!form.store_id}>
                   <Plus className="h-3 w-3" /> Add Product
                 </Button>
@@ -388,6 +386,12 @@ export default function BundlesPage() {
               )}
             </div>
           </div>
+
+          {formError && (
+            <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <AlertCircle className="h-4 w-4 shrink-0" /> {formError}
+            </div>
+          )}
 
           <DialogFooter className="gap-2 mt-2">
             <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
