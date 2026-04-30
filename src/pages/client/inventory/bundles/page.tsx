@@ -45,7 +45,7 @@ type Store   = { id: string; name: string }
 const EMPTY_FORM = { name: '', description: '', default_price: '', store_id: '', category_id: '' }
 
 export default function BundlesPage() {
-  const { get, post, put, del } = useApiClient()
+  const { get, post, put, delete: del } = useApiClient()
   const { toast } = useToast()
 
   const [bundles,      setBundles]      = useState<Bundle[]>([])
