@@ -41,6 +41,7 @@ import SalesReportsPage from '@/pages/client/reports/sales/page'
 import ZReadingPage from '@/pages/client/reports/z-reading/page'
 import StockCountPage from '@/pages/client/inventory/stock-count/page'
 import StockCountDetailPage from '@/pages/client/inventory/stock-count/detail/page'
+import BundlesPage from '@/pages/client/inventory/bundles/page'
 import SalesPage from '@/pages/client/sales/page'
 import SaleDetailPage from '@/pages/client/sales/detail/page'
 import StaffPage from '@/pages/client/staff/page'
@@ -107,6 +108,7 @@ function App() {
         <Route path="/client/reports/z-reading" element={<ZReadingPage />} />
         <Route path="/client/inventory/stock-count" element={<StockCountPage />} />
         <Route path="/client/inventory/stock-count/:id" element={<StockCountDetailPage />} />
+        <Route path="/client/inventory/bundles" element={<BundlesPage />} />
         <Route path="/client/sales" element={<SalesPage />} />
         <Route path="/client/sales/:id" element={<SaleDetailPage />} />
         <Route path="/client/staff" element={<StaffPage />} />

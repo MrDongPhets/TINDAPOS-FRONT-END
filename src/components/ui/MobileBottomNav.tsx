@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, BarChart3, Menu,
   Store, Users, ArrowRightLeft, HandCoins, Settings, ClipboardList,
   X, ChevronRight, Tag, Beaker, Layers, FileText, TrendingUp,
-  DollarSign, PackageSearch
+  DollarSign, PackageSearch, Gift
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
@@ -31,6 +31,7 @@ const menuItems = [
     group: 'Inventory',
     items: [
       { label: 'Products',           icon: Package,      href: '/client/inventory/products' },
+      { label: 'Bundles',            icon: Gift,         href: '/client/inventory/bundles' },
       { label: 'Categories',         icon: Tag,          href: '/client/inventory/categories' },
       { label: 'Ingredients',        icon: Beaker,       href: '/client/inventory/ingredients' },
       { label: 'Stock Count',        icon: ClipboardList, href: '/client/inventory/stock-count' },

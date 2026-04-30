@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/lib/utils'
 'use client'
 
-import { Package, Plus, Minus, AlertTriangle } from 'lucide-react'
+import { Package, Plus, Minus, AlertTriangle, Gift } from 'lucide-react'
 
 interface CartItem {
   product_id: string
@@ -80,8 +80,16 @@ export default function ProductGrid({ products, onProductClick, loading, cart = 
                   alt={product.name}
                   className="object-cover w-full h-full"
                 />
+              ) : product.product_type === 'bundle' ? (
+                <Gift className="h-10 w-10 text-purple-300" />
               ) : (
                 <Package className="h-10 w-10 text-gray-300" />
+              )}
+              {/* Bundle badge */}
+              {product.product_type === 'bundle' && (
+                <div className="absolute top-1.5 left-1.5 bg-purple-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                  Bundle
+                </div>
               )}
               {/* Cart qty badge */}
               {inCart && (

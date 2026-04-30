@@ -43,6 +43,7 @@ export default function POSPage() {
   const [cart, setCart] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [discount, setDiscount] = useState({ type: null, value: 0 })
+  const [posTab, setPosTab] = useState<'products' | 'bundles'>('products')
   const [loading, setLoading] = useState(false)
 
   // Modals
@@ -518,20 +519,49 @@ export default function POSPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Products Panel */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          {/* Search + Categories */}
+          {/* Tabs + Search + Categories */}
           <div className="bg-white border-b px-3 pt-3 pb-0 shrink-0">
+            {/* Products / Bundles Tab */}
+            <div className="flex gap-1 mb-3 bg-gray-100 rounded-lg p-1 w-fit">
+              <button
+                onClick={() => setPosTab('products')}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  posTab === 'products'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Products
+              </button>
+              <button
+                onClick={() => setPosTab('bundles')}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  posTab === 'bundles'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Bundles
+              </button>
+            </div>
+
             <ProductSearch onSearch={handleSearch} searchQuery={searchQuery} />
-            <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
+            {posTab === 'products' && (
+              <CategoryFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
+            )}
           </div>
 
           {/* Product Grid - scrollable */}
           <div className="flex-1 overflow-y-auto p-3 pb-32 lg:pb-4">
             <ProductGrid
-              products={products}
+              products={posTab === 'products'
+                ? products.filter((p: any) => p.product_type !== 'bundle')
+                : products.filter((p: any) => p.product_type === 'bundle')
+              }
               onProductClick={addToCart}
               loading={loading}
               cart={cart}
