@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,9 +15,17 @@ export function UserMenuDropdown() {
   const navigate = useNavigate()
   const { logout } = useAuth()
 
+  const [, forceUpdate] = useState(0)
+  useEffect(() => {
+    const onStorage = () => forceUpdate(n => n + 1)
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const userData = localStorage.getItem('userData')
   const user = userData ? JSON.parse(userData) : null
   const initial = user?.name?.charAt(0)?.toUpperCase() || 'U'
+  const avatarUrl = user?.avatar_url
 
   const handleLogout = () => {
     logout()
@@ -25,9 +34,12 @@ export function UserMenuDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="shrink-0 h-8 w-8 rounded-full p-0">
-          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
-            {initial}
+        <Button variant="ghost" size="sm" className="shrink-0 h-8 w-8 rounded-full p-0 overflow-hidden">
+          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700 overflow-hidden">
+            {avatarUrl
+              ? <img src={avatarUrl} alt={user?.name || ''} className="w-full h-full object-cover" />
+              : initial
+            }
           </div>
         </Button>
       </DropdownMenuTrigger>

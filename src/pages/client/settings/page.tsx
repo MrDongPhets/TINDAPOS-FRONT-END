@@ -11,7 +11,8 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff } from 'lucide-react'
+import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff, Camera } from 'lucide-react'
+import { ImageUpload } from '@/components/ui/image-upload'
 import API_CONFIG from '@/config/api'
 
 export default function SettingsPage() {
@@ -20,6 +21,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
 
   // Account form
+  const [avatarUrl, setAvatarUrl] = useState('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
@@ -58,6 +60,7 @@ export default function SettingsPage() {
       if (data.user) {
         setName(data.user.name || '')
         setEmail(data.user.email || '')
+        setAvatarUrl(data.user.avatar_url || '')
       }
       if (data.receipt) {
         setReceiptHeader(data.receipt.header || '')
@@ -87,7 +90,7 @@ export default function SettingsPage() {
 
     setAccountSaving(true)
     try {
-      const body: any = { name, email }
+      const body: any = { name, email, avatar_url: avatarUrl || null }
       if (newPassword) { body.current_password = currentPassword; body.new_password = newPassword }
 
       const res = await fetch(`${API_CONFIG.BASE_URL}/client/settings/account`, {
@@ -99,11 +102,12 @@ export default function SettingsPage() {
       setAccountMsg({ type: 'success', text: 'Account updated successfully' })
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
 
-      // Update localStorage
+      // Update localStorage and notify other components
       const stored = localStorage.getItem('userData')
       if (stored) {
         const parsed = JSON.parse(stored)
-        localStorage.setItem('userData', JSON.stringify({ ...parsed, name, email }))
+        localStorage.setItem('userData', JSON.stringify({ ...parsed, name, email, avatar_url: avatarUrl || null }))
+        window.dispatchEvent(new Event('storage'))
       }
     } catch (err: any) {
       setAccountMsg({ type: 'error', text: err.message })
@@ -175,6 +179,33 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={saveAccount} className="space-y-4">
+
+                    {/* Profile Picture */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1.5"><Camera className="h-4 w-4" /> Profile Picture</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative shrink-0">
+                          <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
+                            {avatarUrl
+                              ? <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                              : <span className="text-2xl font-bold text-gray-400 select-none">
+                                  {name ? name.charAt(0).toUpperCase() : <User className="h-8 w-8 text-gray-300" />}
+                                </span>
+                            }
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <ImageUpload
+                            value={avatarUrl}
+                            onChange={url => setAvatarUrl(url)}
+                            disabled={accountSaving}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
                     <div className="space-y-2">
                       <Label>Full Name</Label>
                       <Input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />

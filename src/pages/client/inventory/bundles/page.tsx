@@ -19,6 +19,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select'
+import { ImageUpload } from '@/components/ui/image-upload'
 import { formatCurrency } from '@/lib/utils'
 import { Gift, Plus, Pencil, Trash2, Loader2, AlertCircle, X, Package2 } from 'lucide-react'
 
@@ -33,6 +34,7 @@ type Bundle = {
   name: string
   description: string | null
   default_price: number
+  image_url: string | null
   store_id: string
   category_id: string | null
   effective_stock: number
@@ -42,7 +44,7 @@ type Bundle = {
 type Product = { id: string; name: string; default_price: number; stock_quantity: number }
 type Store   = { id: string; name: string }
 
-const EMPTY_FORM = { name: '', description: '', default_price: '', store_id: '', category_id: '' }
+const EMPTY_FORM = { name: '', description: '', default_price: '', store_id: '', category_id: '', image_url: '' }
 
 export default function BundlesPage() {
   const { get, post, put, delete: del } = useApiClient()
@@ -104,9 +106,12 @@ export default function BundlesPage() {
       default_price: String(bundle.default_price),
       store_id: bundle.store_id,
       category_id: bundle.category_id || '',
+      image_url: bundle.image_url || '',
     })
     setBundleItems((bundle.bundle_items || []).map(bi => ({
-      product_id: bi.product_id, quantity: bi.quantity, component: bi.component,
+      product_id: bi.component?.id ?? bi.product_id,
+      quantity: bi.quantity,
+      component: bi.component,
     })))
     await fetchProducts(bundle.store_id)
     setShowModal(true)
@@ -145,6 +150,7 @@ export default function BundlesPage() {
       name: form.name, description: form.description || null,
       default_price: parseFloat(form.default_price),
       store_id: form.store_id, category_id: form.category_id || null,
+      image_url: form.image_url || null,
       items: bundleItems.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
     }
     const res = editing ? await put(`/client/bundles/${editing.id}`, payload) : await post('/client/bundles', payload)
@@ -246,51 +252,57 @@ export default function BundlesPage() {
               {bundles.map(bundle => {
                 const saved = regularTotal(bundle) - bundle.default_price
                 return (
-                  <div key={bundle.id} className="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900 truncate">{bundle.name}</h3>
-                          <Badge className="bg-purple-100 text-purple-700 border-0 text-xs shrink-0">Bundle</Badge>
-                        </div>
-                        {bundle.description && (
-                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{bundle.description}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-1 ml-2 shrink-0">
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-orange-500 hover:text-orange-600 hover:bg-orange-50" onClick={() => openEdit(bundle)}>
+                  <div key={bundle.id} className="bg-white border rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    {/* Image */}
+                    <div className="relative h-36 bg-gray-100 flex items-center justify-center">
+                      {bundle.image_url
+                        ? <img src={bundle.image_url} alt={bundle.name} className="w-full h-full object-cover" />
+                        : <Gift className="h-10 w-10 text-gray-300" />
+                      }
+                      <Badge className="absolute top-2 left-2 bg-purple-100 text-purple-700 border-0 text-xs">Bundle</Badge>
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7 bg-white/90 text-orange-500 hover:text-orange-600 hover:bg-white shadow-sm" onClick={() => openEdit(bundle)}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(bundle.id, bundle.name)}>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 bg-white/90 text-red-500 hover:text-red-600 hover:bg-white shadow-sm" onClick={() => handleDelete(bundle.id, bundle.name)}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 mb-3">
-                      {(bundle.bundle_items || []).map((item, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm">
-                          <Package2 className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                          <span className="flex-1 text-gray-700 truncate">{item.component?.name || 'Unknown'}</span>
-                          <span className="text-gray-400 text-xs shrink-0">×{item.quantity}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="border-t pt-3 flex items-end justify-between">
-                      <div>
-                        <p className="text-lg font-bold text-[#E8302A]">{formatCurrency(bundle.default_price)}</p>
-                        {saved > 0 && (
-                          <p className="text-xs text-green-600 font-medium">Save {formatCurrency(saved)} vs. buying separately</p>
+                    <div className="p-4">
+                      <div className="mb-3">
+                        <h3 className="font-semibold text-gray-900 truncate">{bundle.name}</h3>
+                        {bundle.description && (
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{bundle.description}</p>
                         )}
                       </div>
-                      <Badge className={`text-xs border-0 ${
-                        bundle.effective_stock > 5  ? 'bg-gray-100 text-gray-600' :
-                        bundle.effective_stock > 0  ? 'bg-orange-100 text-orange-700' :
-                                                      'bg-red-100 text-red-700'
-                      }`}>
-                        {bundle.effective_stock > 0 ? `${bundle.effective_stock} available` : 'Out of stock'}
-                      </Badge>
+
+                      <div className="space-y-1.5 mb-3">
+                        {(bundle.bundle_items || []).map((item, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <Package2 className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                            <span className="flex-1 text-gray-700 truncate">{item.component?.name || 'Unknown'}</span>
+                            <span className="text-gray-400 text-xs shrink-0">×{item.quantity}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="border-t pt-3 flex items-end justify-between">
+                        <div>
+                          <p className="text-lg font-bold text-[#E8302A]">{formatCurrency(bundle.default_price)}</p>
+                          {saved > 0 && (
+                            <p className="text-xs text-green-600 font-medium">Save {formatCurrency(saved)} vs. buying separately</p>
+                          )}
+                        </div>
+                        <Badge className={`text-xs border-0 ${
+                          bundle.effective_stock > 5  ? 'bg-gray-100 text-gray-600' :
+                          bundle.effective_stock > 0  ? 'bg-orange-100 text-orange-700' :
+                                                        'bg-red-100 text-red-700'
+                        }`}>
+                          {bundle.effective_stock > 0 ? `${bundle.effective_stock} available` : 'Out of stock'}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 )
@@ -332,6 +344,16 @@ export default function BundlesPage() {
                 <Label>Description <span className="text-gray-400">(optional)</span></Label>
                 <Input className="mt-1" placeholder="What's included, promo details..." value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div className="col-span-2">
+                <Label>Image <span className="text-gray-400">(optional)</span></Label>
+                <div className="mt-1">
+                  <ImageUpload
+                    value={form.image_url}
+                    onChange={url => setForm(f => ({ ...f, image_url: url }))}
+                    disabled={saving}
+                  />
+                </div>
               </div>
             </div>
 

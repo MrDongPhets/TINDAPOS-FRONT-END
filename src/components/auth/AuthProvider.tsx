@@ -604,18 +604,6 @@ export function AuthProvider({ children }) {
     isStaff: userType === 'staff',
   }
 
-  // Don't render children until initialized
-  if (!initialized || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E8302A] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <AuthContext.Provider value={value}>
       {children}
