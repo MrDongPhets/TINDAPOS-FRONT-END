@@ -293,7 +293,7 @@ export default function RegisterPage() {
 
       {/* Header */}
       <div className="text-center mb-6">
-        <img src="/NEW-pos-logo.png" alt="TindaPOS" className="w-16 h-16 mx-auto mb-4 object-contain" />
+        <img src="/NEW-pos-logo.png" alt="Tindapo" className="w-16 h-16 mx-auto mb-4 object-contain" />
         <h1 className="text-2xl font-bold text-gray-900">Start Your Business Account</h1>
         <p className="text-gray-600">Get your POS system up and running in minutes</p>
       </div>
@@ -636,7 +636,7 @@ export default function RegisterPage() {
           By registering, you agree to our Terms of Service and Privacy Policy
         </p>
         <p className="text-xs text-gray-400 mt-2">
-          TindaPOS v2.0.0 · © 2026 Mustard Digitals · tindapos.mrdongphets.com
+          Tindapo POS v2.0.0 · © 2026 Mustard Digitals
         </p>
       </div>
     </div>

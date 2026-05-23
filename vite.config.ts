@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['NEW-pos-logo.png', 'android-app-logo.png'],
       manifest: {
-        name: 'TindaPOS',
-        short_name: 'TindaPOS',
+        name: 'Tindapo POS',
+        short_name: 'Tindapo',
         description: 'Ang POS para sa bawat tindahan.',
         theme_color: '#E8302A',
         background_color: '#FAFAF8',

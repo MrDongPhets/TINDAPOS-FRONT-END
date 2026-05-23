@@ -147,8 +147,8 @@ function LoginForm() {
 
         {/* Header */}
         <div className="text-center mb-6">
-          <img src="/NEW-pos-logo.png" alt="TindaPOS" className="w-16 h-16 mx-auto mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-gray-900">TindaPOS</h1>
+          <img src="/NEW-pos-logo.png" alt="Tindapo" className="w-16 h-16 mx-auto mb-4 object-contain" />
+          <h1 className="text-2xl font-bold text-gray-900">Tindapo</h1>
           <p className="text-gray-600">Ang POS para sa bawat tindahan.</p>
         </div>
 
@@ -209,7 +209,7 @@ function LoginForm() {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
-            TindaPOS v2.0.0 · © 2026 Mustard Digitals
+            Tindapo POS v2.0.0 · © 2026 Mustard Digitals
           </p>
           {/* <p className="text-xs text-gray-400 mt-1">
             Secure session active • API: {API_CONFIG.BASE_URL}
@@ -233,8 +233,8 @@ function LoginForm() {
 
       {/* Header */}
       <div className="text-center mb-6">
-        <img src="/NEW-pos-logo.png" alt="TindaPOS" className="w-16 h-16 mx-auto mb-4 object-contain" />
-        <h1 className="text-2xl font-bold text-gray-900">TindaPOS</h1>
+        <img src="/NEW-pos-logo.png" alt="Tindapo" className="w-16 h-16 mx-auto mb-4 object-contain" />
+        <h1 className="text-2xl font-bold text-gray-900">Tindapo</h1>
         <p className="text-gray-600">Ang POS para sa bawat tindahan.</p>
       </div>
 
@@ -438,7 +438,7 @@ function LoginForm() {
       {/* Footer */}
       <div className="mt-6 text-center">
         <p className="text-xs text-gray-500">
-          TindaPOS v2.0.0 · © 2026 Mustard Digitals
+          Tindapo POS v2.0.0 · © 2026 Mustard Digitals
         </p>
         {/* <p className="text-xs text-gray-400 mt-1">
           API: {API_CONFIG.BASE_URL}

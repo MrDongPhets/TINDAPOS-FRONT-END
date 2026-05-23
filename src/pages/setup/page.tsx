@@ -90,7 +90,7 @@ function SetupWizard() {
         <div className="w-16 h-16 bg-[#E8302A] rounded-xl flex items-center justify-center mx-auto mb-4">
           <Building2 className="h-8 w-8 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">TindaPOS Setup</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Tindapo POS Setup</h1>
         <p className="text-gray-500 mt-1">Offline mode — first-time configuration</p>
       </div>
 
@@ -255,7 +255,7 @@ function SetupWizard() {
         )}
       </Card>
 
-      <p className="text-xs text-gray-400 mt-6">TindaPOS Offline Mode</p>
+      <p className="text-xs text-gray-400 mt-6">Tindapo POS Offline Mode</p>
     </div>
   )
 }

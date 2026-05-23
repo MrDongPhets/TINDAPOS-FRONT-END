@@ -40,7 +40,7 @@ export default function SubscriptionExpiredPage() {
             <h1 className="text-2xl font-bold text-gray-900">Subscription Expired</h1>
             <p className="text-gray-600 text-sm">
               Hi <strong>{user?.name || 'there'}</strong>, your trial or subscription has ended.
-              Your data is safe — subscribe to continue using TindaPOS.
+              Your data is safe — subscribe to continue using Tindapo POS.
             </p>
           </CardContent>
         </Card>

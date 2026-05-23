@@ -30,8 +30,8 @@ export default function DownloadPage() {
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/NEW-pos-logo.png" alt="TindaPOS" className="w-9 h-9 object-contain" />
-            <span className="font-bold text-gray-900 text-lg">TindaPOS</span>
+            <img src="/NEW-pos-logo.png" alt="Tindapo" className="w-9 h-9 object-contain" />
+            <span className="font-bold text-gray-900 text-lg">Tindapo</span>
           </div>
           <Link to="/login">
             <Button variant="outline" size="sm" className="gap-2">
@@ -45,9 +45,9 @@ export default function DownloadPage() {
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Hero */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Get TindaPOS</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">Get Tindapo POS</h1>
           <p className="text-gray-500 text-lg max-w-xl mx-auto">
-            Install TindaPOS on your device for the best experience. Available on Windows, Android, and iOS.
+            Install Tindapo POS on your device for the best experience. Available on Windows, Android, and iOS.
           </p>
         </div>
 
@@ -83,7 +83,7 @@ export default function DownloadPage() {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
         <p className="font-medium mb-1">Want the desktop app?</p>
         <p>
-          You can also install TindaPOS as a desktop app on Windows via Chrome or Edge — no download required.
+          You can also install Tindapo POS as a desktop app on Windows via Chrome or Edge — no download required.
           Check the <strong>Android &amp; Desktop (PWA)</strong> card for install steps.
         </p>
       </div>
@@ -223,7 +223,7 @@ export default function DownloadPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400">
-          <p>TindaPOS v2.0.0 · © 2025 Mustard Digitals</p>
+          <p>Tindapo POS v2.0.0 · © 2025 Mustard Digitals</p>
         </div>
       </div>
     </div>

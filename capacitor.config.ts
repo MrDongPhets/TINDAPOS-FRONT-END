@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.tindapos.app',
-  appName: 'TindaPOS',
+  appName: 'Tindapo POS',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

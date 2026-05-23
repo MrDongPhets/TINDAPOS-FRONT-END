@@ -100,10 +100,10 @@ export function PWAInstallModal() {
             </button>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                <img src="/NEW-pos-logo.png" alt="TindaPOS" className="w-9 h-9 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <img src="/NEW-pos-logo.png" alt="Tindapo" className="w-9 h-9 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
               </div>
               <div>
-                <p className="text-white font-bold text-lg leading-tight">TindaPOS</p>
+                <p className="text-white font-bold text-lg leading-tight">Tindapo POS</p>
                 <p className="text-white/80 text-xs">Install for the best experience</p>
               </div>
             </div>

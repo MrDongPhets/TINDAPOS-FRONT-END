@@ -44,8 +44,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="text-center mb-6">
-        <img src="/NEW-pos-logo.png" alt="TindaPOS" className="w-16 h-16 mx-auto mb-4 object-contain" />
-        <h1 className="text-2xl font-bold text-gray-900">TindaPOS</h1>
+        <img src="/NEW-pos-logo.png" alt="Tindapo" className="w-16 h-16 mx-auto mb-4 object-contain" />
+        <h1 className="text-2xl font-bold text-gray-900">Tindapo</h1>
         <p className="text-gray-600">Ang POS para sa bawat tindahan.</p>
       </div>
 
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
       </Card>
 
       <div className="mt-6 text-center">
-        <p className="text-xs text-gray-500">TindaPOS v2.0.0 · © 2026 Mustard Digitals</p>
+        <p className="text-xs text-gray-500">Tindapo POS v2.0.0 · © 2026 Mustard Digitals</p>
       </div>
     </div>
   )
