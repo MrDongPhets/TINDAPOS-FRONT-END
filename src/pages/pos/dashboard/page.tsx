@@ -49,16 +49,27 @@ export default function StaffDashboardPage() {
     const init = async () => {
       setLoading(true)
       const storeParam = storeId ? `?store_id=${storeId}` : ''
-      const [salesRes, countsRes, attendanceRes] = await Promise.all([
+      const [salesRes, countsRes, attendanceRes, storesRes] = await Promise.all([
         get(`/pos/sales/today${storeParam}`),
         get(`/pos/stock-counts${storeParam}`),
         get(`/pos/attendance/status?_=${Date.now()}`),
+        get('/pos/stores'),
       ])
+      // Resolve store name from direct store lookup first (most reliable)
+      if (storesRes?.success) {
+        const stores = storesRes.data?.stores || []
+        const match = storeId
+          ? stores.find((s: any) => s.id === storeId)
+          : stores[0]
+        if (match?.name) {
+          setStoreName(match.name)
+          localStorage.setItem('staffStoreName', match.name)
+        }
+      }
       if (salesRes?.success) {
         const sales = salesRes.data?.sales || []
         setTodaySales(sales.slice(0, 5))
         setTodayTotal(salesRes.data?.total || 0)
-        if (sales.length > 0) setStoreName(sales[0]?.store?.name || '')
       }
       if (attendanceRes?.success) {
         setClockedIn(attendanceRes.data?.clocked_in || false)
@@ -67,20 +78,19 @@ export default function StaffDashboardPage() {
       if (countsRes?.success) {
         const drafts = (countsRes.data?.stock_counts || []).filter((s: any) => s.status === 'draft')
         setPendingCounts(drafts.length)
-        if (!storeName && drafts.length > 0) setStoreName(drafts[0]?.stores?.name || '')
       }
       setLoading(false)
     }
     init()
   }, [])
 
-  // Fallback store name from localStorage
+  // Fallback store name from localStorage (used while stores API loads)
   useEffect(() => {
     if (!storeName) {
       const stored = localStorage.getItem('staffStoreName') || staffData?.store_name || ''
       if (stored) setStoreName(stored)
     }
-  }, [storeName])
+  }, [])
 
   const greeting = () => {
     const h = now.getHours()
