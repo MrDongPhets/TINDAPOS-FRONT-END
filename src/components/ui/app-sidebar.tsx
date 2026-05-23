@@ -27,7 +27,9 @@ import {
   HandCoins,
   FileText,
   ClipboardList,
-  Gift
+  Gift,
+  KeyRound,
+  Clock
 } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
@@ -91,6 +93,45 @@ const superAdminNavigation = [
     name: "Settings",
     href: "/admin/settings",
     icon: Settings,
+  },
+]
+
+// Staff navigation items — only POS-facing pages
+const staffNavigation = [
+  {
+    name: "Dashboard",
+    href: "/pos/dashboard",
+    icon: Activity,
+  },
+  {
+    name: "Checkout (POS)",
+    href: "/pos",
+    icon: ShoppingCart,
+  },
+  {
+    name: "Sales History",
+    href: "/pos/sales",
+    icon: FileText,
+  },
+  {
+    name: "Stock Count",
+    href: "/pos/stock-count",
+    icon: ClipboardList,
+  },
+  {
+    name: "Utang Tracker",
+    href: "/pos/utang",
+    icon: HandCoins,
+  },
+  {
+    name: "Attendance",
+    href: "/pos/attendance",
+    icon: Clock,
+  },
+  {
+    name: "Change PIN",
+    href: "/pos/change-pin",
+    icon: KeyRound,
   },
 ]
 
@@ -173,6 +214,11 @@ const clientNavigation = [
     icon: HandCoins,
   },
   {
+    name: "Attendance",
+    href: "/client/attendance",
+    icon: Clock,
+  },
+  {
     name: "Reports",
     icon: BarChart3,
     subItems: [
@@ -218,10 +264,11 @@ export function AppSidebar({ userType = "client", user = null, company = null })
   const [reportsExpanded, setReportsExpanded] = useState(pathname.startsWith('/client/reports'))
 
   // Determine which navigation to use
-  const navigation = userType === "super_admin" ? superAdminNavigation : clientNavigation
+  const isAdmin = userType === "super_admin"
+  const isStaff = userType === "staff"
+  const navigation = isAdmin ? superAdminNavigation : isStaff ? staffNavigation : clientNavigation
 
   // Determine branding
-  const isAdmin = userType === "super_admin"
   const brandName = isAdmin ? "Admin Portal" : (company?.name || "Business")
   const BrandIcon = isAdmin ? Crown : Building2
 
@@ -245,14 +292,14 @@ export function AppSidebar({ userType = "client", user = null, company = null })
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link to={isAdmin ? "/admin/dashboard" : "/client/dashboard"}>
+              <Link to={isAdmin ? "/admin/dashboard" : isStaff ? "/pos" : "/client/dashboard"}>
                 <div className={`flex aspect-square size-8 items-center justify-center rounded-lg ${isAdmin ? 'bg-purple-600 text-white' : 'bg-white border border-[#F0F0F5]'}`}>
                   {isAdmin ? <BrandIcon className="size-4" /> : <img src="/NEW-pos-logo.png" alt="TindaPOS" className="size-6 object-contain" />}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{brandName}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {isAdmin ? 'Administration' : 'Business Portal'}
+                    {isAdmin ? 'Administration' : isStaff ? 'Staff Portal' : 'Business Portal'}
                   </span>
                 </div>
               </Link>
@@ -385,7 +432,7 @@ export function AppSidebar({ userType = "client", user = null, company = null })
                       {user?.name || (isAdmin ? 'Super Admin' : 'User')}
                     </span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {user?.email || 'No email'}
+                      {isStaff ? (user?.staff_id ? `ID: ${user.staff_id}` : 'Staff') : (user?.email || 'No email')}
                     </span>
                   </div>
                   <ChevronDown className="ml-auto size-4" />
@@ -397,12 +444,14 @@ export function AppSidebar({ userType = "client", user = null, company = null })
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem asChild>
-                  <Link to="/client/settings" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
+                {!isStaff && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/client/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout

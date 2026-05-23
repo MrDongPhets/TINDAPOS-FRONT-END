@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, BarChart3, Menu,
   Store, Users, ArrowRightLeft, HandCoins, Settings, ClipboardList,
   X, ChevronRight, Tag, Beaker, Layers, FileText, TrendingUp,
-  DollarSign, PackageSearch, Gift
+  DollarSign, PackageSearch, Gift, Receipt, Clock
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
@@ -24,6 +24,7 @@ const menuItems = [
       { label: 'Stores',             icon: Store,        href: '/client/stores' },
       { label: 'Staff',              icon: Users,        href: '/client/staff' },
       { label: 'Utang Tracker',      icon: HandCoins,    href: '/client/utang' },
+      { label: 'Attendance',         icon: Clock,        href: '/client/attendance' },
       { label: 'Inventory Transfer', icon: ArrowRightLeft, href: '/client/inventory/transfer' },
     ]
   },
@@ -61,14 +62,47 @@ export function MobileBottomNav() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Only show for client users, and not on POS or staff routes
-  if (userType !== 'client') return null
-  if (
-    pathname.startsWith('/pos') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/staff') ||
-    pathname.startsWith('/client/pos')
-  ) return null
+  const isStaff = userType === 'staff'
+
+  // Hide on admin, login, and standalone POS checkout (staff POS is full-screen)
+  if (pathname.startsWith('/admin') || pathname.startsWith('/staff')) return null
+  if (pathname === '/pos') return null
+  if (userType !== 'client' && !isStaff) return null
+  if (!isStaff && (pathname.startsWith('/pos') || pathname.startsWith('/client/pos'))) return null
+
+  // Staff gets a simple 2-tab nav
+  if (isStaff) {
+    const staffTabs = [
+      { label: 'Home',    icon: LayoutDashboard, href: '/pos/dashboard' },
+      { label: 'Checkout',icon: ShoppingCart,    href: '/pos' },
+      { label: 'Sales',   icon: Receipt,         href: '/pos/sales' },
+      { label: 'Utang',   icon: HandCoins,       href: '/pos/utang' },
+      { label: 'Counts',  icon: ClipboardList,   href: '/pos/stock-count' },
+    ]
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-200 pb-[env(safe-area-inset-bottom,0px)]">
+        <div className="flex items-stretch">
+          {staffTabs.map(tab => {
+            const active = pathname === tab.href || pathname.startsWith(tab.href + '/')
+            return (
+              <Link
+                key={tab.href}
+                to={tab.href}
+                className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors ${
+                  active ? 'text-[#E8302A]' : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <tab.icon className={`h-5 w-5 ${active ? 'stroke-[2.5]' : 'stroke-2'}`} />
+                <span className={`text-[10px] font-medium ${active ? 'text-[#E8302A]' : 'text-gray-400'}`}>
+                  {tab.label}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    )
+  }
 
   const isTabActive = (href: string) => {
     if (href === '/client/dashboard') return pathname === href

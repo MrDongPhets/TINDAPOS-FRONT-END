@@ -21,7 +21,7 @@ function checkIsNativeApp(): boolean {
 }
 
 function LoginForm() {
-  const { login, loginWithToken, loading: authLoading, isAuthenticated, user, userType, logout } = useAuth()
+  const { login, loginWithToken, isAuthenticated, user, userType, logout } = useAuth()
   const navigate = useNavigate()
   const [isNativeApp, setIsNativeApp] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -129,21 +129,6 @@ function LoginForm() {
     } finally {
       setLoading(false)
     }
-  }
-
-  // Show loading if auth is still initializing
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#E8302A]" />
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Loading...</h2>
-            <p className="text-gray-600">Initializing application</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
   }
 
   // Show session warning if already authenticated
@@ -419,7 +404,7 @@ function LoginForm() {
 
       {/* Staff Login Link — visible in Electron, Capacitor (Android/iOS), or PWA */}
       {isNativeApp && (
-        <div className="mt-4 w-full max-w-md">
+        <div className="mt-4 w-full max-w-md space-y-2">
           <Button
             variant="outline"
             className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
@@ -428,6 +413,16 @@ function LoginForm() {
             <Users className="mr-2 h-4 w-4" />
             Staff / Cashier Login
           </Button>
+          <div className="text-center text-sm pt-1">
+            <span className="text-gray-500">New business? </span>
+            <button
+              type="button"
+              className="text-[#E8302A] hover:text-[#B91C1C] font-medium"
+              onClick={() => window.open('https://tindaposapp.mustarddigitals.com/register', '_blank', 'noopener,noreferrer')}
+            >
+              Create an account →
+            </button>
+          </div>
         </div>
       )}
 

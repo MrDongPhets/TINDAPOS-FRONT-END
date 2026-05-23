@@ -89,7 +89,7 @@ export default function StaffLoginPage() {
       }
 
       completeStaffLogin(data);
-      navigate('/pos');
+      navigate('/pos/dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {

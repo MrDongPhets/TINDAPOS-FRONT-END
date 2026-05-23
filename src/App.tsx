@@ -51,11 +51,18 @@ import StoreRequestPage from '@/pages/client/stores/request/page'
 import SubscriptionExpiredPage from '@/pages/client/subscription-expired/page'
 import SettingsPage from '@/pages/client/settings/page'
 import UtangPage from '@/pages/client/utang/page'
+import ClientAttendancePage from '@/pages/client/attendance/page'
 
 // Billing
 import BillingSuccessPage from '@/pages/billing/success/page'
 
 // Staff POS
+import StaffDashboardPage from '@/pages/pos/dashboard/page'
+import StaffSalesPage from '@/pages/pos/sales/page'
+import StaffUtangPage from '@/pages/pos/utang/page'
+import StaffChangePinPage from '@/pages/pos/change-pin/page'
+import StaffAttendancePage from '@/pages/pos/attendance/page'
+import { StaffLayout } from '@/components/pos/StaffLayout'
 import PosPage from '@/pages/pos/page'
 import PosStockCountPage from '@/pages/pos/stock-count/page'
 import PosStockCountDetailPage from '@/pages/pos/stock-count/detail/page'
@@ -118,14 +125,20 @@ function App() {
         <Route path="/client/subscription-expired" element={<SubscriptionExpiredPage />} />
         <Route path="/client/settings" element={<SettingsPage />} />
         <Route path="/client/utang" element={<UtangPage />} />
+        <Route path="/client/attendance" element={<ClientAttendancePage />} />
 
         {/* Billing */}
         <Route path="/billing/success" element={<BillingSuccessPage />} />
 
-        {/* Staff POS */}
+        {/* Staff POS — /pos is full-screen checkout, all others use sidebar layout */}
         <Route path="/pos" element={<PosPage />} />
-        <Route path="/pos/stock-count" element={<PosStockCountPage />} />
-        <Route path="/pos/stock-count/:id" element={<PosStockCountDetailPage />} />
+        <Route path="/pos/dashboard" element={<StaffLayout><StaffDashboardPage /></StaffLayout>} />
+        <Route path="/pos/sales" element={<StaffLayout><StaffSalesPage /></StaffLayout>} />
+        <Route path="/pos/utang" element={<StaffLayout><StaffUtangPage /></StaffLayout>} />
+        <Route path="/pos/change-pin" element={<StaffLayout><StaffChangePinPage /></StaffLayout>} />
+        <Route path="/pos/attendance" element={<StaffLayout><StaffAttendancePage /></StaffLayout>} />
+        <Route path="/pos/stock-count" element={<StaffLayout><PosStockCountPage /></StaffLayout>} />
+        <Route path="/pos/stock-count/:id" element={<StaffLayout><PosStockCountDetailPage /></StaffLayout>} />
 
         {/* Root redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />

@@ -456,18 +456,18 @@ export default function POSPage() {
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" className="gap-1.5 shrink-0 text-gray-600" onClick={() => navigate('/pos/stock-count')}>
                 <ClipboardList className="h-4 w-4" />
-                <span className="hidden sm:inline">Stock Count</span>
+                <span>Stock Count</span>
               </Button>
               <Button variant="ghost" size="sm" className="gap-1.5 shrink-0 text-gray-600" onClick={logout}>
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Logout</span>
+                <span>Logout</span>
               </Button>
             </div>
           ) : (
             <Link to="/client/dashboard">
               <Button variant="ghost" size="sm" className="gap-1.5 shrink-0 text-gray-600">
                 <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Dashboard</span>
+                <span>Dashboard</span>
               </Button>
             </Link>
           )}

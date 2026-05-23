@@ -254,7 +254,7 @@ export function AuthProvider({ children }) {
       } else if (userType === 'client') {
         navigate('/client/dashboard')
       } else if (userType === 'staff') {
-        navigate('/pos')
+        navigate('/pos/dashboard')
       }
       return
     }
@@ -279,7 +279,7 @@ export function AuthProvider({ children }) {
       // Staff can only access POS
       if (userType === 'staff' && !isPOSRoute && !isPublicRoute) {
         logger.log('📄 Staff accessing non-POS route, redirecting to POS')
-        navigate('/pos')
+        navigate('/pos/dashboard')
         return
       }
 
@@ -305,7 +305,7 @@ export function AuthProvider({ children }) {
         } else if (userType === 'client') {
           navigate('/client/dashboard')
         } else if (userType === 'staff') {
-          navigate('/pos')
+          navigate('/pos/dashboard')
         }
         return
       }
