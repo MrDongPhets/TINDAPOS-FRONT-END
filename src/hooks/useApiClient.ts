@@ -28,6 +28,9 @@ export function useApiClient() {
           navigate('/client/subscription-expired')
           throw new Error(errorData.error || 'Subscription expired.')
         }
+
+        // Body already consumed above — throw with the error message directly
+        throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
       // Check if response is ok

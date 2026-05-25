@@ -18,6 +18,7 @@ import {
   Tag,
   ChevronDown,
   ChevronRight,
+  Lock,
   Store,
   TrendingUp,
   DollarSign,
@@ -34,6 +35,7 @@ import {
 import { Link } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { usePlan } from '@/hooks/usePlan'
 
 import {
   Sidebar,
@@ -250,6 +252,11 @@ const clientNavigation = [
     ]
   },
   {
+    name: "Subscription",
+    href: "/client/subscription",
+    icon: CreditCard,
+  },
+  {
     name: "Settings",
     href: "/client/settings",
     icon: Settings,
@@ -260,8 +267,15 @@ export function AppSidebar({ userType = "client", user = null, company = null })
   const { pathname } = useLocation()
   const { state } = useSidebar()
   const { logout } = useAuth()
+  const { canAccessInventoryReports, canAccessFinancialReports } = usePlan()
   const [inventoryExpanded, setInventoryExpanded] = useState(pathname.startsWith('/client/inventory'))
   const [reportsExpanded, setReportsExpanded] = useState(pathname.startsWith('/client/reports'))
+
+  const isReportLocked = (href: string) => {
+    if (href === '/client/reports/inventory') return !canAccessInventoryReports
+    if (href === '/client/reports/financial') return !canAccessFinancialReports
+    return false
+  }
 
   // Determine which navigation to use
   const isAdmin = userType === "super_admin"
@@ -338,14 +352,23 @@ export function AppSidebar({ userType = "client", user = null, company = null })
                             </SidebarMenuButton>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent side="right" align="start" className="w-48">
-                            {item.subItems.map((subItem) => (
-                              <DropdownMenuItem key={subItem.name} asChild>
-                                <Link to={subItem.href} className="cursor-pointer">
+                            {item.subItems.map((subItem) => {
+                              const locked = isReportLocked(subItem.href)
+                              return locked ? (
+                                <DropdownMenuItem key={subItem.name} disabled className="opacity-50 cursor-not-allowed">
                                   <subItem.icon className="mr-2 h-4 w-4" />
                                   {subItem.name}
-                                </Link>
-                              </DropdownMenuItem>
-                            ))}
+                                  <Lock className="ml-auto h-3 w-3" />
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem key={subItem.name} asChild>
+                                  <Link to={subItem.href} className="cursor-pointer">
+                                    <subItem.icon className="mr-2 h-4 w-4" />
+                                    {subItem.name}
+                                  </Link>
+                                </DropdownMenuItem>
+                              )
+                            })}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </SidebarMenuItem>
@@ -376,7 +399,16 @@ export function AppSidebar({ userType = "client", user = null, company = null })
                         <div className="ml-6 mt-1 space-y-1">
                           {item.subItems.map((subItem) => {
                             const isSubItemActive = pathname === subItem.href
-                            return (
+                            const locked = isReportLocked(subItem.href)
+                            return locked ? (
+                              <SidebarMenuItem key={subItem.name}>
+                                <SidebarMenuButton size="sm" className="opacity-50 cursor-not-allowed" title="Upgrade to Laking Negosyo to unlock">
+                                  <subItem.icon className="h-4 w-4" />
+                                  <span className="text-sm">{subItem.name}</span>
+                                  <Lock className="ml-auto h-3 w-3" />
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            ) : (
                               <SidebarMenuItem key={subItem.name}>
                                 <SidebarMenuButton asChild isActive={isSubItemActive} size="sm">
                                   <Link to={subItem.href} className="text-sm">

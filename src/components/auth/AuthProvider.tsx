@@ -21,6 +21,7 @@ export const useAuth = () => {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [userType, setUserType] = useState(null)
+  const [subscription, setSubscription] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [initialized, setInitialized] = useState(false)
@@ -182,6 +183,8 @@ export function AuthProvider({ children }) {
             setUser(parsedUser)
             setUserType(userTypeData)
             setIsAuthenticated(true)
+            const storedSub = localStorage.getItem('subscriptionData')
+            if (storedSub) setSubscription(JSON.parse(storedSub))
             logger.log('✅ Auth restored:', parsedUser.email, userTypeData)
           } else {
             logger.log('❌ Token validation failed, clearing session')
@@ -270,6 +273,20 @@ export function AuthProvider({ children }) {
         navigate('/login')
       }
       return
+    }
+
+    // If client subscription is expired/suspended, block all client routes except subscription-expired page
+    if (isAuthenticated && userType === 'client' && isClientRoute && pathname !== '/client/subscription-expired') {
+      try {
+        const companyRaw = localStorage.getItem('companyData')
+        const company = companyRaw ? JSON.parse(companyRaw) : null
+        const subStatus = company?.subscription_status
+        if (subStatus === 'expired' || subStatus === 'suspended' || subStatus === 'cancelled') {
+          logger.log('🚫 Subscription expired — redirecting to subscription-expired page')
+          navigate('/client/subscription-expired')
+          return
+        }
+      } catch { /* ignore parse errors */ }
     }
 
     // If authenticated, check user type matches route type
@@ -384,6 +401,10 @@ export function AuthProvider({ children }) {
         localStorage.setItem('userData', JSON.stringify(data.user))
         localStorage.setItem('userType', finalUserType)
         if (data.company) localStorage.setItem('companyData', JSON.stringify(data.company))
+        if (data.subscription) {
+          localStorage.setItem('subscriptionData', JSON.stringify(data.subscription))
+          setSubscription(data.subscription)
+        }
 
         setUser(data.user)
         setUserType(finalUserType)
@@ -589,6 +610,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     userType,
+    subscription,
     loading,
     isAuthenticated,
     initialized,

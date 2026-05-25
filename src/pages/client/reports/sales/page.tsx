@@ -43,6 +43,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
+import { usePlan } from '@/hooks/usePlan';
+import { Lock } from 'lucide-react';
 
 export default function SalesReportsPage() {
   const navigate = useNavigate();
@@ -61,6 +63,7 @@ export default function SalesReportsPage() {
   const [dateRange, setDateRange] = useState('today');
 
   const { stores, selectedStore, selectStore, fetchStores } = useStores();
+  const { canExportCSV, canAccessStaffPerformance } = usePlan();
   useEffect(() => { fetchStores(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -313,10 +316,17 @@ export default function SalesReportsPage() {
               <p className="text-muted-foreground text-sm mt-0.5">Comprehensive sales analytics and performance metrics</p>
             </div>
             <div className="flex items-center gap-2 ml-auto">
-              <Button variant="outline" size="sm" onClick={exportCSV}>
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline ml-1.5">Export CSV</span>
-              </Button>
+              {canExportCSV ? (
+                <Button variant="outline" size="sm" onClick={exportCSV}>
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1.5">Export CSV</span>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled title="Upgrade to Laking Negosyo to export CSV" className="opacity-50 cursor-not-allowed">
+                  <Lock className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1.5">Export CSV</span>
+                </Button>
+              )}
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -424,7 +434,10 @@ export default function SalesReportsPage() {
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="products">Top Products</TabsTrigger>
-              <TabsTrigger value="staff">Staff Performance</TabsTrigger>
+              <TabsTrigger value="staff" disabled={!canAccessStaffPerformance} className={!canAccessStaffPerformance ? 'opacity-50 cursor-not-allowed' : ''}>
+                {!canAccessStaffPerformance && <Lock className="h-3 w-3 mr-1" />}
+                Staff Performance
+              </TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}

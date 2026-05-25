@@ -11,11 +11,13 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff, Camera } from 'lucide-react'
+import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff, Camera, Fingerprint, Lock } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
 import API_CONFIG from '@/config/api'
+import { usePlan } from '@/hooks/usePlan'
 
 export default function SettingsPage() {
+  const { canUseBiometric } = usePlan()
   const [user, setUser] = useState<any>(null)
   const [company, setCompany] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -31,6 +33,11 @@ export default function SettingsPage() {
   const [showNewPw, setShowNewPw] = useState(false)
   const [accountSaving, setAccountSaving] = useState(false)
   const [accountMsg, setAccountMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Biometric toggle
+  const [biometricEnabled, setBiometricEnabled] = useState(false)
+  const [biometricSaving, setBiometricSaving] = useState(false)
+  const [biometricMsg, setBiometricMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Receipt form
   const [receiptHeader, setReceiptHeader] = useState('')
@@ -68,6 +75,7 @@ export default function SettingsPage() {
         setShowAddress(data.receipt.show_address ?? true)
         setShowCashier(data.receipt.show_cashier ?? true)
       }
+      setBiometricEnabled(data.biometric_enabled === true)
     } catch (err) {
       console.error('Failed to load settings:', err)
     } finally {
@@ -136,6 +144,24 @@ export default function SettingsPage() {
     }
   }
 
+  const toggleBiometric = async (enabled: boolean) => {
+    setBiometricMsg(null)
+    setBiometricSaving(true)
+    try {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/client/settings/biometric`, {
+        method: 'PATCH', headers: getHeaders(), body: JSON.stringify({ enabled })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to save')
+      setBiometricEnabled(enabled)
+      setBiometricMsg({ type: 'success', text: `Biometric clock-in ${enabled ? 'enabled' : 'disabled'}` })
+    } catch (err: any) {
+      setBiometricMsg({ type: 'error', text: err.message })
+    } finally {
+      setBiometricSaving(false)
+    }
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar userType="client" user={user} company={company} />
@@ -167,6 +193,9 @@ export default function SettingsPage() {
               </TabsTrigger>
               <TabsTrigger value="receipt" className="gap-2">
                 <Receipt className="h-4 w-4" /> Receipt
+              </TabsTrigger>
+              <TabsTrigger value="features" className="gap-2">
+                <Fingerprint className="h-4 w-4" /> Features
               </TabsTrigger>
             </TabsList>
 
@@ -333,6 +362,50 @@ export default function SettingsPage() {
                       {receiptSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : 'Save Receipt Settings'}
                     </Button>
                   </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            {/* Features Tab */}
+            <TabsContent value="features">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Staff Features</CardTitle>
+                  <CardDescription>Control which features are available to your staff</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Biometric Clock-In Toggle */}
+                  <div className={`rounded-xl border p-4 ${canUseBiometric ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50'}`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${canUseBiometric ? 'bg-blue-50' : 'bg-gray-100'}`}>
+                          {canUseBiometric
+                            ? <Fingerprint className="h-5 w-5 text-blue-600" />
+                            : <Lock className="h-5 w-5 text-gray-400" />}
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${canUseBiometric ? 'text-gray-800' : 'text-gray-400'}`}>
+                            Biometric Clock-In
+                          </p>
+                          <p className={`text-xs mt-0.5 ${canUseBiometric ? 'text-gray-500' : 'text-gray-400'}`}>
+                            {canUseBiometric
+                              ? 'Allow staff to use fingerprint or face ID when clocking in and out'
+                              : 'Available on Laking Negosyo plan. Upgrade to unlock this feature.'}
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={biometricEnabled}
+                        onCheckedChange={toggleBiometric}
+                        disabled={!canUseBiometric || biometricSaving}
+                      />
+                    </div>
+                    {biometricMsg && (
+                      <Alert variant={biometricMsg.type === 'error' ? 'destructive' : 'default'} className={`mt-3 ${biometricMsg.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : ''}`}>
+                        {biometricMsg.type === 'success' && <CheckCircle className="h-4 w-4" />}
+                        <AlertDescription>{biometricMsg.text}</AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

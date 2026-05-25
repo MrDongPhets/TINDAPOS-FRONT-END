@@ -49,6 +49,7 @@ import ActivityLogsPage from '@/pages/client/staff/activity-logs/page'
 import StoresPage from '@/pages/client/stores/page'
 import StoreRequestPage from '@/pages/client/stores/request/page'
 import SubscriptionExpiredPage from '@/pages/client/subscription-expired/page'
+import SubscriptionPage from '@/pages/client/subscription/page'
 import SettingsPage from '@/pages/client/settings/page'
 import UtangPage from '@/pages/client/utang/page'
 import ClientAttendancePage from '@/pages/client/attendance/page'
@@ -123,6 +124,7 @@ function App() {
         <Route path="/client/stores" element={<StoresPage />} />
         <Route path="/client/stores/request" element={<StoreRequestPage />} />
         <Route path="/client/subscription-expired" element={<SubscriptionExpiredPage />} />
+        <Route path="/client/subscription" element={<SubscriptionPage />} />
         <Route path="/client/settings" element={<SettingsPage />} />
         <Route path="/client/utang" element={<UtangPage />} />
         <Route path="/client/attendance" element={<ClientAttendancePage />} />

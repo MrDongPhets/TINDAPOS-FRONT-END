@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import {
   Clock, LogIn, LogOut, Fingerprint, ArrowLeft, CheckCircle,
-  AlertCircle, Loader2, CalendarDays, Timer, ShieldCheck,
+  AlertCircle, Loader2, CalendarDays, Timer, ShieldCheck, Lock,
 } from 'lucide-react'
 import {
   startRegistration,
@@ -78,6 +78,7 @@ export default function StaffAttendancePage() {
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
 
+  const [biometricRestricted, setBiometricRestricted] = useState(false)
   const [enrollDialog, setEnrollDialog] = useState(false)
   const [enrollLoading, setEnrollLoading] = useState(false)
   const [enrollError, setEnrollError] = useState('')
@@ -85,10 +86,10 @@ export default function StaffAttendancePage() {
   const load = useCallback(async () => {
     setLoading(true)
     const t = Date.now()
-    const [statusRes, historyRes, devicesRes] = await Promise.all([
+    const [statusRes, historyRes, settingsRes] = await Promise.all([
       get(`/pos/attendance/status?_=${t}`),
       get(`/pos/attendance/my?limit=20&_=${t}`),
-      get(`/pos/webauthn/devices?_=${t}`),
+      get(`/pos/company-settings?_=${t}`),
     ])
     if (statusRes?.success) {
       setActiveShift(statusRes.data.active_shift)
@@ -96,8 +97,18 @@ export default function StaffAttendancePage() {
     if (historyRes?.success) {
       setHistory(historyRes.data.attendance || [])
     }
-    if (devicesRes?.success) {
-      setHasCredential((devicesRes.data.devices || []).length > 0)
+    if (settingsRes?.success) {
+      const enabled = settingsRes.data.biometric_enabled === true
+      setBiometricRestricted(!enabled)
+      if (enabled) {
+        // Only fetch devices if biometric is enabled
+        const devicesRes = await get(`/pos/webauthn/devices?_=${t}`)
+        if (devicesRes?.success) {
+          setHasCredential((devicesRes.data.devices || []).length > 0)
+        }
+      }
+    } else {
+      setBiometricRestricted(true)
     }
     setLoading(false)
   }, [])
@@ -214,7 +225,7 @@ export default function StaffAttendancePage() {
           <h1 className="font-bold text-lg leading-tight">Attendance</h1>
           <p className="text-red-100 text-xs">{staffName}</p>
         </div>
-        {hasCredential && (
+        {hasCredential && !biometricRestricted && (
           <div className="flex items-center gap-1 bg-white/20 rounded-full px-2.5 py-1">
             <ShieldCheck className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">Biometric</span>
@@ -253,7 +264,7 @@ export default function StaffAttendancePage() {
               Started at {formatTime(activeShift.clock_in)} · <ElapsedTimer clockIn={activeShift.clock_in} /> elapsed
             </p>
             <div className="flex gap-2">
-              {hasCredential && (
+              {hasCredential && !biometricRestricted && (
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white gap-2"
                   onClick={() => handleClockOut(true)}
@@ -265,11 +276,11 @@ export default function StaffAttendancePage() {
               )}
               <Button
                 variant="outline"
-                className={hasCredential ? '' : 'flex-1'}
+                className={hasCredential && !biometricRestricted ? '' : 'flex-1'}
                 onClick={() => handleClockOut(false)}
                 disabled={actionLoading}
               >
-                {actionLoading && !hasCredential ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <LogOut className="h-4 w-4 mr-1" />}
+                {actionLoading && (!hasCredential || biometricRestricted) ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <LogOut className="h-4 w-4 mr-1" />}
                 Clock Out
               </Button>
             </div>
@@ -284,7 +295,7 @@ export default function StaffAttendancePage() {
               {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
             <div className="flex gap-2">
-              {hasCredential && (
+              {hasCredential && !biometricRestricted && (
                 <Button
                   className="flex-1 bg-[#E8302A] hover:bg-[#B91C1C] text-white gap-2"
                   onClick={() => handleClockIn(true)}
@@ -295,12 +306,12 @@ export default function StaffAttendancePage() {
                 </Button>
               )}
               <Button
-                variant={hasCredential ? 'outline' : 'default'}
-                className={!hasCredential ? 'flex-1 bg-[#E8302A] hover:bg-[#B91C1C] text-white' : ''}
+                variant={hasCredential && !biometricRestricted ? 'outline' : 'default'}
+                className={!hasCredential || biometricRestricted ? 'flex-1 bg-[#E8302A] hover:bg-[#B91C1C] text-white' : ''}
                 onClick={() => handleClockIn(false)}
                 disabled={actionLoading}
               >
-                {actionLoading && !hasCredential ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <LogIn className="h-4 w-4 mr-1" />}
+                {actionLoading && (!hasCredential || biometricRestricted) ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <LogIn className="h-4 w-4 mr-1" />}
                 Clock In
               </Button>
             </div>
@@ -308,7 +319,17 @@ export default function StaffAttendancePage() {
         )}
 
         {/* Enroll biometric banner */}
-        {!hasCredential && (
+        {biometricRestricted ? (
+          <div className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+              <Lock className="h-4 w-4 text-gray-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Biometric clock-in disabled</p>
+              <p className="text-xs text-gray-400">Your manager has not enabled biometric clock-in. Ask them to turn it on in Settings.</p>
+            </div>
+          </div>
+        ) : !hasCredential && (
           <button
             onClick={() => setEnrollDialog(true)}
             className="w-full bg-blue-50 border border-blue-200 rounded-xl p-3.5 flex items-center gap-3 text-left hover:bg-blue-100 transition-colors"

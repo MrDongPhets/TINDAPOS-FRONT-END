@@ -38,6 +38,8 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useStores } from '@/hooks/useStores';
+import { usePlan } from '@/hooks/usePlan';
+import { Lock } from 'lucide-react';
 
 const gradStartColors = ['#E8302A', '#f97316', '#10b981', '#f59e0b', '#ec4899', '#84cc16'];
 
@@ -54,6 +56,7 @@ export default function InventoryReportsPage() {
   const [lowStockProducts, setLowStockProducts] = useState([]);
 
   const { stores, selectedStore, selectStore, fetchStores } = useStores();
+  const { canAccessInventoryReports } = usePlan();
   useEffect(() => { fetchStores(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -227,6 +230,28 @@ export default function InventoryReportsPage() {
         </SidebarInset>
       </SidebarProvider>
     );
+  }
+
+  if (!canAccessInventoryReports) {
+    return (
+      <SidebarProvider>
+        <AppSidebar userType="client" user={user} />
+        <SidebarInset>
+          <div className="flex flex-1 items-center justify-center min-h-screen">
+            <div className="text-center max-w-sm px-6">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
+                <Lock className="h-8 w-8 text-gray-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Laking Negosyo Feature</h2>
+              <p className="text-sm text-gray-500 mb-6">Inventory Reports are available on the Laking Negosyo plan (₱599/mo). Upgrade to get stock valuation, turnover rates, and low stock alerts.</p>
+              <Button className="bg-[#E8302A] hover:bg-[#B91C1C] text-white" onClick={() => window.location.href = '/client/subscription'}>
+                Upgrade Plan
+              </Button>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    )
   }
 
   return (
