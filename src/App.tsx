@@ -13,6 +13,7 @@ import SetupPage from '@/pages/setup/page'
 // Auth / public pages
 import LoginPage from '@/pages/login/page'
 import RegisterPage from '@/pages/register/page'
+import RegisterSuccessPage from '@/pages/register/success/page'
 import SystemAdminPage from '@/pages/system-admin/page'
 import StaffLoginPage from '@/pages/staff/login/page'
 import DownloadPage from '@/pages/download/page'
@@ -88,6 +89,7 @@ function App() {
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register/success" element={<RegisterSuccessPage />} />
         <Route path="/system-admin" element={<SystemAdminPage />} />
         <Route path="/staff/login" element={<StaffLoginPage />} />
         <Route path="/download" element={<DownloadPage />} />

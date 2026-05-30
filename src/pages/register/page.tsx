@@ -221,7 +221,7 @@ export default function RegisterPage() {
 
       if (response.ok && data.success) {
         setSuccess(true)
-        setTimeout(() => navigate("/login"), 3000)
+        navigate("/register/success")
       } else {
         if (data.code === 'USER_EXISTS') {
           setCurrentStep(2)
