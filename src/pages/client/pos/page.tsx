@@ -229,6 +229,31 @@ export default function POSPage() {
     }
   }
 
+  const handleBarcodeScanned = async (barcode: string) => {
+    if (!selectedStore) return
+    try {
+      const params = new URLSearchParams({ query: barcode, store_id: selectedStore.id })
+      const response = await fetch(`${API_CONFIG.BASE_URL}/pos/products/search?${params}`, { headers: getAuthHeaders() })
+      const data = await response.json()
+      const found: any[] = data.products || []
+
+      const exactMatch = found.find(p => p.barcode === barcode) || (found.length === 1 ? found[0] : null)
+      if (exactMatch) {
+        addToCart(exactMatch)
+        toast({ title: `Added: ${exactMatch.name}`, description: `Barcode: ${barcode}` })
+      } else if (found.length === 0) {
+        toast({ title: 'Product not found', description: `No product with barcode: ${barcode}`, variant: 'destructive' })
+      } else {
+        // Multiple results — show in grid so cashier can pick
+        setSearchQuery(barcode)
+        setProducts(found)
+      }
+    } catch (error) {
+      logger.error('Barcode scan error:', error)
+      toast({ title: 'Scan failed', description: 'Could not look up the barcode', variant: 'destructive' })
+    }
+  }
+
   const addToCart = (product) => {
     const existingItem = cart.find(item => item.product_id === product.id)
     if (existingItem) {
@@ -545,7 +570,7 @@ export default function POSPage() {
               </button>
             </div>
 
-            <ProductSearch onSearch={handleSearch} searchQuery={searchQuery} />
+            <ProductSearch onSearch={handleSearch} onBarcodeScanned={handleBarcodeScanned} searchQuery={searchQuery} />
             {posTab === 'products' && (
               <CategoryFilter
                 categories={categories}

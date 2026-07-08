@@ -78,7 +78,7 @@ async function scanBarcode(): Promise<string | null> {
   return value?.trim() || null
 }
 
-export default function ProductSearch({ onSearch, searchQuery }) {
+export default function ProductSearch({ onSearch, onBarcodeScanned = null, searchQuery }) {
   const [inputValue, setInputValue] = useState(searchQuery || '')
   const [scanning, setScanning] = useState(false)
 
@@ -93,8 +93,12 @@ export default function ProductSearch({ onSearch, searchQuery }) {
     try {
       const barcode = await scanBarcode()
       if (barcode) {
-        setInputValue(barcode)
-        onSearch(barcode)
+        if (onBarcodeScanned) {
+          onBarcodeScanned(barcode)
+        } else {
+          setInputValue(barcode)
+          onSearch(barcode)
+        }
       }
     } finally {
       setScanning(false)
