@@ -26,9 +26,58 @@ import {
 } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SuccessModal } from "@/components/ui/success-modal"
-import { Loader2, Plus, Package, AlertCircle, ChefHat, Info, Tag, ArrowRight } from "lucide-react"
+import { Loader2, Plus, Package, AlertCircle, ChefHat, Info, Tag, ArrowRight, Barcode } from "lucide-react"
+import { Capacitor } from '@capacitor/core'
 import API_CONFIG from "@/config/api"
 import { formatCurrency } from "@/lib/utils"
+
+async function scanBarcodeForForm(): Promise<string | null> {
+  if (Capacitor.isNativePlatform()) {
+    const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
+    const { camera } = await BarcodeScanner.requestPermissions()
+    if (camera !== 'granted' && camera !== 'limited') {
+      alert('Camera permission is required.')
+      return null
+    }
+    const { barcodes } = await BarcodeScanner.scan()
+    return barcodes?.[0]?.rawValue ?? null
+  }
+  if ('BarcodeDetector' in window) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      const detector = new (window as any).BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'qr_code', 'upc_a', 'upc_e'] })
+      return new Promise((resolve) => {
+        const video = document.createElement('video')
+        video.srcObject = stream; video.play()
+        const overlay = document.createElement('div')
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;'
+        video.style.cssText = 'width:100%;max-width:480px;border-radius:8px;'
+        const hint = document.createElement('p')
+        hint.textContent = 'Point camera at barcode — tap anywhere to cancel'
+        hint.style.cssText = 'color:white;font-size:14px;text-align:center;padding:0 24px;'
+        overlay.appendChild(video); overlay.appendChild(hint)
+        document.body.appendChild(overlay)
+        let found = false
+        const interval = setInterval(async () => {
+          try {
+            const barcodes = await detector.detect(video)
+            if (barcodes.length > 0 && !found) {
+              found = true; clearInterval(interval)
+              stream.getTracks().forEach(t => t.stop())
+              document.body.removeChild(overlay)
+              resolve(barcodes[0].rawValue)
+            }
+          } catch { /* frame not ready */ }
+        }, 200)
+        overlay.addEventListener('click', () => {
+          if (!found) { clearInterval(interval); stream.getTracks().forEach(t => t.stop()); document.body.removeChild(overlay); resolve(null) }
+        })
+      })
+    } catch { alert('Could not access camera.'); return null }
+  }
+  const value = prompt('Enter barcode manually:')
+  return value?.trim() || null
+}
 
 export function AddProductModal({ onProductAdded, trigger = null }) {
   const navigate = useNavigate()
@@ -314,6 +363,31 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                     value={formData.sku}
                     onChange={(e) => handleInputChange('sku', e.target.value)}
                   />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="barcode">Barcode</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="barcode"
+                    placeholder="Scan or enter barcode..."
+                    value={formData.barcode}
+                    onChange={(e) => handleInputChange('barcode', e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      const barcode = await scanBarcodeForForm()
+                      if (barcode) handleInputChange('barcode', barcode)
+                    }}
+                    className="px-4"
+                  >
+                    <Barcode className="h-4 w-4 mr-2" />
+                    Scan
+                  </Button>
                 </div>
               </div>
 
