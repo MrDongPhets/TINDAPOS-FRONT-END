@@ -245,6 +245,11 @@ const clientNavigation = [
         icon: DollarSign,
       },
       {
+        name: "X-Reading",
+        href: "/client/reports/x-reading",
+        icon: Activity,
+      },
+      {
         name: "Z-Reading (BIR)",
         href: "/client/reports/z-reading",
         icon: FileText,

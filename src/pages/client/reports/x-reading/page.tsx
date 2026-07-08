@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
@@ -11,49 +11,33 @@ import {
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import { useApiClient } from '@/hooks/useApiClient'
 import { formatCurrency } from '@/lib/utils'
-import { Printer, FileText, Loader2, AlertCircle } from 'lucide-react'
+import { Printer, Activity, Loader2, AlertCircle } from 'lucide-react'
 
-export default function ZReadingPage() {
-  const { get, post } = useApiClient()
+export default function XReadingPage() {
+  const { get } = useApiClient()
   const [user, setUser] = useState<any>(null)
   const [stores, setStores] = useState<{ id: string; name: string }[]>([])
   const [selectedStore, setSelectedStore] = useState('')
   const [data, setData] = useState<any>(null)
-  const [history, setHistory] = useState<{ id: string; reading_date: string; transaction_count: number; total_sales: number; vat_amount: number; or_from: string; or_to: string; closed_at: string | null }[]>([])
   const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const fetchZReading = async (storeId: string) => {
+  const fetchXReading = useCallback(async (storeId: string) => {
     setLoading(true)
     setError('')
-    const [todayResult, historyResult] = await Promise.all([
-      get(`/pos/sales/z-reading?store_id=${storeId}`),
-      get(`/pos/sales/z-reading/history?store_id=${storeId}`)
-    ])
+    const result = await get(`/pos/sales/x-reading?store_id=${storeId}`)
     setLoading(false)
-    if (todayResult?.success) {
-      setData(todayResult.data)
+    if (result?.success) {
+      setData(result.data)
     } else {
-      setError(todayResult?.error || 'Failed to fetch Z-reading data')
+      setError(result?.error || 'Failed to fetch X-reading data')
     }
-    if (historyResult?.success) {
-      const records = historyResult.data?.z_readings || []
-      setHistory(records)
-      // Attach closed_at from today's saved record if it exists
-      const today = new Date().toISOString().split('T')[0]
-      const todayRecord = records.find((r: { reading_date: string }) => r.reading_date === today)
-      if (todayRecord?.closed_at && todayResult?.success) {
-        setData((prev: Record<string, unknown>) => ({ ...prev, closed_at: todayRecord.closed_at }))
-      }
-    }
-  }
+  }, [get])
 
   useEffect(() => {
     const init = async () => {
       const stored = localStorage.getItem('user')
       if (stored) setUser(JSON.parse(stored))
-
       const result = await get('/client/dashboard/stores')
       if (result?.data?.stores?.length) {
         setStores(result.data.stores)
@@ -64,42 +48,32 @@ export default function ZReadingPage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (selectedStore) fetchZReading(selectedStore)
+    if (selectedStore) fetchXReading(selectedStore)
   }, [selectedStore]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSaveZReading = async () => {
-    setSaving(true)
-    const result = await post('/pos/sales/z-reading', { store_id: selectedStore })
-    setSaving(false)
-    if (result?.success) {
-      alert('Z-Reading saved successfully!')
-      fetchZReading(selectedStore)
-    } else {
-      alert(result?.error || 'Failed to save Z-reading')
-    }
-  }
 
   const handlePrint = () => {
     if (!data) return
     const today = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })
+    const asOf = new Date(data.as_of).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     const printHtml = `
-      <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Z-Reading</title>
+      <!DOCTYPE html><html><head><meta charset="UTF-8"><title>X-Reading</title>
       <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Courier New',monospace; font-size:12px; width:300px; margin:0 auto; padding:16px; }
         .center { text-align:center; } .divider { border-top:1px dashed #000; margin:8px 0; }
         .bold { font-weight:bold; } .row { display:flex; justify-content:space-between; padding:2px 0; }
-        .large { font-size:14px; }
+        .large { font-size:14px; } .small { font-size:10px; } .gray { color:#666; }
       </style></head><body>
         <div class="center">
           <div class="bold large">${data.store?.name || ''}</div>
-          ${data.store?.address ? `<div>${data.store.address}</div>` : ''}
-          ${data.company?.tax_id ? `<div>TIN: ${data.company.tax_id}</div>` : ''}
+          ${data.store?.address ? `<div class="gray">${data.store.address}</div>` : ''}
+          ${data.company?.tax_id ? `<div class="gray">TIN: ${data.company.tax_id}</div>` : ''}
         </div>
         <div class="divider"></div>
-        <div class="center bold">Z-READING REPORT</div>
+        <div class="center bold">X-READING REPORT</div>
         <div class="center">${today}</div>
+        <div class="center small gray">As of: ${asOf}</div>
+        <div class="center small gray">(Not an official BIR document)</div>
         <div class="divider"></div>
         <div class="row"><span>OR From:</span><span>${data.or_from || 'N/A'}</span></div>
         <div class="row"><span>OR To:</span><span>${data.or_to || 'N/A'}</span></div>
@@ -112,13 +86,11 @@ export default function ZReadingPage() {
         <div class="divider"></div>
         <div class="row bold large"><span>TOTAL SALES:</span><span>₱${(data.total_sales || 0).toFixed(2)}</span></div>
         <div class="divider"></div>
-        <div class="row bold"><span>GRAND TOTAL ACCUM.:</span><span>₱${(data.grand_total_accumulator || 0).toFixed(2)}</span></div>
-        <div class="divider"></div>
         ${Object.entries(data.payment_breakdown || {}).map(([method, amount]: [string, any]) =>
           `<div class="row"><span>${method.replace('_',' ').toUpperCase()}:</span><span>₱${parseFloat(amount).toFixed(2)}</span></div>`
         ).join('')}
         <div class="divider"></div>
-        <div class="center" style="font-size:11px">Generated: ${new Date().toLocaleString('en-PH')}</div>
+        <div class="center small gray">Generated: ${new Date().toLocaleString('en-PH')}</div>
       </body></html>
     `
     const w = window.open('', '_blank', 'width=400,height=700')
@@ -145,7 +117,7 @@ export default function ZReadingPage() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Z-Reading</BreadcrumbPage>
+                  <BreadcrumbPage>X-Reading</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -157,10 +129,10 @@ export default function ZReadingPage() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FileText className="h-6 w-6 text-[#E8302A]" />
-              Z-Reading
+              <Activity className="h-6 w-6 text-[#E8302A]" />
+              X-Reading
             </h1>
-            <p className="text-sm text-gray-500 mt-1">BIR end-of-day report</p>
+            <p className="text-sm text-gray-500 mt-1">Current shift running total</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -173,6 +145,14 @@ export default function ZReadingPage() {
                 {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Info banner */}
+          <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <Activity className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-blue-700">
+              X-Reading shows your running totals for today without closing the day. Use <strong>Z-Reading</strong> at end of day to officially record and close.
+            </p>
           </div>
 
           {loading && (
@@ -191,13 +171,19 @@ export default function ZReadingPage() {
           {data && !loading && (
             <div className="max-w-2xl mx-auto w-full space-y-4">
               <div className="bg-white border rounded-xl p-6 space-y-4 font-mono text-sm">
-                {/* Header */}
+                {/* Store header */}
                 <div className="text-center space-y-1">
                   <p className="font-bold text-lg">{data.store?.name}</p>
                   {data.store?.address && <p className="text-gray-500 text-xs">{data.store.address}</p>}
                   {data.company?.tax_id && <p className="text-gray-500 text-xs">TIN: {data.company.tax_id}</p>}
-                  <p className="font-bold tracking-widest text-gray-700 mt-2">Z-READING REPORT</p>
+                  <p className="font-bold tracking-widest text-gray-700 mt-2">X-READING REPORT</p>
                   <p className="text-gray-500 text-xs">{data.date}</p>
+                  <p className="text-gray-400 text-xs">
+                    As of: {new Date(data.as_of).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </p>
+                  <span className="inline-block text-xs bg-yellow-100 text-yellow-700 border border-yellow-300 rounded px-2 py-0.5 mt-1">
+                    Not an official BIR document
+                  </span>
                 </div>
 
                 <Separator />
@@ -206,6 +192,12 @@ export default function ZReadingPage() {
                   <div className="flex justify-between"><span className="text-gray-500">OR From:</span><span>{data.or_from || 'N/A'}</span></div>
                   <div className="flex justify-between"><span className="text-gray-500">OR To:</span><span>{data.or_to || 'N/A'}</span></div>
                   <div className="flex justify-between"><span className="text-gray-500">Transactions:</span><span>{data.transaction_count}</span></div>
+                  {data.shift_start && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Shift Started:</span>
+                      <span>{new Date(data.shift_start).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  )}
                 </div>
 
                 <Separator />
@@ -225,13 +217,6 @@ export default function ZReadingPage() {
                   <span>{formatCurrency(data.total_sales || 0)}</span>
                 </div>
 
-                <Separator />
-
-                <div className="flex justify-between font-bold bg-gray-50 p-3 rounded-lg">
-                  <span>GRAND TOTAL ACCUMULATOR:</span>
-                  <span>{formatCurrency(data.grand_total_accumulator || 0)}</span>
-                </div>
-
                 {Object.keys(data.payment_breakdown || {}).length > 0 && (
                   <>
                     <Separator />
@@ -249,61 +234,12 @@ export default function ZReadingPage() {
 
                 <Separator />
                 <p className="text-xs text-gray-400 text-center">Generated: {new Date().toLocaleString('en-PH')}</p>
-                {data.closed_at && (
-                  <p className="text-xs text-green-600 text-center font-medium">
-                    ✓ Closed at: {new Date(data.closed_at).toLocaleString('en-PH')}
-                  </p>
-                )}
               </div>
 
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={handlePrint} className="flex-1">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print Z-Reading
-                </Button>
-                <Button onClick={handleSaveZReading} disabled={saving} className="flex-1 bg-[#E8302A] hover:bg-[#c0241f] text-white">
-                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
-                  {saving ? 'Saving...' : 'Close Day'}
-                </Button>
-              </div>
-
-              {/* History */}
-              {history.length > 0 && (
-                <div className="bg-white border rounded-xl overflow-hidden">
-                  <div className="px-4 py-3 border-b bg-gray-50">
-                    <p className="text-sm font-semibold text-gray-700">Past Z-Readings</p>
-                    <p className="text-xs text-gray-400">One record per day — showing last {history.length}</p>
-                  </div>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-xs text-gray-400 border-b">
-                        <th className="text-left px-4 py-2">Date</th>
-                        <th className="text-right px-4 py-2">Transactions</th>
-                        <th className="text-right px-4 py-2">VAT</th>
-                        <th className="text-right px-4 py-2">Total Sales</th>
-                        <th className="text-right px-4 py-2">OR Range</th>
-                        <th className="text-right px-4 py-2">Closed At</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {history.map((row) => (
-                        <tr key={row.id} className="border-b last:border-0 hover:bg-gray-50">
-                          <td className="px-4 py-2 font-medium">{row.reading_date}</td>
-                          <td className="px-4 py-2 text-right text-gray-600">{row.transaction_count}</td>
-                          <td className="px-4 py-2 text-right text-gray-600">{formatCurrency(row.vat_amount || 0)}</td>
-                          <td className="px-4 py-2 text-right font-semibold">{formatCurrency(row.total_sales || 0)}</td>
-                          <td className="px-4 py-2 text-right text-xs text-gray-400 font-mono">
-                            {row.or_from && row.or_to ? `${row.or_from} → ${row.or_to}` : 'N/A'}
-                          </td>
-                          <td className="px-4 py-2 text-right text-xs text-green-600">
-                            {row.closed_at ? new Date(row.closed_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) : <span className="text-gray-300">—</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <Button variant="outline" onClick={handlePrint} className="w-full">
+                <Printer className="h-4 w-4 mr-2" />
+                Print X-Reading
+              </Button>
             </div>
           )}
         </div>

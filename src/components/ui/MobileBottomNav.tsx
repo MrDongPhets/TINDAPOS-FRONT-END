@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, BarChart3, Menu,
   Store, Users, ArrowRightLeft, HandCoins, Settings, ClipboardList,
   X, ChevronRight, Tag, Beaker, Layers, FileText, TrendingUp,
-  DollarSign, PackageSearch, Gift, Receipt, Clock
+  DollarSign, PackageSearch, Gift, Receipt, Clock, Activity
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
@@ -45,6 +45,7 @@ const menuItems = [
       { label: 'Sales Reports',      icon: TrendingUp,   href: '/client/reports/sales' },
       { label: 'Inventory Reports',  icon: PackageSearch, href: '/client/reports/inventory' },
       { label: 'Financial Reports',  icon: DollarSign,   href: '/client/reports/financial' },
+      { label: 'X-Reading',          icon: Activity,     href: '/client/reports/x-reading' },
       { label: 'Z-Reading (BIR)',    icon: FileText,     href: '/client/reports/z-reading' },
     ]
   },
