@@ -352,7 +352,7 @@ export default function RegisterPage() {
                   <label className="text-sm font-medium">Phone Number</label>
                   <Input
                     type="tel"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="09XX XXX XXXX"
                     value={companyData.phone}
                     onChange={(e) => handleCompanyInputChange('phone', e.target.value)}
                   />
@@ -371,7 +371,7 @@ export default function RegisterPage() {
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">Business Address</label>
                   <Input
-                    placeholder="123 Main St, City, State, ZIP"
+                    placeholder="123 Rizal St, Barangay, City, Province"
                     value={companyData.address}
                     onChange={(e) => handleCompanyInputChange('address', e.target.value)}
                   />
@@ -411,7 +411,7 @@ export default function RegisterPage() {
                   <label className="text-sm font-medium">Phone Number</label>
                   <Input
                     type="tel"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="09XX XXX XXXX"
                     value={userData.phone}
                     onChange={(e) => handleUserInputChange('phone', e.target.value)}
                   />
