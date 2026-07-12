@@ -272,7 +272,7 @@ export default function SalesPage() {
       const data = await response.json();
       const rows = data.sales || [];
 
-      const header = ['Receipt', 'Date', 'Customer', 'Payment', 'Items', 'Discount', 'Total'];
+      const header = ['OR Number', 'Receipt', 'Date', 'Customer', 'Payment', 'Items', 'Discount', 'Total'];
       const csvRows = [
         header.join(','),
         ...rows.map((s) => {
@@ -280,6 +280,7 @@ export default function SalesPage() {
             .map((i: any) => `${i.products?.name || 'Item'} x${i.quantity}`)
             .join('; ');
           return [
+            s.or_number || s.receipt_number,
             s.receipt_number,
             `"${formatDate(s.created_at)}"`,
             `"${s.customer_name || 'Walk-in Customer'}"`,
@@ -553,7 +554,7 @@ export default function SalesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Receipt</TableHead>
+                      <TableHead>OR / Receipt</TableHead>
                       <TableHead className="hidden sm:table-cell">Date & Time</TableHead>
                       <TableHead className="hidden lg:table-cell">Customer</TableHead>
                       <TableHead className="hidden xl:table-cell">Items</TableHead>
@@ -581,10 +582,13 @@ export default function SalesPage() {
                         <TableRow key={sale.id} className="hover:bg-gray-50">
                           <TableCell>
                             <div className="flex items-center justify-between gap-2">
-                              <p className="font-mono text-xs leading-tight">
-                                <span className="hidden lg:inline">{sale.receipt_number}</span>
-                                <span className="lg:hidden text-gray-600">#{sale.receipt_number.split('-').pop()}</span>
-                              </p>
+                              <div className="min-w-0">
+                                {sale.or_number && (
+                                  <p className="font-mono text-xs font-semibold text-primary leading-tight">{sale.or_number}</p>
+                                )}
+                                <p className="font-mono text-xs text-muted-foreground leading-tight hidden lg:block">{sale.receipt_number}</p>
+                                <p className="font-mono text-xs text-muted-foreground leading-tight lg:hidden">#{sale.receipt_number?.split('-').pop()}</p>
+                              </div>
                               <span className="sm:hidden text-xs font-semibold shrink-0">{formatCurrency(sale.total_amount)}</span>
                             </div>
                             {/* Mobile-only sub-info */}

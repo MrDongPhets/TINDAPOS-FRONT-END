@@ -31,6 +31,7 @@ const API_CONFIG = {
     },
     ADMIN: {
       COMPANIES: '/admin/companies',
+      USERS: '/admin/users',
       USERS_STATS: '/admin/stats/users',
       SUBSCRIPTION_STATS: '/admin/stats/subscriptions'
     },

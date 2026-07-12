@@ -1,10 +1,10 @@
-
+import { Outlet } from 'react-router-dom'
 import { AdminProtectedRoute } from '@/components/auth/ProtectedRoute'
 
-export default function AdminLayout({ children }) {
+export default function AdminLayout() {
   return (
     <AdminProtectedRoute>
-      {children}
+      <Outlet />
     </AdminProtectedRoute>
   )
 }

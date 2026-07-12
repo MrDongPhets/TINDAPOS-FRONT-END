@@ -47,7 +47,8 @@ import {
   FileText,
   Copy,
   Check,
-  Building2
+  Building2,
+  Pencil
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
@@ -76,6 +77,45 @@ export default function StaffPage() {
     role: 'staff',
     store_id: ''
   });
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editTarget, setEditTarget] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: '', role: 'staff', store_id: '' });
+
+  const openEditDialog = (member: any) => {
+    setEditTarget(member);
+    setEditForm({ name: member.name, role: member.role || 'staff', store_id: member.store_id });
+    setError('');
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async (e: any) => {
+    e.preventDefault();
+    if (!editTarget) return;
+    setError('');
+    setEditSubmitting(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_CONFIG.BASE_URL}/staff/manage/${editTarget.id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editForm.name.trim(), role: editForm.role, store_id: editForm.store_id })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSuccess(`${editForm.name} updated successfully`);
+        setEditDialogOpen(false);
+        fetchStaff();
+      } else {
+        setError(data.error || 'Failed to update staff');
+      }
+    } catch {
+      setError('Failed to update staff');
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     // Get user data from localStorage
@@ -490,6 +530,17 @@ export default function StaffPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
+                          <Label>Role</Label>
+                          <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="staff">Staff</SelectItem>
+                              <SelectItem value="supervisor">Supervisor</SelectItem>
+                              <SelectItem value="manager">Manager</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
                           <Label htmlFor="passcode">PIN Code (4-6 digits)</Label>
                           <Input id="passcode" type="password" placeholder="1234" maxLength={6}
                             value={formData.passcode}
@@ -566,6 +617,14 @@ export default function StaffPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            title="Edit"
+                            onClick={() => openEditDialog(member)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             title={member.is_active ? 'Deactivate' : 'Activate'}
                             onClick={() => toggleActive(member.id, member.is_active, member.name)}
                           >
@@ -593,6 +652,57 @@ export default function StaffPage() {
           </div>
         </main>
       </SidebarInset>
+
+      {/* Edit Staff Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Staff Member</DialogTitle>
+            <DialogDescription>Update name, role, or assigned store</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={editForm.role} onValueChange={(value) => setEditForm({ ...editForm, role: value })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Store</Label>
+              <Select value={editForm.store_id} onValueChange={(value) => setEditForm({ ...editForm, store_id: value })}>
+                <SelectTrigger><SelectValue placeholder="Select store" /></SelectTrigger>
+                <SelectContent>
+                  {stores.map(store => (
+                    <SelectItem key={store.id} value={store.id}>{store.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1">Cancel</Button>
+              <Button type="submit" disabled={editSubmitting} className="flex-1">
+                {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {editSubmitting ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

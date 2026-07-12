@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff, Camera, Fingerprint, Lock } from 'lucide-react'
+import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff, Camera, Fingerprint, Lock, Building2 } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
 import API_CONFIG from '@/config/api'
 import { usePlan } from '@/hooks/usePlan'
@@ -39,6 +39,14 @@ export default function SettingsPage() {
   const [biometricSaving, setBiometricSaving] = useState(false)
   const [biometricMsg, setBiometricMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
+  // Company form
+  const [companyName, setCompanyName] = useState('')
+  const [companyTin, setCompanyTin] = useState('')
+  const [companyAddress, setCompanyAddress] = useState('')
+  const [companyPhone, setCompanyPhone] = useState('')
+  const [companySaving, setCompanySaving] = useState(false)
+  const [companyMsg, setCompanyMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
   // Receipt form
   const [receiptHeader, setReceiptHeader] = useState('')
   const [receiptFooter, setReceiptFooter] = useState('')
@@ -58,7 +66,50 @@ export default function SettingsPage() {
     if (userData) setUser(JSON.parse(userData))
     if (companyData) setCompany(JSON.parse(companyData))
     fetchSettings()
+    fetchCompany()
   }, [])
+
+  const fetchCompany = async () => {
+    try {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/client/company`, { headers: getHeaders() })
+      const data = await res.json()
+      if (data.company) {
+        setCompanyName(data.company.name || '')
+        setCompanyTin(data.company.tax_id || '')
+        setCompanyAddress(data.company.address || '')
+        setCompanyPhone(data.company.phone || '')
+        // Keep localStorage in sync
+        const stored = localStorage.getItem('companyData')
+        const parsed = stored ? JSON.parse(stored) : {}
+        localStorage.setItem('companyData', JSON.stringify({ ...parsed, ...data.company }))
+      }
+    } catch { /* silent */ }
+  }
+
+  const saveCompany = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCompanyMsg(null)
+    if (!companyName.trim()) { setCompanyMsg({ type: 'error', text: 'Business name is required' }); return }
+    setCompanySaving(true)
+    try {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/client/company`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ name: companyName, tax_id: companyTin, address: companyAddress, phone: companyPhone })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to save')
+      setCompanyMsg({ type: 'success', text: 'Company information updated' })
+      // Sync localStorage so receipt print picks up updated TIN
+      const stored = localStorage.getItem('companyData')
+      const parsed = stored ? JSON.parse(stored) : {}
+      localStorage.setItem('companyData', JSON.stringify({ ...parsed, name: companyName, tax_id: companyTin, address: companyAddress, phone: companyPhone }))
+    } catch (err: any) {
+      setCompanyMsg({ type: 'error', text: err.message })
+    } finally {
+      setCompanySaving(false)
+    }
+  }
 
   const fetchSettings = async () => {
     try {
@@ -191,6 +242,9 @@ export default function SettingsPage() {
               <TabsTrigger value="account" className="gap-2">
                 <User className="h-4 w-4" /> Account
               </TabsTrigger>
+              <TabsTrigger value="company" className="gap-2">
+                <Building2 className="h-4 w-4" /> Company
+              </TabsTrigger>
               <TabsTrigger value="receipt" className="gap-2">
                 <Receipt className="h-4 w-4" /> Receipt
               </TabsTrigger>
@@ -296,6 +350,46 @@ export default function SettingsPage() {
 
                     <Button type="submit" disabled={accountSaving} className="w-full">
                       {accountSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : 'Save Account'}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Company Tab */}
+            <TabsContent value="company">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Company Information</CardTitle>
+                  <CardDescription>Your business details — shown on official receipts</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={saveCompany} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Business Name</Label>
+                      <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Your Business Name" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>TIN (Tax Identification Number)</Label>
+                      <Input value={companyTin} onChange={e => setCompanyTin(e.target.value)} placeholder="000-000-000-000" />
+                      <p className="text-xs text-gray-400">Required for BIR-compliant official receipts</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Business Address</Label>
+                      <Textarea value={companyAddress} onChange={e => setCompanyAddress(e.target.value)} placeholder="Street, City, Province" rows={2} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone Number</Label>
+                      <Input value={companyPhone} onChange={e => setCompanyPhone(e.target.value)} placeholder="+63 912 345 6789" />
+                    </div>
+                    {companyMsg && (
+                      <Alert variant={companyMsg.type === 'error' ? 'destructive' : 'default'} className={companyMsg.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : ''}>
+                        {companyMsg.type === 'success' && <CheckCircle className="h-4 w-4" />}
+                        <AlertDescription>{companyMsg.text}</AlertDescription>
+                      </Alert>
+                    )}
+                    <Button type="submit" disabled={companySaving} className="w-full">
+                      {companySaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : 'Save Company Info'}
                     </Button>
                   </form>
                 </CardContent>

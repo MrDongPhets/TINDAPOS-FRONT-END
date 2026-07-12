@@ -21,9 +21,14 @@ import ForgotPasswordPage from '@/pages/forgot-password/page'
 import ResetPasswordPage from '@/pages/reset-password/page'
 
 // Admin pages
+import AdminLayout from '@/pages/admin/layout'
 import AdminDashboard from '@/pages/admin/dashboard/page'
 import AdminStoreRequests from '@/pages/admin/store-requests/page'
 import AdminSubscriptions from '@/pages/admin/subscriptions/page'
+import AdminCompanies from '@/pages/admin/companies/page'
+import AdminUsers from '@/pages/admin/users/page'
+import AdminSystem from '@/pages/admin/system/page'
+import AdminSettings from '@/pages/admin/settings/page'
 
 // Client pages
 import ClientDashboard from '@/pages/client/dashboard/page'
@@ -97,10 +102,16 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Admin routes */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/store-requests" element={<AdminStoreRequests />} />
-        <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+        {/* Admin routes — protected, requires super_admin session */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/store-requests" element={<AdminStoreRequests />} />
+          <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+          <Route path="/admin/companies" element={<AdminCompanies />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/system" element={<AdminSystem />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+        </Route>
 
         {/* Client routes */}
         <Route path="/client/dashboard" element={<ClientDashboard />} />

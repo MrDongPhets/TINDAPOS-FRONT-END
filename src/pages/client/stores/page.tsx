@@ -15,7 +15,7 @@ import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { Plus, Store, MapPin, Phone, CheckCircle, XCircle, Pause, RefreshCw, AlertCircle } from 'lucide-react'
+import { Plus, Store, MapPin, Phone, CheckCircle, XCircle, Pause, RefreshCw, AlertCircle, Pencil } from 'lucide-react'
 import { toast } from "sonner"
 import API_CONFIG from "@/config/api"
 import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
@@ -31,6 +31,10 @@ export default function ClientStores() {
   const [showDialog, setShowDialog] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({ name: '', address: '', phone: '', description: '' })
+
+  const [editStore, setEditStore] = useState<any>(null)
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', address: '', phone: '', or_prefix: '' })
 
   useEffect(() => {
     const userData = localStorage.getItem('userData')
@@ -63,6 +67,35 @@ export default function ClientStores() {
   }
 
   const handleRefresh = () => { setRefreshing(true); fetchStores() }
+
+  const openEdit = (store) => {
+    setEditStore(store)
+    setEditForm({ name: store.name || '', address: store.address || '', phone: store.phone || '', or_prefix: store.or_prefix || 'OR' })
+  }
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault()
+    setEditSubmitting(true)
+    try {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/client/stores/${editStore.id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editForm),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success('Store updated successfully!')
+        setEditStore(null)
+        fetchStores()
+      } else {
+        toast.error(data.error || 'Failed to update store')
+      }
+    } catch {
+      toast.error('Network error')
+    } finally {
+      setEditSubmitting(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -315,14 +348,23 @@ export default function ClientStores() {
                       <div className="pt-1 text-xs text-muted-foreground">
                         Created: {new Date(store.created_at).toLocaleDateString()}
                       </div>
-                      {(store.status === 'active' || store.is_active) && (
-                        <div className="pt-1">
-                          <Button size="sm" className="w-full"
+                      {store.or_prefix && (
+                        <div className="text-xs text-muted-foreground">
+                          OR Prefix: <span className="font-mono font-medium">{store.or_prefix}</span>
+                          {store.or_counter > 0 && <span className="ml-1">(next: #{store.or_counter + 1})</span>}
+                        </div>
+                      )}
+                      <div className="pt-1 flex gap-2">
+                        {(store.status === 'active' || store.is_active) && (
+                          <Button size="sm" className="flex-1"
                             onClick={() => navigate(`/client/dashboard?store=${store.id}`)}>
                             Go to Dashboard
                           </Button>
-                        </div>
-                      )}
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => openEdit(store)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -331,6 +373,52 @@ export default function ClientStores() {
           )}
         </div>
       </SidebarInset>
+
+      {/* Edit Store Dialog */}
+      <Dialog open={!!editStore} onOpenChange={(open) => { if (!open) setEditStore(null) }}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Store</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">Store Name *</Label>
+              <Input id="edit-name" value={editForm.name}
+                onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
+                placeholder="Store name" required />
+            </div>
+            <div>
+              <Label htmlFor="edit-address">Address *</Label>
+              <Textarea id="edit-address" value={editForm.address}
+                onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))}
+                placeholder="Store address" required rows={3} />
+            </div>
+            <div>
+              <Label htmlFor="edit-phone">Phone</Label>
+              <Input id="edit-phone" value={editForm.phone} type="tel"
+                onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
+                placeholder="Phone number" />
+            </div>
+            <div>
+              <Label htmlFor="edit-or-prefix">
+                OR Prefix <span className="text-xs text-gray-400">(BIR)</span>
+              </Label>
+              <Input id="edit-or-prefix" value={editForm.or_prefix}
+                onChange={e => setEditForm(p => ({ ...p, or_prefix: e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 10) }))}
+                placeholder="e.g. OR" maxLength={10} className="font-mono" />
+              <p className="text-xs text-gray-400 mt-1">Letters and numbers only. Receipts will show as <span className="font-mono">{editForm.or_prefix || 'OR'}-00000001</span></p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" disabled={editSubmitting}>
+                {editSubmitting ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setEditStore(null)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   )
 }

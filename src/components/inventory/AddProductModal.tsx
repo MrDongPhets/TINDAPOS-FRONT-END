@@ -644,27 +644,14 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
             {/* Additional Information */}
             <div className="space-y-4">
               <h4 className="font-medium text-sm text-gray-700">Additional Information</h4>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="barcode">Barcode</Label>
-                  <Input
-                    id="barcode"
-                    placeholder="Product barcode"
-                    value={formData.barcode}
-                    onChange={(e) => handleInputChange('barcode', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="product-image">Product Image</Label>
-                  <ImageUpload
-                    value={formData.image_url}
-                    onChange={(url) => handleInputChange('image_url', url)}
-                    disabled={loading}
-                    maxSize={20 * 1024 * 1024} // 20MB — compressed by backend before R2
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="product-image">Product Image</Label>
+                <ImageUpload
+                  value={formData.image_url}
+                  onChange={(url) => handleInputChange('image_url', url)}
+                  disabled={loading}
+                  maxSize={20 * 1024 * 1024}
+                />
               </div>
             </div>
 
