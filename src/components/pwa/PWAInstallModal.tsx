@@ -18,12 +18,16 @@ function isSafariBrowser(): boolean {
 }
 
 const DISMISS_KEY = 'pwa_install_dismissed'
+const SNOOZE_KEY = 'pwa_install_snoozed'
 const DISMISS_DAYS = 7
 
 function wasDismissedRecently(): boolean {
+  // Hard dismiss (X button / backdrop): 7 days
   const ts = localStorage.getItem(DISMISS_KEY)
-  if (!ts) return false
-  return Date.now() - parseInt(ts) < DISMISS_DAYS * 24 * 60 * 60 * 1000
+  if (ts && Date.now() - parseInt(ts) < DISMISS_DAYS * 24 * 60 * 60 * 1000) return true
+  // Soft snooze ("Not now"): session only
+  if (sessionStorage.getItem(SNOOZE_KEY)) return true
+  return false
 }
 
 export function PWAInstallModal() {
@@ -73,6 +77,11 @@ export function PWAInstallModal() {
 
   const handleDismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()))
+    setShow(false)
+  }
+
+  const handleSnooze = () => {
+    sessionStorage.setItem(SNOOZE_KEY, '1')
     setShow(false)
   }
 
@@ -194,7 +203,7 @@ export function PWAInstallModal() {
             )}
 
             <button
-              onClick={handleDismiss}
+              onClick={handleSnooze}
               className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 py-2 transition-colors"
             >
               Not now
