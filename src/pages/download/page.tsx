@@ -18,8 +18,8 @@ import {
   Zap,
   MessageCircle
 } from "lucide-react"
+import { FACEBOOK_MESSENGER_URL } from '@/config/contact'
 
-const FACEBOOK_PAGE_URL = "https://m.me/61578527823519"
 
 export default function DownloadPage() {
   const [androidStepsOpen, setAndroidStepsOpen] = useState(false)
@@ -73,7 +73,7 @@ export default function DownloadPage() {
 
       <Separator />
 
-      <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer">
+      <a href={FACEBOOK_MESSENGER_URL} target="_blank" rel="noopener noreferrer">
         <Button className="w-full bg-[#1877F2] hover:bg-[#1565C0] gap-2">
           <MessageCircle className="h-4 w-4" />
           Contact us on Facebook

@@ -4,6 +4,7 @@ import { useAuth } from '@/components/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CreditCard, LogOut, MessageCircle, Check, Store, Building2, RefreshCw } from 'lucide-react'
+import { FACEBOOK_MESSENGER_URL } from '@/config/contact'
 
 const ACTIVE_STATUSES = ['active', 'trial']
 const RECHECK_INTERVAL_MS = 30000
@@ -129,7 +130,7 @@ export default function SubscriptionExpiredPage() {
               <li>We'll activate your account <strong>within the day</strong></li>
             </ol>
             <a
-              href="https://m.me/61578527823519"
+              href={FACEBOOK_MESSENGER_URL}
               target="_blank"
               rel="noopener noreferrer"
             >

@@ -12,6 +12,7 @@ import {
   Check, MessageCircle, Store, Building2, Lock,
   CreditCard, Calendar, AlertCircle
 } from 'lucide-react'
+import { FACEBOOK_MESSENGER_URL } from '@/config/contact'
 
 const PLANS = [
   {
@@ -213,7 +214,7 @@ export default function SubscriptionPage() {
                 </li>
                 <li>We'll activate your account <strong>within the day</strong></li>
               </ol>
-              <a href="https://m.me/61578527823519" target="_blank" rel="noopener noreferrer">
+              <a href={FACEBOOK_MESSENGER_URL} target="_blank" rel="noopener noreferrer">
                 <Button className="w-full bg-[#E8302A] hover:bg-[#B91C1C] mt-1">
                   <MessageCircle className="mr-2 h-4 w-4" />
                   Message Us on Facebook

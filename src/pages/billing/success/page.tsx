@@ -97,7 +97,7 @@ export default function BillingSuccessPage() {
             <Button className="w-full bg-[#E8302A] hover:bg-[#B91C1C]" onClick={pollStatus}>
               Check Again
             </Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/subscription-expired')}>
+            <Button variant="outline" className="w-full" onClick={() => navigate('/client/subscription-expired')}>
               Back to Billing
             </Button>
           </div>

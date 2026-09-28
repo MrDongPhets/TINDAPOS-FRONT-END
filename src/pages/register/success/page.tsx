@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, ArrowRight } from 'lucide-react'
+import { FACEBOOK_MESSENGER_URL } from '@/config/contact'
 
 export default function RegisterSuccessPage() {
   const navigate = useNavigate()
@@ -49,7 +50,7 @@ export default function RegisterSuccessPage() {
         <p className="text-xs text-gray-400">
           Need help? Message us on{' '}
           <a
-            href="https://www.facebook.com/tindapo"
+            href={FACEBOOK_MESSENGER_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:underline"
