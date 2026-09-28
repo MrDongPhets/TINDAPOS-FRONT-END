@@ -1,7 +1,12 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { CreditCard, LogOut, MessageCircle, Check, Store, Building2 } from 'lucide-react'
+import { CreditCard, LogOut, MessageCircle, Check, Store, Building2, RefreshCw } from 'lucide-react'
+
+const ACTIVE_STATUSES = ['active', 'trial']
+const RECHECK_INTERVAL_MS = 30000
 
 const PLANS = [
   {
@@ -25,7 +30,38 @@ const PLANS = [
 ]
 
 export default function SubscriptionExpiredPage() {
-  const { logout, user } = useAuth()
+  const { logout, user, refreshSession } = useAuth()
+  const navigate = useNavigate()
+  const [checking, setChecking] = useState(false)
+  const [checkMessage, setCheckMessage] = useState('')
+
+  // Re-check subscription — once reactivated by admin/payment, send the user back in without re-login.
+  // Returns the fresh company, or null if the server couldn't be reached.
+  const recheck = useCallback(async () => {
+    const company = await refreshSession()
+    if (company && ACTIVE_STATUSES.includes(company.subscription_status)) {
+      navigate('/client/dashboard', { replace: true })
+    }
+    return company
+  }, [refreshSession, navigate])
+
+  const handleManualCheck = async () => {
+    setChecking(true)
+    setCheckMessage('')
+    const company = await recheck()
+    setChecking(false)
+    setCheckMessage(company ? "Still not active yet. We'll keep checking automatically." : 'Could not reach the server. Please try again.')
+  }
+
+  useEffect(() => {
+    recheck()
+    const interval = setInterval(recheck, RECHECK_INTERVAL_MS)
+    window.addEventListener('focus', recheck)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('focus', recheck)
+    }
+  }, [recheck])
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start p-4 pt-10">
@@ -105,7 +141,12 @@ export default function SubscriptionExpiredPage() {
           </CardContent>
         </Card>
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
+          <Button variant="outline" className="w-full" onClick={handleManualCheck} disabled={checking}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${checking ? 'animate-spin' : ''}`} />
+            {checking ? 'Checking...' : 'Already paid? Check my subscription'}
+          </Button>
+          {checkMessage && <p className="text-xs text-gray-500">{checkMessage}</p>}
           <Button variant="ghost" className="text-gray-500" onClick={logout}>
             <LogOut className="h-4 w-4 mr-2" /> Logout
           </Button>

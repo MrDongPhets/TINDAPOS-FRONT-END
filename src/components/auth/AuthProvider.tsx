@@ -186,6 +186,9 @@ export function AuthProvider({ children }) {
             const storedSub = localStorage.getItem('subscriptionData')
             if (storedSub) setSubscription(JSON.parse(storedSub))
             logger.log('✅ Auth restored:', parsedUser.email, userTypeData)
+
+            // Refresh plan/company in background so admin plan changes apply without re-login
+            if (userTypeData === 'client') refreshSession()
           } else {
             logger.log('❌ Token validation failed, clearing session')
             localStorage.removeItem('authToken')
@@ -449,6 +452,28 @@ export function AuthProvider({ children }) {
     }
   }, [isAuthenticated])
 
+  // Re-fetch company + subscription from /auth/me and update cache.
+  // Returns the fresh company (or null if offline / request failed).
+  const refreshSession = useCallback(async () => {
+    const token = localStorage.getItem('authToken')
+    if (!token || !navigator.onLine) return null
+    try {
+      const res = await fetch(`${API_CONFIG.BASE_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!res.ok) return null
+      const data = await res.json()
+      if (data.subscription) {
+        localStorage.setItem('subscriptionData', JSON.stringify(data.subscription))
+        setSubscription(data.subscription)
+      }
+      if (data.company) localStorage.setItem('companyData', JSON.stringify(data.company))
+      return data.company || null
+    } catch {
+      return null // offline or cold start — keep cached data
+    }
+  }, [])
+
   const loginWithToken = useCallback(async (token: string) => {
     if (isAuthenticated) return { success: false, error: 'Already logged in' }
     setLoading(true)
@@ -621,6 +646,7 @@ export function AuthProvider({ children }) {
     forceLogout,
     completeSetup,
     completeStaffLogin,
+    refreshSession,
     isClient: userType === 'client',
     isSuperAdmin: userType === 'super_admin',
     isStaff: userType === 'staff',
