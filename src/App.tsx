@@ -60,6 +60,8 @@ import SubscriptionPage from '@/pages/client/subscription/page'
 import SettingsPage from '@/pages/client/settings/page'
 import UtangPage from '@/pages/client/utang/page'
 import ClientAttendancePage from '@/pages/client/attendance/page'
+import GcashPage from '@/pages/client/gcash/page'
+import ExpensesPage from '@/pages/client/expenses/page'
 
 // Billing
 import BillingSuccessPage from '@/pages/billing/success/page'
@@ -70,6 +72,8 @@ import StaffSalesPage from '@/pages/pos/sales/page'
 import StaffUtangPage from '@/pages/pos/utang/page'
 import StaffChangePinPage from '@/pages/pos/change-pin/page'
 import StaffAttendancePage from '@/pages/pos/attendance/page'
+import StaffGcashPage from '@/pages/pos/gcash/page'
+import StaffExpensesPage from '@/pages/pos/expenses/page'
 import { StaffLayout } from '@/components/pos/StaffLayout'
 import PosPage from '@/pages/pos/page'
 import PosStockCountPage from '@/pages/pos/stock-count/page'
@@ -143,6 +147,8 @@ function App() {
         <Route path="/client/settings" element={<SettingsPage />} />
         <Route path="/client/utang" element={<UtangPage />} />
         <Route path="/client/attendance" element={<ClientAttendancePage />} />
+        <Route path="/client/gcash" element={<GcashPage />} />
+        <Route path="/client/expenses" element={<ExpensesPage />} />
 
         {/* Billing */}
         <Route path="/billing/success" element={<BillingSuccessPage />} />
@@ -154,6 +160,8 @@ function App() {
         <Route path="/pos/utang" element={<StaffLayout><StaffUtangPage /></StaffLayout>} />
         <Route path="/pos/change-pin" element={<StaffLayout><StaffChangePinPage /></StaffLayout>} />
         <Route path="/pos/attendance" element={<StaffLayout><StaffAttendancePage /></StaffLayout>} />
+        <Route path="/pos/gcash" element={<StaffLayout><StaffGcashPage /></StaffLayout>} />
+        <Route path="/pos/expenses" element={<StaffLayout><StaffExpensesPage /></StaffLayout>} />
         <Route path="/pos/stock-count" element={<StaffLayout><PosStockCountPage /></StaffLayout>} />
         <Route path="/pos/stock-count/:id" element={<StaffLayout><PosStockCountDetailPage /></StaffLayout>} />
 

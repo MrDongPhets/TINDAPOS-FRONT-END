@@ -30,7 +30,9 @@ import {
   ClipboardList,
   Gift,
   KeyRound,
-  Clock
+  Clock,
+  Smartphone,
+  Receipt
 } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
@@ -126,6 +128,16 @@ const staffNavigation = [
     icon: HandCoins,
   },
   {
+    name: "GCash",
+    href: "/pos/gcash",
+    icon: Smartphone,
+  },
+  {
+    name: "Expenses",
+    href: "/pos/expenses",
+    icon: Receipt,
+  },
+  {
     name: "Attendance",
     href: "/pos/attendance",
     icon: Clock,
@@ -214,6 +226,16 @@ const clientNavigation = [
     name: "Utang Tracker",
     href: "/client/utang",
     icon: HandCoins,
+  },
+  {
+    name: "GCash",
+    href: "/client/gcash",
+    icon: Smartphone,
+  },
+  {
+    name: "Expenses",
+    href: "/client/expenses",
+    icon: Receipt,
   },
   {
     name: "Attendance",

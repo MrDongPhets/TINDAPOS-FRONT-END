@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { GcashFeeSettingsCard } from '@/components/finance/GcashFeeSettingsCard'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { Separator } from '@/components/ui/separator'
@@ -460,7 +461,7 @@ export default function SettingsPage() {
               </Card>
             </TabsContent>
             {/* Features Tab */}
-            <TabsContent value="features">
+            <TabsContent value="features" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Staff Features</CardTitle>
@@ -502,6 +503,7 @@ export default function SettingsPage() {
                   </div>
                 </CardContent>
               </Card>
+              <GcashFeeSettingsCard />
             </TabsContent>
           </Tabs>
         </div>

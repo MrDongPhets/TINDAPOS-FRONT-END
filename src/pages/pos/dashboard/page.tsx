@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import {
   ShoppingCart, ClipboardList, LogOut, Store,
   TrendingUp, Receipt, Loader2, Clock,
-  ChevronRight, User, Fingerprint, Timer
+  ChevronRight, User, Fingerprint, Timer, Smartphone, Wallet
 } from 'lucide-react'
 
 type Sale = {
@@ -180,6 +180,32 @@ export default function StaffDashboardPage() {
             <ShoppingCart className="h-5 w-5" />
             Start Checkout
           </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => navigate('/pos/gcash')}
+              className="flex items-center gap-3 bg-white border rounded-xl px-4 py-3.5 shadow-sm hover:bg-gray-50 transition-colors"
+            >
+              <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                <Smartphone className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="font-semibold text-gray-900 text-sm">GCash</p>
+                <p className="text-xs text-gray-400 truncate">Cash-in / out</p>
+              </div>
+            </button>
+            <button
+              onClick={() => navigate('/pos/expenses')}
+              className="flex items-center gap-3 bg-white border rounded-xl px-4 py-3.5 shadow-sm hover:bg-gray-50 transition-colors"
+            >
+              <div className="h-9 w-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                <Wallet className="h-5 w-5 text-[#E8302A]" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="font-semibold text-gray-900 text-sm">Expenses</p>
+                <p className="text-xs text-gray-400 truncate">Gastos ng tindahan</p>
+              </div>
+            </button>
+          </div>
           <button
             onClick={() => navigate('/pos/stock-count')}
             className="w-full flex items-center gap-3 bg-white border rounded-xl px-4 py-3.5 shadow-sm hover:bg-gray-50 transition-colors"

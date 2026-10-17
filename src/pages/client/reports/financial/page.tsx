@@ -389,8 +389,8 @@ export default function FinancialReportsPage() {
               <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3.5 md:p-5 flex items-center justify-between gap-2 shadow-sm">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-white/80 truncate">Total Revenue</p>
-                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{financialSummary.gross_profit?.toLocaleString() || 0}</p>
-                  <p className="text-[11px] text-white/70 mt-0.5 truncate">{financialSummary.gross_margin?.toFixed(1)}% margin</p>
+                  <p className="text-xl md:text-2xl font-bold text-white mt-0.5 truncate leading-tight">₱{financialSummary.total_revenue?.toLocaleString() || 0}</p>
+                  <p className="text-[11px] text-white/70 mt-0.5 truncate">Gross profit ₱{financialSummary.gross_profit?.toLocaleString() || 0} · {financialSummary.gross_margin?.toFixed(1)}%</p>
                 </div>
                 <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
               </div>
@@ -412,7 +412,25 @@ export default function FinancialReportsPage() {
                 </div>
                 <Receipt className="h-8 w-8 md:h-10 md:w-10 text-white/30 shrink-0" />
               </div>
+
+              {/* Included in Net Profit: manual expenses (−) and GCash cash-in/out fees (+) */}
+              <div className="bg-white border rounded-2xl p-3.5 md:p-5 shadow-sm">
+                <p className="text-xs font-medium text-gray-500 truncate">Expenses</p>
+                <p className="text-xl md:text-2xl font-bold text-red-600 mt-0.5 truncate leading-tight">−₱{financialSummary.operating_expenses?.toLocaleString() || 0}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5 truncate">Rent, kuryente, sahod…</p>
+              </div>
+              <div className="bg-white border rounded-2xl p-3.5 md:p-5 shadow-sm">
+                <p className="text-xs font-medium text-gray-500 truncate">GCash Fees Earned</p>
+                <p className="text-xl md:text-2xl font-bold text-green-600 mt-0.5 truncate leading-tight">+₱{financialSummary.gcash_fee_income?.toLocaleString() || 0}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5 truncate">Cash-in / cash-out</p>
+              </div>
             </div>
+          )}
+
+          {financialSummary?.cogs_estimated_items > 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              ⚠️ {financialSummary.cogs_estimated_items} sold item{financialSummary.cogs_estimated_items === 1 ? '' : 's'} had no cost price, so their cost was estimated at 70% of the selling price. Add a cost price to your products for exact profit.
+            </p>
           )}
 
           {/* Tabs */}

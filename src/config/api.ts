@@ -16,7 +16,7 @@ const getApiUrl = () => {
 
   // Production fallback
   logger.log('⚠️ No API URL env var found, using production fallback')
-  return 'https://kitaposapi.mrdongphets.com'
+  return 'https://api.tindapo.com'
 }
 
 const API_CONFIG = {
@@ -34,6 +34,12 @@ const API_CONFIG = {
       USERS: '/admin/users',
       USERS_STATS: '/admin/stats/users',
       SUBSCRIPTION_STATS: '/admin/stats/subscriptions'
+    },
+    FINANCE: {
+      GCASH: '/pos/gcash',                         // GET list+summary, POST record, DELETE /:id (owner)
+      GCASH_SETTINGS: '/pos/gcash/settings',       // GET fee rules
+      GCASH_SETTINGS_SAVE: '/client/settings/gcash', // PUT fee rules (owner)
+      EXPENSES: '/pos/expenses'                    // GET list+summary, POST, PUT/DELETE /:id (owner)
     },
     HEALTH: '/health'
   }
