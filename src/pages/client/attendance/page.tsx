@@ -115,7 +115,7 @@ export default function ClientAttendancePage() {
           </div>
         </header>
 
-        <div className="p-4 md:p-6 space-y-5">
+        <div className="p-4 md:p-6 pb-24 md:pb-6 space-y-5">
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-white border rounded-xl p-4">

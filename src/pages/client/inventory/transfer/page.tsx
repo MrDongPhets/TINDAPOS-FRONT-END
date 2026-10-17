@@ -290,7 +290,7 @@ export default function InventoryTransferPage() {
           <div className="ml-auto pr-4"><UserMenuDropdown /></div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 pb-24 md:pb-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="hidden md:block">

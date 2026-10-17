@@ -273,7 +273,7 @@ export default function ActivityLogsPage() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 md:p-6 pb-24 md:pb-6">
           <div className="space-y-6">
             {/* Header */}
             <div>

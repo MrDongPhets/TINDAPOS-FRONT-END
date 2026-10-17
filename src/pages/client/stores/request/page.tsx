@@ -59,7 +59,7 @@ export default function RequestStore() {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 pb-24 md:pb-6">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Request New Store</CardTitle>

@@ -26,62 +26,24 @@ import {
 } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SuccessModal } from "@/components/ui/success-modal"
-import { Loader2, Plus, Package, AlertCircle, ChefHat, Info, Tag, ArrowRight, Barcode } from "lucide-react"
-import { Capacitor } from '@capacitor/core'
+import { Loader2, Plus, Package, AlertCircle, ChefHat, Info, Tag, ArrowRight, Barcode, Sparkles } from "lucide-react"
+import { BarcodeScannerSheet } from '@/components/scanner/BarcodeScannerSheet'
+import { ignoreScannerInteractions } from '@/components/scanner/scannerInteractions'
 import API_CONFIG from "@/config/api"
 import { formatCurrency } from "@/lib/utils"
 
-async function scanBarcodeForForm(): Promise<string | null> {
-  if (Capacitor.isNativePlatform()) {
-    const { BarcodeScanner } = await import('@capacitor-mlkit/barcode-scanning')
-    const { camera } = await BarcodeScanner.requestPermissions()
-    if (camera !== 'granted' && camera !== 'limited') {
-      alert('Camera permission is required.')
-      return null
-    }
-    const { barcodes } = await BarcodeScanner.scan()
-    return barcodes?.[0]?.rawValue ?? null
-  }
-  if ('BarcodeDetector' in window) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      const detector = new (window as any).BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'qr_code', 'upc_a', 'upc_e'] })
-      return new Promise((resolve) => {
-        const video = document.createElement('video')
-        video.srcObject = stream; video.play()
-        const overlay = document.createElement('div')
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;'
-        video.style.cssText = 'width:100%;max-width:480px;border-radius:8px;'
-        const hint = document.createElement('p')
-        hint.textContent = 'Point camera at barcode — tap anywhere to cancel'
-        hint.style.cssText = 'color:white;font-size:14px;text-align:center;padding:0 24px;'
-        overlay.appendChild(video); overlay.appendChild(hint)
-        document.body.appendChild(overlay)
-        let found = false
-        const interval = setInterval(async () => {
-          try {
-            const barcodes = await detector.detect(video)
-            if (barcodes.length > 0 && !found) {
-              found = true; clearInterval(interval)
-              stream.getTracks().forEach(t => t.stop())
-              document.body.removeChild(overlay)
-              resolve(barcodes[0].rawValue)
-            }
-          } catch { /* frame not ready */ }
-        }, 200)
-        overlay.addEventListener('click', () => {
-          if (!found) { clearInterval(interval); stream.getTracks().forEach(t => t.stop()); document.body.removeChild(overlay); resolve(null) }
-        })
-      })
-    } catch { alert('Could not access camera.'); return null }
-  }
-  const value = prompt('Enter barcode manually:')
-  return value?.trim() || null
-}
 
 export function AddProductModal({ onProductAdded, trigger = null }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
+  // Barcode autofill: name/category/photo suggested from other Tindapo stores or Open Food Facts
+  const [lookup, setLookup] = useState<{
+    status: 'idle' | 'loading' | 'found' | 'exists' | 'notfound'
+    name?: string
+    source?: 'tindapo' | 'openfoodfacts'
+    storesCount?: number
+  }>({ status: 'idle' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   
@@ -130,6 +92,7 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
   // Reset form when modal closes
   useEffect(() => {
     if (!open) {
+      setLookup({ status: 'idle' })
       setFormData({
         name: "",
         description: "",
@@ -230,6 +193,40 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
     setError("")
   }
 
+  const RETAIL_BARCODE = /^(\d{8}|\d{12}|\d{13}|\d{14})$/
+
+  // Look up a scanned/typed barcode and pre-fill empty fields. Never overwrites what the owner typed.
+  const lookupBarcode = async (barcode: string) => {
+    const code = barcode.trim()
+    if (!RETAIL_BARCODE.test(code)) { setLookup({ status: 'idle' }); return }
+
+    setLookup({ status: 'loading' })
+    try {
+      const data = await makeApiCall(`/client/products/barcode-lookup/${code}`)
+      if (!data?.found) { setLookup({ status: 'notfound' }); return }
+      if (data.already_exists) { setLookup({ status: 'exists', name: data.existing_name }); return }
+
+      const s = data.suggestion
+      const category = s.category_name
+        ? categories.find(c => c.name?.trim().toLowerCase() === s.category_name.trim().toLowerCase())
+        : null
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || s.name,
+        category_id: prev.category_id || category?.id || '',
+        image_url: prev.image_url || s.image_url || '',
+      }))
+      setLookup({ status: 'found', name: s.name, source: s.source, storesCount: s.stores_count })
+    } catch {
+      setLookup({ status: 'idle' }) // lookup is a convenience — fail silently
+    }
+  }
+
+  const handleBarcodeFound = (code: string) => {
+    handleInputChange('barcode', code)
+    lookupBarcode(code)
+  }
+
   const handleCompositeChange = (checked) => {
     setIsComposite(checked)
     if (checked) {
@@ -327,7 +324,18 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
             </Button>
           )}
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogContent
+          className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto"
+          onPointerDownOutside={ignoreScannerInteractions}
+          onInteractOutside={ignoreScannerInteractions}
+          onFocusOutside={ignoreScannerInteractions}
+        >
+          <BarcodeScannerSheet
+            open={scannerOpen}
+            onClose={() => setScannerOpen(false)}
+            onScan={handleBarcodeFound}
+            title="Scan product barcode"
+          />
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="h-5 w-5 text-blue-600" />
@@ -374,21 +382,54 @@ export function AddProductModal({ onProductAdded, trigger = null }) {
                     placeholder="Scan or enter barcode..."
                     value={formData.barcode}
                     onChange={(e) => handleInputChange('barcode', e.target.value)}
+                    onBlur={(e) => lookupBarcode(e.target.value)}
                     className="flex-1"
                   />
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={async () => {
-                      const barcode = await scanBarcodeForForm()
-                      if (barcode) handleInputChange('barcode', barcode)
-                    }}
+                    onClick={() => setScannerOpen(true)}
                     className="px-4"
                   >
                     <Barcode className="h-4 w-4 mr-2" />
                     Scan
                   </Button>
                 </div>
+
+                {lookup.status === 'loading' && (
+                  <p className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Hinahanap ang produkto...
+                  </p>
+                )}
+                {lookup.status === 'found' && (
+                  <div className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-800">
+                    <Sparkles className="h-4 w-4 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p>
+                        Nahanap: <strong>{lookup.name}</strong>{' '}
+                        <span className="text-green-700/80">
+                          ({lookup.source === 'tindapo'
+                            ? `used by ${lookup.storesCount} other Tindapo store${lookup.storesCount === 1 ? '' : 's'}`
+                            : 'from Open Food Facts'})
+                        </span>
+                      </p>
+                      <p className="text-green-700/80 mt-0.5">Empty fields were filled in — please check, then set your own price.</p>
+                      {formData.name && formData.name !== lookup.name && (
+                        <button type="button" className="mt-1 font-semibold underline" onClick={() => handleInputChange('name', lookup.name)}>
+                          Use this name
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {lookup.status === 'exists' && (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    ⚠️ You already have this barcode: <strong>{lookup.name}</strong>. Use Adjust Stock / Restock instead of adding it again.
+                  </p>
+                )}
+                {lookup.status === 'notfound' && (
+                  <p className="text-xs text-gray-500">Not found in the product database — type the product name. It will help other stores next time.</p>
+                )}
               </div>
 
               <div className="space-y-2">

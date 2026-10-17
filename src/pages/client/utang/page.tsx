@@ -243,7 +243,7 @@ export default function UtangPage() {
           <UserMenuDropdown />
         </header>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 pb-24 md:pb-4 space-y-4">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-3.5 flex items-center justify-between gap-2 shadow-sm">

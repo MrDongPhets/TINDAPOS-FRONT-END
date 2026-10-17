@@ -232,25 +232,25 @@ export default function SettingsPage() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4 max-w-2xl">
+        <div className="flex flex-1 flex-col gap-4 p-4 pb-24 md:pb-4 max-w-2xl">
           <div>
             <h1 className="text-2xl font-semibold">Settings</h1>
             <p className="text-gray-500 text-sm mt-1">Manage your account and receipt preferences</p>
           </div>
 
           <Tabs defaultValue="account">
-            <TabsList className="mb-4">
-              <TabsTrigger value="account" className="gap-2">
-                <User className="h-4 w-4" /> Account
+            <TabsList className="mb-4 grid w-full grid-cols-4 h-auto sm:inline-flex sm:w-auto">
+              <TabsTrigger value="account" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
+                <User className="hidden sm:block h-4 w-4" /> Account
               </TabsTrigger>
-              <TabsTrigger value="company" className="gap-2">
-                <Building2 className="h-4 w-4" /> Company
+              <TabsTrigger value="company" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
+                <Building2 className="hidden sm:block h-4 w-4" /> Company
               </TabsTrigger>
-              <TabsTrigger value="receipt" className="gap-2">
-                <Receipt className="h-4 w-4" /> Receipt
+              <TabsTrigger value="receipt" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
+                <Receipt className="hidden sm:block h-4 w-4" /> Receipt
               </TabsTrigger>
-              <TabsTrigger value="features" className="gap-2">
-                <Fingerprint className="h-4 w-4" /> Features
+              <TabsTrigger value="features" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
+                <Fingerprint className="hidden sm:block h-4 w-4" /> Features
               </TabsTrigger>
             </TabsList>
 
