@@ -418,7 +418,7 @@ function LoginForm() {
             <button
               type="button"
               className="text-[#E8302A] hover:text-[#B91C1C] font-medium"
-              onClick={() => window.open('https://tindaposapp.mustarddigitals.com/register', '_blank', 'noopener,noreferrer')}
+              onClick={() => window.open('https://app.tindapo.com/register', '_blank', 'noopener,noreferrer')}
             >
               Create an account →
             </button>

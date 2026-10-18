@@ -85,7 +85,7 @@ export default function RegisterPage() {
   })
 
   // Selected subscription plan
-  const [selectedPlan, setSelectedPlan] = useState('basic')
+  const [selectedPlan, setSelectedPlan] = useState('negosyo') // must match a plan id below (was 'basic', which created legacy "Basic" companies)
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
