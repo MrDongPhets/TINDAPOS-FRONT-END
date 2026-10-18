@@ -22,12 +22,13 @@ const getAuthHeaders = () => ({
   'Content-Type': 'application/json',
 })
 
+// ids match the Sales page filter/labels ('gcash', 'bank_transfer'); comingSoon = shown but not selectable yet
 const PAYMENT_METHODS = [
   { id: 'cash', label: 'Cash', icon: Banknote, color: 'bg-green-50 border-green-200 hover:bg-green-100' },
-  { id: 'card', label: 'Card', icon: CreditCard, color: 'bg-blue-50 border-blue-200 hover:bg-blue-100' },
-  { id: 'bank_transfer', label: 'Bank Transfer', icon: Building, color: 'bg-purple-50 border-purple-200 hover:bg-purple-100' },
-  { id: 'e_wallet', label: 'E-Wallet', icon: Smartphone, color: 'bg-orange-50 border-orange-200 hover:bg-orange-100' },
+  { id: 'gcash', label: 'GCash', icon: Smartphone, color: 'bg-blue-50 border-blue-200 hover:bg-blue-100' },
   { id: 'credit', label: 'Utang', icon: HandCoins, color: 'bg-red-50 border-red-200 hover:bg-red-100' },
+  { id: 'card', label: 'Card', icon: CreditCard, color: 'bg-gray-50 border-gray-200', comingSoon: true },
+  { id: 'bank_transfer', label: 'Bank Transfer', icon: Building, color: 'bg-gray-50 border-gray-200', comingSoon: true },
 ]
 
 export default function PaymentModal({ open, onClose, onSubmit, total, loading }) {
@@ -126,16 +127,23 @@ export default function PaymentModal({ open, onClose, onSubmit, total, loading }
                 return (
                   <Card
                     key={method.id}
+                    aria-disabled={method.comingSoon || undefined}
                     className={`
-                      cursor-pointer transition-all p-4 border-2
+                      transition-all p-4 border-2
                       ${method.color}
+                      ${method.comingSoon ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
                       ${selectedMethod === method.id ? 'ring-2 ring-blue-500 border-blue-500' : ''}
                     `}
-                    onClick={() => setSelectedMethod(method.id)}
+                    onClick={() => !method.comingSoon && setSelectedMethod(method.id)}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className="h-6 w-6" />
-                      <span className="font-medium">{method.label}</span>
+                      <Icon className={`h-6 w-6 shrink-0 ${method.comingSoon ? 'text-gray-400' : ''}`} />
+                      <div className="min-w-0">
+                        <span className={`font-medium ${method.comingSoon ? 'text-gray-500' : ''}`}>{method.label}</span>
+                        {method.comingSoon && (
+                          <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400">Coming soon</span>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 )

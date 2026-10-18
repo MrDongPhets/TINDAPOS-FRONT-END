@@ -319,7 +319,7 @@ export default function SalesPage() {
       cash:   'bg-green-100 text-green-800',
       card:   'bg-blue-100 text-blue-800',
       gcash:  'bg-purple-100 text-purple-800',
-      bank:   'bg-orange-100 text-orange-800',
+      bank_transfer: 'bg-orange-100 text-orange-800',
       credit: 'bg-red-100 text-red-800',
     };
     return colors[method?.toLowerCase()] || 'bg-gray-100 text-gray-800';
@@ -330,7 +330,7 @@ export default function SalesPage() {
       cash:   'CASH',
       card:   'CARD',
       gcash:  'GCASH',
-      bank:   'BANK',
+      bank_transfer: 'BANK',
       credit: 'UTANG',
     };
     return labels[method?.toLowerCase()] || method?.toUpperCase() || 'N/A';
@@ -533,7 +533,7 @@ export default function SalesPage() {
                             <SelectItem value="cash">Cash</SelectItem>
                             <SelectItem value="card">Card</SelectItem>
                             <SelectItem value="gcash">GCash</SelectItem>
-                            <SelectItem value="bank">Bank Transfer</SelectItem>
+                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                             <SelectItem value="credit">Utang (Credit)</SelectItem>
                           </SelectContent>
                         </Select>
