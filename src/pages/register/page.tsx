@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Loader2, UserPlus, ArrowLeft, Check, X, Zap, Star, ChevronRight, Eye, EyeOff } from "lucide-react"
 import API_CONFIG from "@/config/api" // Import API config
+import { BEST_VALUE_MONTHS, getPrice, peso, toPaidPlanId } from "@/config/pricing"
 
 const subscriptionPlans = [
   {
@@ -27,7 +28,8 @@ const subscriptionPlans = [
       'Daily & Monthly Sales Reports',
       'Stock Adjustments',
       'Facebook Support',
-      'POS Checkout & Receipt (Coming Soon)',
+      'POS Checkout & Receipt',
+      'Utang Tracker',
     ],
     icon: <Zap className="h-5 w-5" />,
     color: 'bg-red-100 text-red-800',
@@ -551,6 +553,14 @@ export default function RegisterPage() {
                         <span className="text-3xl font-bold">₱{plan.price}</span>
                         <span className="text-gray-500 ml-1">/{plan.duration}</span>
                       </div>
+                      {(() => {
+                        const best = getPrice(toPaidPlanId(plan.id), BEST_VALUE_MONTHS)
+                        return (
+                          <p className="mb-4 rounded-md bg-[#FFF1F0] px-2 py-1.5 text-xs text-[#B91C1C]">
+                            Mas tipid: <strong>{peso(best.perMonth)}/mo</strong> kapag {BEST_VALUE_MONTHS} months · Save {peso(best.savings)}
+                          </p>
+                        )
+                      })()}
                       <ul className="space-y-2 text-sm text-left">
                         {plan.features.map((feature, index) => (
                           <li key={index} className="flex items-center gap-2">

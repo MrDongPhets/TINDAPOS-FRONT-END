@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import { toast } from "sonner"
 import API_CONFIG from '@/config/api'
+import { BILLING_PERIODS, PLAN_PRICES, getPrice, peso, periodLabel, toPaidPlanId, type BillingMonths, type PaidPlanId } from '@/config/pricing'
 
 const STATUS_CONFIG = {
   trial:    { label: 'Trial',    color: 'bg-blue-100 text-blue-800' },
@@ -40,6 +41,9 @@ const STATUS_CONFIG = {
 
 // ISO timestamp → YYYY-MM-DD (local) for <input type="date">
 const toDateInput = (iso) => (iso ? new Date(iso).toLocaleDateString('en-CA') : '')
+// Same rule as the backend: add calendar months (renewals extend from the current end date if it's still in the future)
+const addMonths = (from: Date, months: number) => { const d = new Date(from); d.setMonth(d.getMonth() + months); return d }
+const renewalBase = (endDate?: string) => (endDate && new Date(endDate) > new Date() ? new Date(endDate) : new Date())
 // YYYY-MM-DD → ISO at end of that local day
 const fromDateInput = (value) => (value ? new Date(`${value}T23:59:59`).toISOString() : null)
 
@@ -54,7 +58,7 @@ export default function AdminSubscriptions() {
   const [selectedCompany, setSelectedCompany] = useState(null)
   const [months, setMonths] = useState(1)
   const [days, setDays] = useState(30)
-  const [activatePlan, setActivatePlan] = useState('basic')
+  const [activatePlan, setActivatePlan] = useState<PaidPlanId>('negosyo')
 
   const [showDeleted, setShowDeleted] = useState(false)
   const [editDialog, setEditDialog] = useState(false)
@@ -384,7 +388,7 @@ export default function AdminSubscriptions() {
                                   size="sm"
                                   className="bg-green-600 hover:bg-green-700 text-white"
                                   disabled={isProcessing}
-                                  onClick={() => { setSelectedCompany(company); setMonths(1); setActivatePlan(company.subscription_plan || 'basic'); setActivateDialog(true) }}
+                                  onClick={() => { setSelectedCompany(company); setMonths(1); setActivatePlan(toPaidPlanId(company.subscription_plan)); setActivateDialog(true) }}
                                 >
                                   <CheckCircle className="h-3 w-3 mr-1" /> Activate
                                 </Button>
@@ -454,29 +458,48 @@ export default function AdminSubscriptions() {
               </p>
               <div className="space-y-2">
                 <Label>Plan</Label>
-                <Select value={activatePlan} onValueChange={setActivatePlan}>
+                <Select value={activatePlan} onValueChange={v => setActivatePlan(v as PaidPlanId)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="negosyo">Negosyo — ₱299/mo (1 store)</SelectItem>
-                    <SelectItem value="laking-negosyo">Laking Negosyo — ₱599/mo (5 stores)</SelectItem>
+                    <SelectItem value="negosyo">Negosyo — {peso(PLAN_PRICES.negosyo[1])}/mo (1 store)</SelectItem>
+                    <SelectItem value="laking-negosyo">Laking Negosyo — {peso(PLAN_PRICES['laking-negosyo'][1])}/mo (5 stores)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="months">Duration (months)</Label>
-                <Input
-                  id="months"
-                  type="number"
-                  min={1}
-                  max={24}
-                  value={months}
-                  onChange={e => setMonths(Number(e.target.value))}
-                />
+                <div className="flex gap-2">
+                  {BILLING_PERIODS.map(m => (
+                    <Button
+                      key={m}
+                      type="button"
+                      size="sm"
+                      variant={months === m ? 'default' : 'outline'}
+                      onClick={() => setMonths(m)}
+                    >
+                      {periodLabel(m)}
+                    </Button>
+                  ))}
+                  <Input
+                    id="months"
+                    type="number"
+                    min={1}
+                    max={24}
+                    value={months}
+                    onChange={e => setMonths(Number(e.target.value))}
+                    className="w-20"
+                  />
+                </div>
               </div>
+              {BILLING_PERIODS.includes(months as BillingMonths) && (
+                <p className="text-sm text-gray-700">
+                  Expected payment: <strong>{peso(getPrice(activatePlan, months as BillingMonths).total)}</strong>
+                </p>
+              )}
               <p className="text-xs text-gray-500">
-                Subscription will be active until: <strong>{new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}</strong>
+                Subscription will be active until: <strong>{addMonths(new Date(), months).toLocaleDateString()}</strong>
               </p>
             </div>
             <DialogFooter>
@@ -576,6 +599,30 @@ export default function AdminSubscriptions() {
                     onChange={e => setEditForm(f => ({ ...f, subscription_end_date: e.target.value }))}
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Paid — quick renew (sets status Active)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {BILLING_PERIODS.map(m => (
+                    <Button
+                      key={m}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditForm(f => ({
+                        ...f,
+                        status: 'active',
+                        subscription_end_date: toDateInput(addMonths(renewalBase(selectedCompany?.subscription_end_date), m).toISOString()),
+                      }))}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" />{periodLabel(m)}
+                      {(editForm.plan === 'negosyo' || editForm.plan === 'laking-negosyo') && (
+                        <span className="ml-1 text-gray-500">· {peso(getPrice(editForm.plan, m).total)}</span>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500">Adds to the current end date if it hasn't passed yet, otherwise counts from today.</p>
               </div>
               <p className="text-xs text-gray-500">
                 Trial uses the trial end date. Active uses the subscription end date. Expired / Suspended locks the client out.

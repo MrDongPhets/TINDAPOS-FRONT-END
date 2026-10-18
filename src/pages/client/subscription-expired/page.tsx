@@ -3,26 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { CreditCard, LogOut, MessageCircle, Check, Store, Building2, RefreshCw } from 'lucide-react'
-import { FACEBOOK_MESSENGER_URL } from '@/config/contact'
+import { CreditCard, LogOut, Check, Store, Building2, RefreshCw } from 'lucide-react'
+import BillingPeriodPicker from '@/components/billing/BillingPeriodPicker'
+import SubscribeSteps from '@/components/billing/SubscribeSteps'
+import { BEST_VALUE_MONTHS, PLAN_LABELS, getPrice, peso, toPaidPlanId, type BillingMonths, type PaidPlanId } from '@/config/pricing'
 
 const ACTIVE_STATUSES = ['active', 'trial']
 const RECHECK_INTERVAL_MS = 30000
 
 const PLANS = [
   {
+    id: 'negosyo' as PaidPlanId,
     name: 'Negosyo',
-    price: '₱299',
-    period: '/month',
     stores: 1,
     icon: Store,
     color: 'border-[#E8302A]',
     perks: ['1 store', 'Up to 100 products', 'POS + offline mode', 'Sales reports', 'Utang tracker', 'Facebook support'],
   },
   {
+    id: 'laking-negosyo' as PaidPlanId,
     name: 'Laking Negosyo',
-    price: '₱599',
-    period: '/month',
     stores: 5,
     icon: Building2,
     color: 'border-purple-400',
@@ -35,6 +35,10 @@ export default function SubscriptionExpiredPage() {
   const navigate = useNavigate()
   const [checking, setChecking] = useState(false)
   const [checkMessage, setCheckMessage] = useState('')
+  const [selectedPlan, setSelectedPlan] = useState<PaidPlanId>(() => {
+    try { return toPaidPlanId(JSON.parse(localStorage.getItem('companyData') || '{}').subscription_plan) } catch { return 'negosyo' }
+  })
+  const [months, setMonths] = useState<BillingMonths>(BEST_VALUE_MONTHS)
 
   // Re-check subscription — once reactivated by admin/payment, send the user back in without re-login.
   // Returns the fresh company, or null if the server couldn't be reached.
@@ -86,16 +90,23 @@ export default function SubscriptionExpiredPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {PLANS.map(plan => {
             const Icon = plan.icon
+            const isSelected = selectedPlan === plan.id
             return (
-              <Card key={plan.name} className={`border-2 ${plan.color}`}>
+              <Card
+                key={plan.name}
+                role="button"
+                aria-pressed={isSelected}
+                onClick={() => setSelectedPlan(plan.id)}
+                className={`border-2 cursor-pointer transition-shadow ${isSelected ? `${plan.color} shadow-md` : 'border-gray-200'}`}
+              >
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-center gap-2">
                     <Icon className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="font-bold text-gray-900">{plan.name}</p>
                       <p className="text-xl font-extrabold">
-                        {plan.price}
-                        <span className="text-sm font-normal text-gray-500">{plan.period}</span>
+                        {peso(getPrice(plan.id, months).perMonth)}
+                        <span className="text-sm font-normal text-gray-500">/month</span>
                       </p>
                     </div>
                   </div>
@@ -113,34 +124,14 @@ export default function SubscriptionExpiredPage() {
           })}
         </div>
 
+        {/* Billing period */}
+        <div>
+          <p className="text-lg font-bold text-gray-900 mb-3">Select plan · {PLAN_LABELS[selectedPlan]}</p>
+          <BillingPeriodPicker plan={selectedPlan} value={months} onChange={setMonths} />
+        </div>
+
         {/* How to pay */}
-        <Card>
-          <CardContent className="p-5 space-y-3">
-            <p className="font-semibold text-gray-800">How to subscribe:</p>
-            <ol className="space-y-1.5 text-sm text-gray-600 list-decimal list-inside">
-              <li>Send payment via <strong>GCash / Maya / bank transfer</strong></li>
-              <li>Message us on Facebook with:
-                <ul className="mt-1 ml-4 space-y-0.5 list-none">
-                  <li>• Your <strong>company name</strong></li>
-                  <li>• Your <strong>registered email</strong></li>
-                  <li>• <strong>Proof of payment</strong> (screenshot)</li>
-                  <li>• <strong>Plan</strong> you want (Negosyo / Laking Negosyo)</li>
-                </ul>
-              </li>
-              <li>We'll activate your account <strong>within the day</strong></li>
-            </ol>
-            <a
-              href={FACEBOOK_MESSENGER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button className="w-full bg-[#E8302A] hover:bg-[#B91C1C] mt-1">
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Message Us on Facebook
-              </Button>
-            </a>
-          </CardContent>
-        </Card>
+        <SubscribeSteps plan={selectedPlan} months={months} />
 
         <div className="text-center space-y-2">
           <Button variant="outline" className="w-full" onClick={handleManualCheck} disabled={checking}>

@@ -1,25 +1,25 @@
+import { useState } from 'react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { usePlan } from '@/hooks/usePlan'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { UserMenuDropdown } from '@/components/ui/UserMenuDropdown'
 import {
-  Check, MessageCircle, Store, Building2, Lock,
+  Check, Store, Building2, Lock,
   CreditCard, Calendar, AlertCircle
 } from 'lucide-react'
-import { FACEBOOK_MESSENGER_URL } from '@/config/contact'
+import BillingPeriodPicker from '@/components/billing/BillingPeriodPicker'
+import SubscribeSteps from '@/components/billing/SubscribeSteps'
+import { BEST_VALUE_MONTHS, PLAN_LABELS, getPrice, peso, toPaidPlanId, type BillingMonths } from '@/config/pricing'
 
 const PLANS = [
   {
     key: 'negosyo',
     name: 'Negosyo',
-    price: '₱299',
-    period: '/month',
     icon: Store,
     color: 'border-[#E8302A]',
     badgeColor: 'bg-red-100 text-[#E8302A]',
@@ -36,8 +36,6 @@ const PLANS = [
   {
     key: 'laking_negosyo',
     name: 'Laking Negosyo',
-    price: '₱599',
-    period: '/month',
     icon: Building2,
     color: 'border-purple-400',
     badgeColor: 'bg-purple-100 text-purple-700',
@@ -62,6 +60,8 @@ export default function SubscriptionPage() {
   })()
 
   const currentPlanKey = planName
+  const [selectedPlan, setSelectedPlan] = useState(() => toPaidPlanId(isTrial ? 'negosyo' : currentPlanKey))
+  const [months, setMonths] = useState<BillingMonths>(BEST_VALUE_MONTHS)
   const subStatus = subscription?.status || company?.subscription_status || 'trial'
   const trialEnd = subscription?.trial_ends_at || company?.trial_end_date
   const subEnd = subscription?.current_period_end || company?.subscription_end_date
@@ -149,15 +149,24 @@ export default function SubscriptionPage() {
           </Card>
 
           {/* Plan Comparison */}
-          <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Available Plans</p>
+          <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Available Plans · tap to choose</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {PLANS.map(plan => {
               const Icon = plan.icon
               const isCurrent = currentPlanKey === plan.key || (isTrial && plan.key === 'negosyo')
               const isUpgrade = plan.key === 'laking_negosyo' && !hasAdvancedReports
+              const planId = toPaidPlanId(plan.key)
+              const isSelected = selectedPlan === planId
+              const { perMonth } = getPrice(planId, months)
 
               return (
-                <Card key={plan.key} className={`border-2 ${isCurrent ? plan.color : 'border-gray-200'} relative`}>
+                <Card
+                  key={plan.key}
+                  role="button"
+                  aria-pressed={isSelected}
+                  onClick={() => setSelectedPlan(planId)}
+                  className={`border-2 cursor-pointer relative transition-shadow ${isSelected ? `${plan.color} shadow-md` : 'border-gray-200'}`}
+                >
                   {isCurrent && (
                     <div className="absolute -top-3 left-4">
                       <Badge className={`${plan.badgeColor} border-0 text-xs`}>Current Plan</Badge>
@@ -174,7 +183,7 @@ export default function SubscriptionPage() {
                       <div>
                         <p className="font-bold text-gray-900">{plan.name}</p>
                         <p className="text-xl font-extrabold">
-                          {plan.price}<span className="text-sm font-normal text-gray-500">{plan.period}</span>
+                          {peso(perMonth)}<span className="text-sm font-normal text-gray-500">/month</span>
                         </p>
                       </div>
                     </div>
@@ -198,30 +207,14 @@ export default function SubscriptionPage() {
             })}
           </div>
 
-          {/* How to upgrade */}
-          <Card>
-            <CardContent className="p-5 space-y-3">
-              <p className="font-semibold text-gray-800">How to subscribe / upgrade:</p>
-              <ol className="space-y-1.5 text-sm text-gray-600 list-decimal list-inside">
-                <li>Send payment via <strong>GCash / Maya / bank transfer</strong></li>
-                <li>Message us on Facebook with:
-                  <ul className="mt-1 ml-4 space-y-0.5 list-none">
-                    <li>• Your <strong>company name</strong></li>
-                    <li>• Your <strong>registered email</strong></li>
-                    <li>• <strong>Proof of payment</strong> (screenshot)</li>
-                    <li>• <strong>Plan</strong> you want (Negosyo / Laking Negosyo)</li>
-                  </ul>
-                </li>
-                <li>We'll activate your account <strong>within the day</strong></li>
-              </ol>
-              <a href={FACEBOOK_MESSENGER_URL} target="_blank" rel="noopener noreferrer">
-                <Button className="w-full bg-[#E8302A] hover:bg-[#B91C1C] mt-1">
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Message Us on Facebook
-                </Button>
-              </a>
-            </CardContent>
-          </Card>
+          {/* Billing period */}
+          <div>
+            <p className="text-lg font-bold text-gray-900 mb-3">Select plan · {PLAN_LABELS[selectedPlan]}</p>
+            <BillingPeriodPicker plan={selectedPlan} value={months} onChange={setMonths} />
+          </div>
+
+          {/* How to subscribe / upgrade */}
+          <SubscribeSteps plan={selectedPlan} months={months} />
         </div>
       </SidebarInset>
     </SidebarProvider>
