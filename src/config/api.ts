@@ -44,7 +44,8 @@ const API_CONFIG = {
     BIR: {
       SETTINGS: '/client/settings/bir',            // GET/PUT company BIR registration + per-store branch code, PTU/MIN/MSN, invoicing mode
       EIS: '/client/settings/eis',                 // GET/PUT/DELETE e-invoicing provider (TaxTrail) connection — key never returned
-      EIS_TEST: '/client/settings/eis/test'        // POST re-test the saved connection
+      EIS_TEST: '/client/settings/eis/test',       // POST re-test the saved connection
+      EINVOICES: '/client/einvoices'               // GET status list (?filter=attention|pending|all), POST /:id/retry
     },
     HEALTH: '/health'
   }

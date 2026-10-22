@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ADJUSTMENT_STATUS_LABEL, saleAdjustmentStatus } from '@/lib/saleAdjustments';
+import { EinvoiceAttentionBanner } from '@/components/sales/EinvoiceAttentionBanner';
 import {
   Search,
   SlidersHorizontal,
@@ -402,6 +403,7 @@ export default function SalesPage() {
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-24">
+          <EinvoiceAttentionBanner />
           {/* Error Alert */}
           {error && (
             <Alert variant="destructive">

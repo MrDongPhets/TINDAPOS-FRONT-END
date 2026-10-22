@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { EisConnectionCard } from '@/components/settings/EisConnectionCard'
+import { EinvoiceStatusCard } from '@/components/settings/EinvoiceStatusCard'
 import { eisReady, type EisConnectionView } from '@/lib/eisConnection'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CheckCircle, FileText, Loader2, Store } from 'lucide-react'
@@ -175,6 +176,7 @@ export function BirSettingsCard() {
       </Card>
 
       <EisConnectionCard value={eis} onChange={setEis} />
+      {eis?.connected && <EinvoiceStatusCard />}
 
       {/* Store = branch / POS terminal */}
       <Card>
