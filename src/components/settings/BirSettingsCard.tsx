@@ -130,7 +130,9 @@ export function BirSettingsCard() {
   const vatHint = VAT_OPTIONS.find(o => o.value === company.vat_status)?.hint
 
   return (
-    <div className="space-y-4">
+    // Large screens: BIR registration + stores (+ Save) on the left, e-invoicing on the right
+    <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+      <div className="space-y-4 min-w-0">
       {/* Company = the taxpayer */}
       <Card>
         <CardHeader>
@@ -174,9 +176,6 @@ export function BirSettingsCard() {
           </div>
         </CardContent>
       </Card>
-
-      <EisConnectionCard value={eis} onChange={setEis} />
-      {eis?.connected && <EinvoiceStatusCard />}
 
       {/* Store = branch / POS terminal */}
       <Card>
@@ -237,7 +236,7 @@ From the next sale, TaxTrail issues the invoice and sends it to BIR. The receipt
           <p className="text-xs text-gray-500">
             {eisReady(eis)
               ? 'Choose "E-invoice" for stores that must send each invoice to BIR, then Save.'
-              : 'E-invoice becomes available after TaxTrail is connected and passes the test above.'}
+              : 'E-invoice becomes available after TaxTrail is connected and passes its test (E-invoicing card).'}
           </p>
         </CardContent>
       </Card>
@@ -252,6 +251,12 @@ From the next sale, TaxTrail issues the invoice and sends it to BIR. The receipt
       <Button onClick={save} disabled={saving} className="w-full">
         {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</> : 'Save BIR Settings'}
       </Button>
+      </div>
+
+      <div className="space-y-4 min-w-0">
+        <EisConnectionCard value={eis} onChange={setEis} />
+        {eis?.connected && <EinvoiceStatusCard />}
+      </div>
     </div>
   )
 }

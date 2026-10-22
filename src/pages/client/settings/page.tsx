@@ -239,7 +239,8 @@ export default function SettingsPage() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4 pb-24 md:pb-4 max-w-2xl">
+        {/* BIR & Invoicing uses two columns on large screens — give it the room */}
+        <div className={`flex flex-1 flex-col gap-4 p-4 pb-24 md:pb-4 ${tab === 'bir' ? 'max-w-6xl' : 'max-w-2xl'}`}>
           <div>
             <h1 className="text-2xl font-semibold">Settings</h1>
             <p className="text-gray-500 text-sm mt-1">Manage your account and receipt preferences</p>
