@@ -27,6 +27,14 @@ export interface InvoiceItem {
   discount: number
 }
 
+// E-invoice stores: TaxTrail issues the invoice (Invoicing plan P2-4) — from POST /pos/sales and GET /client/sales/:id
+export interface SaleEinvoice {
+  status: 'pending' | 'issued' | 'accepted' | 'rejected' | 'dead_letter' | 'invalid' | 'config_error'
+  invoice_no: string | null
+  issued_at?: string | null
+  message?: string | null
+}
+
 export interface InvoiceSale {
   or_number?: string | null
   receipt_number?: string | null
@@ -38,6 +46,7 @@ export interface InvoiceSale {
   discount_type?: string | null
   sc_pwd_name?: string | null
   sc_pwd_id_no?: string | null
+  einvoice?: SaleEinvoice | null
   total_amount?: number | string | null
   vatable_amount?: number | string | null
   vat_exempt_amount?: number | string | null
@@ -74,8 +83,12 @@ export const readCachedCompany = (): CompanyLike => {
   try { return JSON.parse(localStorage.getItem('companyData') || '{}') } catch { return {} }
 }
 
-export function invoiceKind(seller: InvoiceSeller) {
-  const registered = !!seller.ptu_number
+// TaxTrail's invoice number once it issued the e-invoice (that number is the official one)
+export const einvoiceNo = (sale?: InvoiceSale | null) =>
+  sale?.einvoice && ['issued', 'accepted', 'rejected'].includes(sale.einvoice.status) ? sale.einvoice.invoice_no : null
+
+export function invoiceKind(seller: InvoiceSeller, sale?: InvoiceSale | null) {
+  const registered = !!seller.ptu_number || !!einvoiceNo(sale)
   return registered
     ? { registered, title: 'INVOICE', numberLabel: 'Invoice No.' }
     : { registered, title: 'SALES RECEIPT', numberLabel: 'Receipt No.' }
@@ -121,17 +134,25 @@ export function vatRows(sale: InvoiceSale, seller: InvoiceSeller): InvoiceAmount
   return rows
 }
 
-export function footerNotes(seller: InvoiceSeller): string[] {
+export function footerNotes(seller: InvoiceSeller, sale?: InvoiceSale | null): string[] {
   const notes: string[] = []
   if (seller.vat_status === 'non_vat') notes.push('THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX.')
-  if (!invoiceKind(seller).registered) notes.push('This is not a BIR-registered invoice.')
+  if (!invoiceKind(seller, sale).registered) notes.push('This is not a BIR-registered invoice.')
   return notes
 }
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
 const peso = (n: number) => `₱${n.toFixed(2)}`
 
-export const invoiceNumber = (sale: InvoiceSale) => sale.or_number || sale.receipt_number || ''
+export const invoiceNumber = (sale: InvoiceSale) => einvoiceNo(sale) || sale.or_number || sale.receipt_number || ''
+
+// Extra header rows for e-invoice stores: Tindapo's own number once TaxTrail issued, or the pending status
+export function einvoiceRows(sale: InvoiceSale): { label: string; value: string; note?: string | null }[] {
+  if (!sale.einvoice) return []
+  if (einvoiceNo(sale)) return sale.or_number ? [{ label: 'POS Ref.:', value: sale.or_number }] : []
+  const status = sale.einvoice.status === 'pending' ? 'PENDING' : 'NOT ISSUED'
+  return [{ label: 'E-Invoice:', value: status, note: sale.einvoice.message }]
+}
 
 export const formatInvoiceDate = (iso?: string) =>
   iso ? new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' }) : ''
@@ -139,7 +160,7 @@ export const formatInvoiceDate = (iso?: string) =>
 // One printable invoice (80 mm thermal width) used by Print and Download
 export function buildInvoiceHtml(opts: { sale: InvoiceSale; items: InvoiceItem[]; seller: InvoiceSeller; staffName?: string | null }): string {
   const { sale, items, seller, staffName } = opts
-  const kind = invoiceKind(seller)
+  const kind = invoiceKind(seller, sale)
   const tinLine = formatTinBranch(seller.tin, seller.branch_code)
   const discount = num(sale.discount_amount)
   const itemsHtml = items.map(it => `
@@ -183,6 +204,7 @@ export function buildInvoiceHtml(opts: { sale: InvoiceSale; items: InvoiceItem[]
   <div class="divider"></div>
   <div class="row"><span>${kind.numberLabel}</span><span>${esc(invoiceNumber(sale))}</span></div>
   <div class="row"><span>Date:</span><span>${esc(formatInvoiceDate(sale.created_at))}</span></div>
+  ${einvoiceRows(sale).map(r => `<div class="row"><span>${r.label}</span><span>${esc(r.value)}</span></div>` + (r.note ? `<div class="muted">${esc(r.note)}</div>` : '')).join('')}
   ${sale.customer_name ? `<div class="row"><span>Customer:</span><span>${esc(sale.customer_name)}</span></div>` : ''}
   ${staffName ? `<div class="row"><span>Cashier:</span><span>${esc(staffName)}</span></div>` : ''}
   <div class="divider"></div>
@@ -198,7 +220,7 @@ export function buildInvoiceHtml(opts: { sale: InvoiceSale; items: InvoiceItem[]
   ${machine.length ? `<div class="divider"></div><div class="muted">${machine.join('<br/>')}</div>` : ''}
   <div class="divider"></div>
   <div class="footer">
-    ${footerNotes(seller).map(n => `<div class="bold" style="margin-bottom:4px">${n}</div>`).join('')}
+    ${footerNotes(seller, sale).map(n => `<div class="bold" style="margin-bottom:4px">${n}</div>`).join('')}
     <div>Thank you for your purchase!</div>
   </div>
 </body>

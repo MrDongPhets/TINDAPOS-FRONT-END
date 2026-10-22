@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils'
 import {
   buildInvoiceHtml, discountLabel, specialDiscountRows, downloadInvoice, emailInvoice, footerNotes, formatInvoiceDate, formatTinBranch,
-  invoiceKind, invoiceNumber, printInvoice, readCachedCompany, resolveSeller, tinLabel, vatRows,
+  einvoiceRows, invoiceKind, invoiceNumber, printInvoice, readCachedCompany, resolveSeller, tinLabel, vatRows,
   type InvoiceItem, type InvoiceSeller,
 } from '@/lib/invoice'
 
@@ -16,13 +16,13 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
 
   // Seller details come with the sale from the server; offline sales fall back to cached company + store
   const seller: InvoiceSeller = resolveSeller(sale.seller, store, readCachedCompany())
-  const kind = invoiceKind(seller)
+  const kind = invoiceKind(seller, sale)
   const tinLine = formatTinBranch(seller.tin, seller.branch_code)
   const items: InvoiceItem[] = cartItems.map(item => ({
     name: item.name, quantity: item.quantity, unitPrice: Number(item.price), discount: Number(item.discount_amount || 0),
   }))
   const vat = vatRows(sale, seller)
-  const notes = footerNotes(seller)
+  const notes = footerNotes(seller, sale)
   const html = () => buildInvoiceHtml({ sale, items, seller })
   const machine = [
     seller.ptu_number && `PTU No.: ${seller.ptu_number}`,
@@ -63,6 +63,15 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
               <span className="text-gray-600">Date:</span>
               <span>{formatInvoiceDate(sale.created_at)}</span>
             </div>
+            {einvoiceRows(sale).map(r => (
+              <div key={r.label}>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{r.label}</span>
+                  <span className={r.label === 'E-Invoice:' ? 'font-semibold text-amber-600' : 'font-mono'}>{r.value}</span>
+                </div>
+                {r.note && <p className="text-xs text-amber-700">{r.note}</p>}
+              </div>
+            ))}
             {sale.customer_name && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Customer:</span>

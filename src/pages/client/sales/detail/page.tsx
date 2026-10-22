@@ -54,7 +54,7 @@ import {
   Hash
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
-import { buildInvoiceHtml, invoiceKind, printInvoice, readCachedCompany, resolveSeller, type InvoiceSeller } from '@/lib/invoice';
+import { buildInvoiceHtml, einvoiceRows, invoiceKind, invoiceNumber, printInvoice, readCachedCompany, resolveSeller, type InvoiceSeller } from '@/lib/invoice';
 
 export default function SaleDetailsPage() {
   const navigate = useNavigate();
@@ -121,7 +121,7 @@ export default function SaleDetailsPage() {
       }
 
       const data = await response.json();
-      setSale(data.sale);
+      setSale({ ...data.sale, einvoice: data.einvoice || null });
       setSellerInfo(data.seller || null);
 
     } catch (err) {
@@ -377,8 +377,11 @@ export default function SaleDetailsPage() {
                 <CardContent className="grid gap-4 md:grid-cols-2">
                   {sale.or_number && (
                     <div className="md:col-span-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                      <Label className="text-xs font-medium text-primary/70">{invoiceKind(resolveSeller(sellerInfo, sale.stores, readCachedCompany())).numberLabel}</Label>
-                      <p className="text-xl font-mono font-bold text-primary">{sale.or_number}</p>
+                      <Label className="text-xs font-medium text-primary/70">{invoiceKind(resolveSeller(sellerInfo, sale.stores, readCachedCompany()), sale).numberLabel}</Label>
+                      <p className="text-xl font-mono font-bold text-primary">{invoiceNumber(sale)}</p>
+                      {einvoiceRows(sale).map(r => (
+                        <p key={r.label} className="text-xs text-gray-600 mt-1">{r.label} <span className="font-semibold">{r.value}</span>{r.note && <> — {r.note}</>}</p>
+                      ))}
                     </div>
                   )}
                   <div>
