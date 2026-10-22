@@ -41,6 +41,9 @@ const API_CONFIG = {
       GCASH_SETTINGS_SAVE: '/client/settings/gcash', // PUT fee rules (owner)
       EXPENSES: '/pos/expenses'                    // GET list+summary, POST, PUT/DELETE /:id (owner)
     },
+    BIR: {
+      SETTINGS: '/client/settings/bir'             // GET/PUT company BIR registration + per-store branch code, PTU/MIN/MSN
+    },
     HEALTH: '/health'
   }
 }

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { GcashFeeSettingsCard } from '@/components/finance/GcashFeeSettingsCard'
+import { BirSettingsCard } from '@/components/settings/BirSettingsCard'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { Separator } from '@/components/ui/separator'
@@ -12,13 +14,20 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff, Camera, Fingerprint, Lock, Building2 } from 'lucide-react'
+import { User, Receipt, Loader2, CheckCircle, Eye, EyeOff, Camera, Fingerprint, Lock, Building2, FileText } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
 import API_CONFIG from '@/config/api'
 import { usePlan } from '@/hooks/usePlan'
 
+const SETTINGS_TABS = ['account', 'company', 'receipt', 'bir', 'features']
+
 export default function SettingsPage() {
   const { canUseBiometric } = usePlan()
+  // ?tab=bir opens a tab directly (e.g. links from invoices / reports)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tabParam = searchParams.get('tab') || ''
+  const tab = SETTINGS_TABS.includes(tabParam) ? tabParam : 'account'
+  const setTab = (value: string) => setSearchParams(value === 'account' ? {} : { tab: value }, { replace: true })
   const [user, setUser] = useState<any>(null)
   const [company, setCompany] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -42,7 +51,6 @@ export default function SettingsPage() {
 
   // Company form
   const [companyName, setCompanyName] = useState('')
-  const [companyTin, setCompanyTin] = useState('')
   const [companyAddress, setCompanyAddress] = useState('')
   const [companyPhone, setCompanyPhone] = useState('')
   const [companySaving, setCompanySaving] = useState(false)
@@ -76,7 +84,6 @@ export default function SettingsPage() {
       const data = await res.json()
       if (data.company) {
         setCompanyName(data.company.name || '')
-        setCompanyTin(data.company.tax_id || '')
         setCompanyAddress(data.company.address || '')
         setCompanyPhone(data.company.phone || '')
         // Keep localStorage in sync
@@ -96,15 +103,15 @@ export default function SettingsPage() {
       const res = await fetch(`${API_CONFIG.BASE_URL}/client/company`, {
         method: 'PATCH',
         headers: getHeaders(),
-        body: JSON.stringify({ name: companyName, tax_id: companyTin, address: companyAddress, phone: companyPhone })
+        body: JSON.stringify({ name: companyName, address: companyAddress, phone: companyPhone })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to save')
       setCompanyMsg({ type: 'success', text: 'Company information updated' })
-      // Sync localStorage so receipt print picks up updated TIN
+      // Sync localStorage so invoices pick up the updated details
       const stored = localStorage.getItem('companyData')
       const parsed = stored ? JSON.parse(stored) : {}
-      localStorage.setItem('companyData', JSON.stringify({ ...parsed, name: companyName, tax_id: companyTin, address: companyAddress, phone: companyPhone }))
+      localStorage.setItem('companyData', JSON.stringify({ ...parsed, name: companyName, address: companyAddress, phone: companyPhone }))
     } catch (err: any) {
       setCompanyMsg({ type: 'error', text: err.message })
     } finally {
@@ -238,8 +245,8 @@ export default function SettingsPage() {
             <p className="text-gray-500 text-sm mt-1">Manage your account and receipt preferences</p>
           </div>
 
-          <Tabs defaultValue="account">
-            <TabsList className="mb-4 grid w-full grid-cols-4 h-auto sm:inline-flex sm:w-auto">
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="mb-4 grid w-full grid-cols-5 h-auto sm:inline-flex sm:w-auto">
               <TabsTrigger value="account" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
                 <User className="hidden sm:block h-4 w-4" /> Account
               </TabsTrigger>
@@ -248,6 +255,9 @@ export default function SettingsPage() {
               </TabsTrigger>
               <TabsTrigger value="receipt" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
                 <Receipt className="hidden sm:block h-4 w-4" /> Receipt
+              </TabsTrigger>
+              <TabsTrigger value="bir" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
+                <FileText className="hidden sm:block h-4 w-4" /> BIR<span className="hidden sm:inline"> &amp; Invoicing</span>
               </TabsTrigger>
               <TabsTrigger value="features" className="gap-1.5 px-1 sm:px-3 text-xs sm:text-sm">
                 <Fingerprint className="hidden sm:block h-4 w-4" /> Features
@@ -362,7 +372,7 @@ export default function SettingsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Company Information</CardTitle>
-                  <CardDescription>Your business details — shown on official receipts</CardDescription>
+                  <CardDescription>Your business details — shown on your invoices</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={saveCompany} className="space-y-4">
@@ -370,10 +380,11 @@ export default function SettingsPage() {
                       <Label>Business Name</Label>
                       <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Your Business Name" required />
                     </div>
-                    <div className="space-y-2">
-                      <Label>TIN (Tax Identification Number)</Label>
-                      <Input value={companyTin} onChange={e => setCompanyTin(e.target.value)} placeholder="000-000-000-000" />
-                      <p className="text-xs text-gray-400">Required for BIR-compliant official receipts</p>
+                    <div className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                      TIN and VAT status are now in{' '}
+                      <button type="button" onClick={() => setTab('bir')} className="font-medium text-[#E8302A] underline-offset-2 hover:underline">
+                        BIR &amp; Invoicing
+                      </button>.
                     </div>
                     <div className="space-y-2">
                       <Label>Business Address</Label>
@@ -461,6 +472,11 @@ export default function SettingsPage() {
               </Card>
             </TabsContent>
             {/* Features Tab */}
+            {/* BIR & Invoicing Tab */}
+            <TabsContent value="bir">
+              <BirSettingsCard />
+            </TabsContent>
+
             <TabsContent value="features" className="space-y-4">
               <Card>
                 <CardHeader>
