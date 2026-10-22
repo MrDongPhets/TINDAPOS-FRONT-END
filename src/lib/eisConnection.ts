@@ -8,6 +8,8 @@ export interface EisConnectionView {
   last_checked_at?: string | null
   last_check_ok?: boolean
   last_check_message?: string | null
+  // How Tindapo hears BIR's answer: TaxTrail webhook (instant) or polling every few minutes
+  status_updates?: 'webhook' | 'polling'
 }
 
 // A store may switch to e-invoice only when the saved connection passed its last test

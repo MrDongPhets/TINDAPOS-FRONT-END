@@ -69,6 +69,9 @@ export function EisConnectionCard({ value, onChange }: { value: EisConnectionVie
             <div>
               <p>{value?.last_check_message || (ok ? 'Connected' : 'Not tested yet')}</p>
               {value?.last_checked_at && <p className="text-xs opacity-75">Checked {new Date(value.last_checked_at).toLocaleString('en-PH')}</p>}
+              {ok && value?.status_updates && (
+                <p className="text-xs opacity-75">BIR status updates: {value.status_updates === 'webhook' ? 'instant' : 'checked every few minutes'}</p>
+              )}
             </div>
           </div>
         )}
