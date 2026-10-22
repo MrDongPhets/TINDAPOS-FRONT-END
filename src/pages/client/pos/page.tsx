@@ -27,6 +27,8 @@ import { useAuth } from '@/components/auth/AuthProvider'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import API_CONFIG from '@/config/api'
 import { formatCurrency } from '@/lib/utils'
+import { readCachedCompany } from '@/lib/invoice'
+import { normalizeVatStatus, scPwdDiscount } from '@/lib/vat'
 
 export default function POSPage() {
   const { toast } = useToast()
@@ -45,6 +47,8 @@ export default function POSPage() {
   const [discount, setDiscount] = useState({ type: null, value: 0 })
   const [posTab, setPosTab] = useState<'products' | 'bundles'>('products')
   const [loading, setLoading] = useState(false)
+  // Company's BIR VAT status (non-VAT: no VAT on invoices, SC/PWD = plain 20%) — from /pos/stores, cached for offline
+  const [vatStatus, setVatStatus] = useState(() => normalizeVatStatus(readCachedCompany().vat_status))
 
   // Modals
   const [showPayment, setShowPayment] = useState(false)
@@ -133,6 +137,11 @@ export default function POSPage() {
       const data = await response.json()
       const storeList = data.stores || []
       setStores(storeList)
+      if (data.vat_status) {
+        const status = normalizeVatStatus(data.vat_status)
+        setVatStatus(status)
+        try { localStorage.setItem('companyData', JSON.stringify({ ...readCachedCompany(), vat_status: status })) } catch { /* storage unavailable */ }
+      }
       if (storeList.length > 0) {
         const savedStoreId = localStorage.getItem('selectedStoreId')
         const toSelect = storeList.find((s: any) => s.id === savedStoreId) || storeList[0]
@@ -298,8 +307,8 @@ export default function POSPage() {
     if (discount.type === 'percentage') discount_amount = (subtotal * discount.value) / 100
     else if (discount.type === 'fixed') discount_amount = discount.value
     else if (discount.type === 'senior_citizen' || discount.type === 'pwd') {
-      // PH law: 20% of VAT-exclusive price (RA 9994 / RA 7277)
-      discount_amount = subtotal - (subtotal / 1.12) * 0.80
+      // PH law (RA 9994 / RA 7277): 20% of the VAT-exclusive price; non-VAT stores: 20% of the price
+      discount_amount = scPwdDiscount(subtotal, vatStatus)
     }
     return {
       subtotal,
@@ -758,6 +767,7 @@ export default function POSPage() {
         }}
         currentDiscount={discount}
         subtotal={totals.subtotal}
+        vatStatus={vatStatus}
       />
 
       <ReceiptModal

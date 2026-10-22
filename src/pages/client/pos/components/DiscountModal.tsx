@@ -14,8 +14,10 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
+import { normalizeVatStatus, scPwdDiscount as computeScPwdDiscount } from '@/lib/vat'
 
-export default function DiscountModal({ open, onClose, onApply, currentDiscount, subtotal }) {
+export default function DiscountModal({ open, onClose, onApply, currentDiscount, subtotal, vatStatus = 'vat' }) {
+  const isVatSeller = vatStatus !== 'non_vat'
   const [discountType, setDiscountType] = useState('percentage')
   const [discountValue, setDiscountValue] = useState('')
   const [seniorType, setSeniorType] = useState<'senior_citizen' | 'pwd'>('senior_citizen')
@@ -33,8 +35,8 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
     }
   }, [open, currentDiscount])
 
-  // PH law: 20% of VAT-exclusive price
-  const scPwdDiscount = subtotal - (subtotal / 1.12) * 0.80
+  // PH law: 20% of the VAT-exclusive price (non-VAT stores: 20% of the price)
+  const scPwdDiscount = computeScPwdDiscount(subtotal, normalizeVatStatus(vatStatus))
 
   const discountAmount = (() => {
     if (discountType === 'senior_pwd') return scPwdDiscount
@@ -120,9 +122,15 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 space-y-1">
                 <p className="font-semibold">RA 9994 (Senior) / RA 7277 (PWD)</p>
-                <p>• VAT is removed first (÷ 1.12)</p>
-                <p>• 20% discount on VAT-exclusive price</p>
-                <p>• Final amount is VAT-exempt</p>
+                {isVatSeller ? (
+                  <>
+                    <p>• VAT is removed first (÷ 1.12)</p>
+                    <p>• 20% discount on VAT-exclusive price</p>
+                    <p>• Final amount is VAT-exempt</p>
+                  </>
+                ) : (
+                  <p>• 20% discount on the price (your store is Non-VAT, so there's no VAT to remove)</p>
+                )}
               </div>
             </div>
           )}
@@ -158,7 +166,7 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
                 <span className="text-gray-600">Subtotal</span>
                 <span className="font-medium">{formatCurrency(subtotal)}</span>
               </div>
-              {discountType === 'senior_pwd' && (
+              {discountType === 'senior_pwd' && isVatSeller && (
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>VAT-exclusive base</span>
                   <span>{formatCurrency(subtotal / 1.12)}</span>
@@ -177,7 +185,7 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
                 <span>New Total</span>
                 <span className="text-green-700">{formatCurrency(finalTotal)}</span>
               </div>
-              {discountType === 'senior_pwd' && (
+              {discountType === 'senior_pwd' && isVatSeller && (
                 <p className="text-xs text-green-600 text-center">VAT-Exempt</p>
               )}
             </div>
