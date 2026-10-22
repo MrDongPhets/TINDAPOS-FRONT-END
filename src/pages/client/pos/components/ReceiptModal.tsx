@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils'
 import {
-  buildInvoiceHtml, discountLabel, downloadInvoice, emailInvoice, footerNotes, formatInvoiceDate, formatTinBranch,
+  buildInvoiceHtml, discountLabel, specialDiscountRows, downloadInvoice, emailInvoice, footerNotes, formatInvoiceDate, formatTinBranch,
   invoiceKind, invoiceNumber, printInvoice, readCachedCompany, resolveSeller, tinLabel, vatRows,
   type InvoiceItem, type InvoiceSeller,
 } from '@/lib/invoice'
@@ -115,6 +115,20 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
               <span className="capitalize">{sale.payment_method?.replace('_', ' ')}</span>
             </div>
           </div>
+
+          {specialDiscountRows(sale).length > 0 && (
+            <>
+              <Separator className="my-3" />
+              <div className="space-y-1 text-sm">
+                {specialDiscountRows(sale).map(r => (
+                  <div key={r.label} className="flex justify-between gap-2">
+                    <span className="text-gray-600">{r.label}</span>
+                    <span className="text-right">{r.value || '____________________'}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* VAT breakdown — VAT-registered sellers only */}
           {vat.length > 0 && (

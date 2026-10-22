@@ -36,6 +36,8 @@ export interface InvoiceSale {
   subtotal?: number | string | null
   discount_amount?: number | string | null
   discount_type?: string | null
+  sc_pwd_name?: string | null
+  sc_pwd_id_no?: string | null
   total_amount?: number | string | null
   vatable_amount?: number | string | null
   vat_exempt_amount?: number | string | null
@@ -87,6 +89,17 @@ export function formatTinBranch(tin: string | null, branch: string) {
 }
 
 export const tinLabel = (vat: VatStatus) => (vat === 'non_vat' ? 'NON-VAT Reg. TIN' : vat === 'vat' ? 'VAT Reg. TIN' : 'TIN')
+
+// Senior citizen / PWD sale: the beneficiary's name, ID no. and a signature line go on the invoice (RA 9994 / RA 7277).
+export function specialDiscountRows(sale: InvoiceSale): { label: string; value: string }[] {
+  const t = sale.discount_type
+  if (t !== 'senior_citizen' && t !== 'pwd') return []
+  return [
+    { label: t === 'pwd' ? 'PWD Name:' : 'SC Name:', value: sale.sc_pwd_name || '' },
+    { label: t === 'pwd' ? 'PWD ID No.:' : 'OSCA ID No.:', value: sale.sc_pwd_id_no || '' },
+    { label: 'Signature:', value: '' },
+  ]
+}
 
 export const discountLabel = (type: string | null | undefined) =>
   type === 'senior_citizen' ? 'Senior Citizen Disc.' : type === 'pwd' ? 'PWD Discount' : 'Discount'
@@ -180,6 +193,7 @@ export function buildInvoiceHtml(opts: { sale: InvoiceSale; items: InvoiceItem[]
     </tfoot>
   </table>
   <div style="margin-top:6px">Payment: ${esc((sale.payment_method || 'cash').replace('_', ' ').toUpperCase())}</div>
+  ${specialDiscountRows(sale).length ? `<div class="divider"></div>${specialDiscountRows(sale).map(r => `<div class="row"><span>${r.label}</span><span>${r.value ? esc(r.value) : '____________________'}</span></div>`).join('')}` : ''}
   ${vatHtml ? `<div class="divider"></div>${vatHtml}` : ''}
   ${machine.length ? `<div class="divider"></div><div class="muted">${machine.join('<br/>')}</div>` : ''}
   <div class="divider"></div>

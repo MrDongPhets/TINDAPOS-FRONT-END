@@ -28,7 +28,7 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import API_CONFIG from '@/config/api'
 import { formatCurrency } from '@/lib/utils'
 import { readCachedCompany } from '@/lib/invoice'
-import { normalizeVatStatus, scPwdDiscount } from '@/lib/vat'
+import { normalizeVatStatus, specialDiscountTotals } from '@/lib/vat'
 
 export default function POSPage() {
   const { toast } = useToast()
@@ -44,7 +44,8 @@ export default function POSPage() {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [discount, setDiscount] = useState({ type: null, value: 0 })
+  // beneficiary = senior citizen / PWD name + ID no. (printed on the invoice; required for e-invoice stores)
+  const [discount, setDiscount] = useState<{ type: string | null; value: number; beneficiary?: { name: string; idNumber: string } | null }>({ type: null, value: 0 })
   const [posTab, setPosTab] = useState<'products' | 'bundles'>('products')
   const [loading, setLoading] = useState(false)
   // Company's BIR VAT status (non-VAT: no VAT on invoices, SC/PWD = plain 20%) — from /pos/stores, cached for offline
@@ -280,6 +281,7 @@ export default function POSPage() {
         barcode: product.barcode,
         image_url: product.image_url,
         stock_quantity: product.stock_quantity,
+        vat_type: product.vat_type || 'vatable',
         discount_amount: 0,
         discount_percent: 0
       }])
@@ -301,14 +303,17 @@ export default function POSPage() {
 
   const removeFromCart = (product_id) => setCart(cart.filter(item => item.product_id !== product_id))
 
+  // Senior citizen / PWD total for the current cart (per item — see lib/vat)
+  const scPwdTotal = specialDiscountTotals(cart.map(i => ({ price: i.price, quantity: i.quantity, vatType: i.vat_type })), vatStatus).total
+
   const calculateTotals = () => {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity - (item.discount_amount || 0)), 0)
     let discount_amount = 0
     if (discount.type === 'percentage') discount_amount = (subtotal * discount.value) / 100
     else if (discount.type === 'fixed') discount_amount = discount.value
     else if (discount.type === 'senior_citizen' || discount.type === 'pwd') {
-      // PH law (RA 9994 / RA 7277): 20% of the VAT-exclusive price; non-VAT stores: 20% of the price
-      discount_amount = scPwdDiscount(subtotal, vatStatus)
+      // RA 9994 / RA 7277, item by item: VAT out of VATable items only, then 20% off (same as the e-invoice)
+      discount_amount = Math.round((subtotal - scPwdTotal) * 100) / 100
     }
     return {
       subtotal,
@@ -356,7 +361,9 @@ export default function POSPage() {
         customer_name: selectedCustomer?.name || newCustomer?.name || customerInfo.name,
         customer_phone: selectedCustomer?.phone || newCustomer?.phone || customerInfo.phone,
         customer_id,
-        notes: customerInfo?.notes || null
+        notes: customerInfo?.notes || null,
+        sc_pwd_name: discount.beneficiary?.name || null,
+        sc_pwd_id_no: discount.beneficiary?.idNumber || null
       }
 
       // ── OFFLINE: queue sale locally ────────────────────────────────
@@ -421,7 +428,9 @@ export default function POSPage() {
             customer_name: selectedCustomer?.name || newCustomer?.name || customerInfo?.name || null,
             customer_phone: selectedCustomer?.phone || newCustomer?.phone || customerInfo?.phone || null,
             customer_id: selectedCustomer?.id || null,
-            notes: customerInfo?.notes || null
+            notes: customerInfo?.notes || null,
+            sc_pwd_name: discount.beneficiary?.name || null,
+            sc_pwd_id_no: discount.beneficiary?.idNumber || null
           }
           await localDb.pending_sales.add({
             id: generateLocalId(),
@@ -760,14 +769,16 @@ export default function POSPage() {
       <DiscountModal
         open={showDiscount}
         onClose={() => { setShowDiscount(false); if (discountFromCart) setShowMobileCart(true) }}
-        onApply={(type, value) => {
-          setDiscount({ type, value })
+        onApply={(type, value, beneficiary = null) => {
+          setDiscount({ type, value, beneficiary })
           setShowDiscount(false)
           if (discountFromCart) setShowMobileCart(true)
         }}
         currentDiscount={discount}
         subtotal={totals.subtotal}
         vatStatus={vatStatus}
+        scPwdDiscount={Math.round((totals.subtotal - scPwdTotal) * 100) / 100}
+        requireBeneficiary={selectedStore?.invoicing_mode === 'eis'}
       />
 
       <ReceiptModal

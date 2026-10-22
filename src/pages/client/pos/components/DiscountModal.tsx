@@ -14,10 +14,16 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
-import { normalizeVatStatus, scPwdDiscount as computeScPwdDiscount } from '@/lib/vat'
 
-export default function DiscountModal({ open, onClose, onApply, currentDiscount, subtotal, vatStatus = 'vat' }) {
+// scPwdDiscount: the senior citizen / PWD discount for the current cart, computed item by item by the POS (lib/vat).
+// requireBeneficiary: e-invoice stores must record the beneficiary (TaxTrail won't issue without it).
+const BENEFICIARY_ID = /^[A-Za-z0-9-/ ]{3,50}$/
+
+export default function DiscountModal({ open, onClose, onApply, currentDiscount, subtotal, vatStatus = 'vat', scPwdDiscount = 0, requireBeneficiary = false }) {
   const isVatSeller = vatStatus !== 'non_vat'
+  const [beneficiaryName, setBeneficiaryName] = useState('')
+  const [beneficiaryId, setBeneficiaryId] = useState('')
+  const [beneficiaryError, setBeneficiaryError] = useState('')
   const [discountType, setDiscountType] = useState('percentage')
   const [discountValue, setDiscountValue] = useState('')
   const [seniorType, setSeniorType] = useState<'senior_citizen' | 'pwd'>('senior_citizen')
@@ -25,6 +31,9 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
   useEffect(() => {
     if (open) {
       const t = currentDiscount.type
+      setBeneficiaryName(currentDiscount.beneficiary?.name || '')
+      setBeneficiaryId(currentDiscount.beneficiary?.idNumber || '')
+      setBeneficiaryError('')
       if (t === 'senior_citizen' || t === 'pwd') {
         setDiscountType('senior_pwd')
         setSeniorType(t)
@@ -34,9 +43,6 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
       }
     }
   }, [open, currentDiscount])
-
-  // PH law: 20% of the VAT-exclusive price (non-VAT stores: 20% of the price)
-  const scPwdDiscount = computeScPwdDiscount(subtotal, normalizeVatStatus(vatStatus))
 
   const discountAmount = (() => {
     if (discountType === 'senior_pwd') return scPwdDiscount
@@ -49,7 +55,12 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
 
   const handleApply = () => {
     if (discountType === 'senior_pwd') {
-      onApply(seniorType, 20)
+      const name = beneficiaryName.trim()
+      const id = beneficiaryId.trim()
+      if (requireBeneficiary && (!name || !id)) { setBeneficiaryError('Enter the name and ID number from the card (needed for the e-invoice)'); return }
+      if ((name || id) && name.length < 2) { setBeneficiaryError('Enter the name as printed on the ID'); return }
+      if ((name || id) && !BENEFICIARY_ID.test(id)) { setBeneficiaryError('Enter the ID number as printed on the card'); return }
+      onApply(seniorType, 20, name && id ? { name, idNumber: id } : null)
       return
     }
     const value = parseFloat(discountValue) || 0
@@ -124,13 +135,21 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
                 <p className="font-semibold">RA 9994 (Senior) / RA 7277 (PWD)</p>
                 {isVatSeller ? (
                   <>
-                    <p>• VAT is removed first (÷ 1.12)</p>
-                    <p>• 20% discount on VAT-exclusive price</p>
-                    <p>• Final amount is VAT-exempt</p>
+                    <p>• VAT is removed from VATable items first (÷ 1.12)</p>
+                    <p>• 20% off each item (VAT-exempt items: 20% off the price)</p>
+                    <p>• The whole sale is VAT-exempt</p>
                   </>
                 ) : (
                   <p>• 20% discount on the price (your store is Non-VAT, so there's no VAT to remove)</p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sc-name">Name (as on the ID){requireBeneficiary ? ' *' : ''}</Label>
+                <Input id="sc-name" value={beneficiaryName} onChange={e => { setBeneficiaryName(e.target.value); setBeneficiaryError('') }} placeholder="Juan Dela Cruz" maxLength={200} autoComplete="off" />
+                <Label htmlFor="sc-id">{seniorType === 'senior_citizen' ? 'OSCA / Senior Citizen ID No.' : 'PWD ID No.'}{requireBeneficiary ? ' *' : ''}</Label>
+                <Input id="sc-id" value={beneficiaryId} onChange={e => { setBeneficiaryId(e.target.value); setBeneficiaryError('') }} placeholder="e.g. 12345-678" maxLength={50} autoComplete="off" />
+                {!requireBeneficiary && <p className="text-xs text-gray-500">Optional — printed on the invoice for your SC/PWD records.</p>}
+                {beneficiaryError && <p className="text-xs text-red-600">{beneficiaryError}</p>}
               </div>
             </div>
           )}
@@ -166,12 +185,6 @@ export default function DiscountModal({ open, onClose, onApply, currentDiscount,
                 <span className="text-gray-600">Subtotal</span>
                 <span className="font-medium">{formatCurrency(subtotal)}</span>
               </div>
-              {discountType === 'senior_pwd' && isVatSeller && (
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>VAT-exclusive base</span>
-                  <span>{formatCurrency(subtotal / 1.12)}</span>
-                </div>
-              )}
               <div className="flex justify-between text-sm text-green-700">
                 <span>
                   {discountType === 'senior_pwd'
