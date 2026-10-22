@@ -1,230 +1,34 @@
-import { formatCurrency } from '@/lib/utils'
 'use client'
 
 import { Printer, Download, Mail, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
-
-const discountLabel = (type: string | null) => {
-  if (type === 'senior_citizen') return 'Senior Citizen Disc.'
-  if (type === 'pwd') return 'PWD Discount'
-  if (type === 'percentage') return 'Discount'
-  return 'Discount'
-}
+import { formatCurrency } from '@/lib/utils'
+import {
+  buildInvoiceHtml, discountLabel, downloadInvoice, emailInvoice, footerNotes, formatInvoiceDate, formatTinBranch,
+  invoiceKind, invoiceNumber, printInvoice, readCachedCompany, resolveSeller, tinLabel, vatRows,
+  type InvoiceItem, type InvoiceSeller,
+} from '@/lib/invoice'
 
 export default function ReceiptModal({ open, onClose, sale, store, onNewSale, cartItems = [] }) {
   if (!sale) return null
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const vatableAmount = parseFloat(sale.vatable_amount || 0)
-  const vatExemptAmount = parseFloat(sale.vat_exempt_amount || 0)
-  const zeroRatedAmount = parseFloat(sale.zero_rated_amount || 0)
-  const vatAmount = parseFloat(sale.tax_amount || 0)
-  const hasVat = vatAmount > 0 || vatableAmount > 0 || vatExemptAmount > 0 || zeroRatedAmount > 0
-  const orNumber = sale.or_number || sale.receipt_number
-  const companyData = (() => { try { return JSON.parse(localStorage.getItem('companyData') || '{}') } catch { return {} } })()
-  const tin = companyData.tax_id || ''
-
-  const handlePrint = () => {
-    const storeName = store?.name || 'Store'
-    const storeAddress = store?.address || ''
-    const storePhone = store?.phone || ''
-
-    const itemsHtml = cartItems.map(item => `
-      <tr>
-        <td style="padding:4px 0">${item.name}</td>
-        <td style="text-align:center;padding:4px 8px">${item.quantity}</td>
-        <td style="text-align:right;padding:4px 0">₱${(item.price * item.quantity - (item.discount_amount || 0)).toFixed(2)}</td>
-      </tr>
-    `).join('')
-
-    const vatHtml = hasVat ? `
-      <div class="divider"></div>
-      ${vatableAmount > 0 ? `<div class="row"><span>VATable Sales:</span><span>₱${(vatableAmount / 1.12).toFixed(2)}</span></div>` : ''}
-      ${vatExemptAmount > 0 ? `<div class="row"><span>VAT-Exempt:</span><span>₱${vatExemptAmount.toFixed(2)}</span></div>` : ''}
-      ${zeroRatedAmount > 0 ? `<div class="row"><span>Zero-Rated:</span><span>₱${zeroRatedAmount.toFixed(2)}</span></div>` : ''}
-      ${vatAmount > 0 ? `<div class="row"><span>VAT 12%:</span><span>₱${vatAmount.toFixed(2)}</span></div>` : ''}
-    ` : ''
-
-    const printHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Official Receipt</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Courier New', monospace; font-size: 12px; width: 300px; margin: 0 auto; padding: 16px; }
-          .center { text-align: center; }
-          .divider { border-top: 1px dashed #000; margin: 8px 0; }
-          .bold { font-weight: bold; }
-          .large { font-size: 14px; }
-          .row { display: flex; justify-content: space-between; padding: 2px 0; }
-          table { width: 100%; border-collapse: collapse; }
-          .total-row td { font-weight: bold; font-size: 14px; border-top: 1px dashed #000; padding-top: 6px; }
-          .footer { margin-top: 12px; text-align: center; font-size: 11px; }
-        </style>
-      </head>
-      <body>
-        <div class="center">
-          <div class="bold large">${storeName}</div>
-          ${storeAddress ? `<div>${storeAddress}</div>` : ''}
-          ${storePhone ? `<div>${storePhone}</div>` : ''}
-          ${tin ? `<div>TIN: ${tin}</div>` : ''}
-        </div>
-        <div class="divider"></div>
-        <div class="bold center">OFFICIAL RECEIPT</div>
-        <div class="divider"></div>
-        <div class="row"><span>OR #:</span><span>${orNumber}</span></div>
-        <div class="row"><span>Date:</span><span>${formatDate(sale.created_at)}</span></div>
-        ${sale.customer_name ? `<div class="row"><span>Customer:</span><span>${sale.customer_name}</span></div>` : ''}
-        <div class="divider"></div>
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:left">Item</th>
-              <th style="text-align:center">Qty</th>
-              <th style="text-align:right">Amount</th>
-            </tr>
-          </thead>
-          <tbody>${itemsHtml}</tbody>
-          <tfoot>
-            <tr class="total-row">
-              <td colspan="2">TOTAL</td>
-              <td style="text-align:right">₱${parseFloat(sale.total_amount).toFixed(2)}</td>
-            </tr>
-          </tfoot>
-        </table>
-        <div style="margin-top:6px">Payment: ${(sale.payment_method || 'cash').replace('_', ' ').toUpperCase()}</div>
-        ${vatHtml}
-        <div class="divider"></div>
-        <div class="footer">
-          <div>Thank you for your purchase!</div>
-          <div>Please keep this receipt for your records.</div>
-          ${tin ? `<div style="margin-top:4px">This serves as your Official Receipt</div>` : ''}
-        </div>
-      </body>
-      </html>
-    `
-
-    const printWindow = window.open('', '_blank', 'width=400,height=600')
-    if (printWindow) {
-      printWindow.document.write(printHtml)
-      printWindow.document.close()
-      printWindow.focus()
-      printWindow.print()
-      printWindow.close()
-    }
-  }
-
-  const handleDownload = () => {
-    const storeName = store?.name || 'Store'
-    const storeAddress = store?.address || ''
-    const storePhone = store?.phone || ''
-
-    const itemsHtml = cartItems.map(item => `
-      <tr>
-        <td style="padding:4px 0">${item.name}</td>
-        <td style="text-align:center;padding:4px 8px">${item.quantity}</td>
-        <td style="text-align:right;padding:4px 0">₱${(item.price * item.quantity - (item.discount_amount || 0)).toFixed(2)}</td>
-      </tr>
-    `).join('')
-
-    const vatHtml = hasVat ? `
-      <div class="divider"></div>
-      ${vatableAmount > 0 ? `<div class="row"><span>VATable Sales (ex-VAT):</span><span>₱${(vatableAmount / 1.12).toFixed(2)}</span></div>` : ''}
-      ${vatExemptAmount > 0 ? `<div class="row"><span>VAT-Exempt:</span><span>₱${vatExemptAmount.toFixed(2)}</span></div>` : ''}
-      ${zeroRatedAmount > 0 ? `<div class="row"><span>Zero-Rated:</span><span>₱${zeroRatedAmount.toFixed(2)}</span></div>` : ''}
-      ${vatAmount > 0 ? `<div class="row"><span>VAT 12%:</span><span>₱${vatAmount.toFixed(2)}</span></div>` : ''}
-    ` : ''
-
-    const printHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>OR-${orNumber}</title>
-  <style>
-    * { margin:0;padding:0;box-sizing:border-box; }
-    body { font-family:'Courier New',monospace;font-size:12px;width:300px;margin:0 auto;padding:16px; }
-    .center { text-align:center; }
-    .divider { border-top:1px dashed #000;margin:8px 0; }
-    .bold { font-weight:bold; }
-    .large { font-size:14px; }
-    .row { display:flex;justify-content:space-between;padding:2px 0; }
-    table { width:100%;border-collapse:collapse; }
-    .total-row td { font-weight:bold;font-size:14px;border-top:1px dashed #000;padding-top:6px; }
-    .footer { margin-top:12px;text-align:center;font-size:11px; }
-    @media print { @page { margin:0;size:80mm auto; } }
-  </style>
-</head>
-<body>
-  <div class="center">
-    <div class="bold large">${storeName}</div>
-    ${storeAddress ? `<div>${storeAddress}</div>` : ''}
-    ${storePhone ? `<div>${storePhone}</div>` : ''}
-    ${tin ? `<div>TIN: ${tin}</div>` : ''}
-  </div>
-  <div class="divider"></div>
-  <div class="bold center">OFFICIAL RECEIPT</div>
-  <div class="divider"></div>
-  <div class="row"><span>OR #:</span><span>${orNumber}</span></div>
-  <div class="row"><span>Date:</span><span>${formatDate(sale.created_at)}</span></div>
-  ${sale.customer_name ? `<div class="row"><span>Customer:</span><span>${sale.customer_name}</span></div>` : ''}
-  <div class="divider"></div>
-  <table>
-    <thead><tr>
-      <th style="text-align:left">Item</th>
-      <th style="text-align:center">Qty</th>
-      <th style="text-align:right">Amount</th>
-    </tr></thead>
-    <tbody>${itemsHtml}</tbody>
-    <tfoot><tr class="total-row">
-      <td colspan="2">TOTAL</td>
-      <td style="text-align:right">₱${parseFloat(sale.total_amount).toFixed(2)}</td>
-    </tr></tfoot>
-  </table>
-  <div style="margin-top:6px">Payment: ${(sale.payment_method || 'cash').replace('_', ' ').toUpperCase()}</div>
-  ${vatHtml}
-  <div class="divider"></div>
-  <div class="footer">
-    <div>Thank you for your purchase!</div>
-    ${tin ? `<div style="margin-top:4px">This serves as your Official Receipt</div>` : ''}
-  </div>
-</body>
-</html>`
-
-    const blob = new Blob([printHtml], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `receipt-${orNumber}.html`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const handleEmail = () => {
-    const subject = encodeURIComponent(`Official Receipt ${orNumber}`)
-    const body = encodeURIComponent(
-      `Official Receipt\n\nOR #: ${orNumber}\nStore: ${store?.name || ''}\nDate: ${formatDate(sale.created_at)}\n\nTotal: ₱${parseFloat(sale.total_amount).toFixed(2)}\nPayment: ${(sale.payment_method || 'cash').replace('_', ' ')}\n\nThank you for your purchase!`
-    )
-    window.open(`mailto:?subject=${subject}&body=${body}`)
-  }
+  // Seller details come with the sale from the server; offline sales fall back to cached company + store
+  const seller: InvoiceSeller = resolveSeller(sale.seller, store, readCachedCompany())
+  const kind = invoiceKind(seller)
+  const tinLine = formatTinBranch(seller.tin, seller.branch_code)
+  const items: InvoiceItem[] = cartItems.map(item => ({
+    name: item.name, quantity: item.quantity, unitPrice: Number(item.price), discount: Number(item.discount_amount || 0),
+  }))
+  const vat = vatRows(sale, seller)
+  const notes = footerNotes(seller)
+  const html = () => buildInvoiceHtml({ sale, items, seller })
+  const machine = [
+    seller.ptu_number && `PTU No.: ${seller.ptu_number}`,
+    seller.min_number && `MIN: ${seller.min_number}`,
+    seller.msn_number && `SN: ${seller.msn_number}`,
+  ].filter(Boolean)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -235,29 +39,29 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
           </DialogTitle>
         </DialogHeader>
 
-        {/* Receipt Preview */}
+        {/* Invoice preview */}
         <div className="bg-white border-2 border-gray-200 rounded-lg p-6 print:border-0">
-          {/* Store Header */}
+          {/* Seller (BIR registration) */}
           <div className="text-center mb-4">
-            <h2 className="text-xl font-bold">{store?.name || 'Store'}</h2>
-            {store?.address && <p className="text-sm text-gray-600 mt-1">{store.address}</p>}
-            {store?.phone && <p className="text-sm text-gray-600">{store.phone}</p>}
-            {tin && <p className="text-sm text-gray-600">TIN: {tin}</p>}
+            <h2 className="text-xl font-bold">{seller.trade_name || seller.store_name || seller.registered_name}</h2>
+            {(seller.trade_name || seller.store_name) && <p className="text-sm text-gray-700">{seller.registered_name}</p>}
+            {seller.address && <p className="text-sm text-gray-600 mt-1">{seller.address}</p>}
+            {tinLine && <p className="text-sm text-gray-600">{tinLabel(seller.vat_status)}: {tinLine}</p>}
+            {seller.store_phone && <p className="text-sm text-gray-600">{seller.store_phone}</p>}
           </div>
 
-          <div className="text-center text-xs font-semibold tracking-widest text-gray-500 mb-3">OFFICIAL RECEIPT</div>
+          <div className="text-center text-sm font-bold tracking-widest text-gray-700 mb-3">{kind.title}</div>
 
           <Separator className="my-3" />
 
-          {/* Receipt Info */}
           <div className="space-y-1 text-sm mb-4">
             <div className="flex justify-between">
-              <span className="text-gray-600">OR #:</span>
-              <span className="font-mono font-semibold">{orNumber}</span>
+              <span className="text-gray-600">{kind.numberLabel}</span>
+              <span className="font-mono font-semibold">{invoiceNumber(sale)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Date:</span>
-              <span>{formatDate(sale.created_at)}</span>
+              <span>{formatInvoiceDate(sale.created_at)}</span>
             </div>
             {sale.customer_name && (
               <div className="flex justify-between">
@@ -271,17 +75,15 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
 
           {/* Items */}
           <div className="space-y-2 mb-4">
-            {cartItems.length > 0 ? cartItems.map((item, index) => (
+            {items.length > 0 ? items.map((item, index) => (
               <div key={index} className="text-sm">
                 <div className="flex justify-between">
                   <span className="font-medium">{item.name}</span>
-                  <span>{formatCurrency(item.price * item.quantity - (item.discount_amount || 0))}</span>
+                  <span>{formatCurrency(item.unitPrice * item.quantity - item.discount)}</span>
                 </div>
                 <div className="flex justify-between text-gray-500 text-xs ml-2">
-                  <span>{item.quantity} × {formatCurrency(item.price)}</span>
-                  {item.discount_amount > 0 && (
-                    <span className="text-green-600">-{formatCurrency(item.discount_amount)}</span>
-                  )}
+                  <span>{item.quantity} × {formatCurrency(item.unitPrice)}</span>
+                  {item.discount > 0 && <span className="text-green-600">-{formatCurrency(item.discount)}</span>}
                 </div>
               </div>
             )) : (
@@ -314,63 +116,45 @@ export default function ReceiptModal({ open, onClose, sale, store, onNewSale, ca
             </div>
           </div>
 
-          {/* VAT Breakdown */}
-          {hasVat && (
+          {/* VAT breakdown — VAT-registered sellers only */}
+          {vat.length > 0 && (
             <>
               <Separator className="my-3" />
               <div className="space-y-1 text-xs text-gray-600">
-                {vatableAmount > 0 && (
-                  <div className="flex justify-between">
-                    <span>VATable Sales (ex-VAT):</span>
-                    <span>{formatCurrency(vatableAmount / 1.12)}</span>
+                {vat.map(r => (
+                  <div key={r.label} className={`flex justify-between ${r.strong ? 'font-medium text-gray-700' : ''}`}>
+                    <span>{r.label}:</span>
+                    <span>{formatCurrency(r.amount)}</span>
                   </div>
-                )}
-                {vatExemptAmount > 0 && (
-                  <div className="flex justify-between">
-                    <span>VAT-Exempt:</span>
-                    <span>{formatCurrency(vatExemptAmount)}</span>
-                  </div>
-                )}
-                {zeroRatedAmount > 0 && (
-                  <div className="flex justify-between">
-                    <span>Zero-Rated:</span>
-                    <span>{formatCurrency(zeroRatedAmount)}</span>
-                  </div>
-                )}
-                {vatAmount > 0 && (
-                  <div className="flex justify-between font-medium text-gray-700">
-                    <span>VAT 12%:</span>
-                    <span>{formatCurrency(vatAmount)}</span>
-                  </div>
-                )}
-                {(sale.discount_type === 'senior_citizen' || sale.discount_type === 'pwd') && (
-                  <div className="flex justify-between font-medium text-blue-700 pt-1">
-                    <span>VAT:</span>
-                    <span>VAT-Exempt</span>
-                  </div>
-                )}
+                ))}
               </div>
             </>
           )}
 
+          {machine.length > 0 && (
+            <div className="mt-3 text-[11px] text-gray-500 space-y-0.5">
+              {machine.map(m => <p key={m as string}>{m}</p>)}
+            </div>
+          )}
+
           {/* Footer */}
-          <div className="text-center text-xs text-gray-500 mt-4 pt-3 border-t">
+          <div className="text-center text-xs text-gray-500 mt-4 pt-3 border-t space-y-1">
+            {notes.map(n => <p key={n} className="font-semibold text-gray-700">{n}</p>)}
             <p>Thank you for your purchase!</p>
-            {tin && <p className="mt-1">This serves as your Official Receipt</p>}
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3 pt-4 print:hidden">
-          <Button variant="outline" onClick={handlePrint}>
+          <Button variant="outline" onClick={() => printInvoice(html())}>
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          <Button variant="outline" onClick={handleDownload}>
+          <Button variant="outline" onClick={() => downloadInvoice(html(), sale, seller)}>
             <Download className="h-4 w-4 mr-2" />
             Download
           </Button>
-          <Button variant="outline" onClick={handleEmail}>
+          <Button variant="outline" onClick={() => emailInvoice(sale, seller)}>
             <Mail className="h-4 w-4 mr-2" />
             Email
           </Button>

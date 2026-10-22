@@ -54,6 +54,7 @@ import {
   Hash
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
+import { buildInvoiceHtml, invoiceKind, printInvoice, readCachedCompany, resolveSeller, type InvoiceSeller } from '@/lib/invoice';
 
 export default function SaleDetailsPage() {
   const navigate = useNavigate();
@@ -64,6 +65,7 @@ export default function SaleDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sale, setSale] = useState(null);
+  const [sellerInfo, setSellerInfo] = useState<InvoiceSeller | null>(null);
   const [voidReason, setVoidReason] = useState('');
   const [voidLoading, setVoidLoading] = useState(false);
   const [voidDialogOpen, setVoidDialogOpen] = useState(false);
@@ -120,6 +122,7 @@ export default function SaleDetailsPage() {
 
       const data = await response.json();
       setSale(data.sale);
+      setSellerInfo(data.seller || null);
 
     } catch (err) {
       console.error('Error fetching sale:', err);
@@ -162,103 +165,16 @@ export default function SaleDetailsPage() {
     }
   };
 
+  // Reprint with the same invoice layout as the POS (seller BIR details come from the server)
   const handlePrint = () => {
-    const storeName = sale.stores?.name || 'Store'
-    const storeAddress = sale.stores?.address || ''
-    const storePhone = sale.stores?.phone || ''
-
-    const itemsHtml = (sale.items || []).map(item => `
-      <tr>
-        <td style="padding:4px 0">${item.products?.name || 'Product'}<br/><span style="font-size:10px;color:#666">SKU: ${item.products?.sku || '-'}</span></td>
-        <td style="text-align:center;padding:4px 8px">${item.quantity}</td>
-        <td style="text-align:right;padding:4px 0">₱${parseFloat(item.total_price).toFixed(2)}</td>
-      </tr>
-    `).join('')
-
-    const companyData = (() => { try { return JSON.parse(localStorage.getItem('companyData') || '{}') } catch { return {} } })()
-    const tin = companyData.tax_id || ''
-    const orNumber = sale.or_number || sale.receipt_number
-    const vatableAmount = parseFloat(sale.vatable_amount || 0)
-    const vatExemptAmount = parseFloat(sale.vat_exempt_amount || 0)
-    const zeroRatedAmount = parseFloat(sale.zero_rated_amount || 0)
-    const vatAmount = parseFloat(sale.tax_amount || 0)
-    const hasVat = vatAmount > 0 || vatableAmount > 0 || vatExemptAmount > 0 || zeroRatedAmount > 0
-
-    const vatHtml = hasVat ? `
-      <div class="divider"></div>
-      ${vatableAmount > 0 ? `<div class="row"><span>VATable Sales (ex-VAT):</span><span>₱${(vatableAmount / 1.12).toFixed(2)}</span></div>` : ''}
-      ${vatExemptAmount > 0 ? `<div class="row"><span>VAT-Exempt:</span><span>₱${vatExemptAmount.toFixed(2)}</span></div>` : ''}
-      ${zeroRatedAmount > 0 ? `<div class="row"><span>Zero-Rated:</span><span>₱${zeroRatedAmount.toFixed(2)}</span></div>` : ''}
-      ${vatAmount > 0 ? `<div class="row"><span>VAT 12%:</span><span>₱${vatAmount.toFixed(2)}</span></div>` : ''}
-    ` : ''
-
-    const printHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>OR-${orNumber}</title>
-  <style>
-    * { margin:0;padding:0;box-sizing:border-box; }
-    body { font-family:'Courier New',monospace;font-size:12px;width:300px;margin:0 auto;padding:16px; }
-    .center { text-align:center; }
-    .divider { border-top:1px dashed #000;margin:8px 0; }
-    .bold { font-weight:bold; }
-    .large { font-size:14px; }
-    .row { display:flex;justify-content:space-between;padding:2px 0; }
-    table { width:100%;border-collapse:collapse; }
-    .total-row td { font-weight:bold;font-size:14px;border-top:1px dashed #000;padding-top:6px; }
-    .footer { margin-top:12px;text-align:center;font-size:11px; }
-    @media print { @page { margin:0;size:80mm auto; } }
-  </style>
-</head>
-<body>
-  <div class="center">
-    <div class="bold large">${storeName}</div>
-    ${storeAddress ? `<div>${storeAddress}</div>` : ''}
-    ${storePhone ? `<div>${storePhone}</div>` : ''}
-    ${tin ? `<div>TIN: ${tin}</div>` : ''}
-  </div>
-  <div class="divider"></div>
-  <div class="bold center">OFFICIAL RECEIPT</div>
-  <div class="divider"></div>
-  <div class="row"><span>OR #:</span><span>${orNumber}</span></div>
-  <div class="row"><span>Date:</span><span>${formatDate(sale.created_at)}</span></div>
-  ${sale.customer_name ? `<div class="row"><span>Customer:</span><span>${sale.customer_name}</span></div>` : ''}
-  ${sale.staff ? `<div class="row"><span>Staff:</span><span>${sale.staff.name}</span></div>` : ''}
-  <div class="divider"></div>
-  <table>
-    <thead><tr>
-      <th style="text-align:left">Item</th>
-      <th style="text-align:center">Qty</th>
-      <th style="text-align:right">Amount</th>
-    </tr></thead>
-    <tbody>${itemsHtml}</tbody>
-    <tfoot>
-      ${sale.discount_amount > 0 ? `<tr><td colspan="2">Discount</td><td style="text-align:right">-₱${parseFloat(sale.discount_amount).toFixed(2)}</td></tr>` : ''}
-      <tr class="total-row">
-        <td colspan="2">TOTAL</td>
-        <td style="text-align:right">₱${parseFloat(sale.total_amount).toFixed(2)}</td>
-      </tr>
-    </tfoot>
-  </table>
-  <div style="margin-top:6px">Payment: ${(sale.payment_method || 'cash').replace('_', ' ').toUpperCase()}</div>
-  ${vatHtml}
-  <div class="divider"></div>
-  <div class="footer">
-    <div>Thank you for your purchase!</div>
-    ${tin ? `<div style="margin-top:4px">This serves as your Official Receipt</div>` : ''}
-  </div>
-</body>
-</html>`
-
-    const printWindow = window.open('', '_blank', 'width=400,height=600')
-    if (printWindow) {
-      printWindow.document.write(printHtml)
-      printWindow.document.close()
-      printWindow.focus()
-      printWindow.print()
-      printWindow.close()
-    }
+    const seller = resolveSeller(sellerInfo, sale.stores, readCachedCompany())
+    const items = (sale.items || []).map(item => ({
+      name: item.products?.name || 'Product',
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unit_price),
+      discount: Number(item.discount_amount || 0),
+    }))
+    printInvoice(buildInvoiceHtml({ sale, items, seller, staffName: sale.staff?.name }))
   };
 
   const formatDate = (dateString) => {
@@ -461,12 +377,12 @@ export default function SaleDetailsPage() {
                 <CardContent className="grid gap-4 md:grid-cols-2">
                   {sale.or_number && (
                     <div className="md:col-span-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                      <Label className="text-xs font-medium text-primary/70">Official Receipt Number</Label>
+                      <Label className="text-xs font-medium text-primary/70">{invoiceKind(resolveSeller(sellerInfo, sale.stores, readCachedCompany())).numberLabel}</Label>
                       <p className="text-xl font-mono font-bold text-primary">{sale.or_number}</p>
                     </div>
                   )}
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Receipt Number</Label>
+                    <Label className="text-sm font-medium text-gray-600">Reference</Label>
                     <p className="text-sm font-mono">{sale.receipt_number}</p>
                   </div>
                   <div>

@@ -272,7 +272,7 @@ export default function SalesPage() {
       const data = await response.json();
       const rows = data.sales || [];
 
-      const header = ['OR Number', 'Receipt', 'Date', 'Customer', 'Payment', 'Items', 'Discount', 'Total'];
+      const header = ['Invoice/Receipt No.', 'Reference', 'Date', 'Customer', 'Payment', 'Items', 'Discount', 'Total'];
       const csvRows = [
         header.join(','),
         ...rows.map((s) => {

@@ -384,7 +384,7 @@ export default function POSPage() {
         throw new Error(errorData.error || 'Payment failed')
       }
       const data = await response.json()
-      setLastSale(data.sale)
+      setLastSale({ ...data.sale, seller: data.seller })
       setLastCartItems([...cart])
       setShowReceipt(true)
       setShowPayment(false)
