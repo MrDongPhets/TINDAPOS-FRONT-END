@@ -197,7 +197,8 @@ class AuthService {
 
       // Handle token expiration specifically
       if (response.status === 401 || response.status === 403) {
-        const data = await response.json()
+        // Read a copy: the caller reads the body again for the real error message
+        const data = await response.clone().json().catch(() => ({}))
         if (data.code === 'TOKEN_EXPIRED' || data.code === 'INVALID_TOKEN') {
           logger.log('🚨 Token expired during API call')
           this.handleTokenExpiration()
