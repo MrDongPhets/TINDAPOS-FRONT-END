@@ -36,6 +36,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { ADJUSTMENT_STATUS_LABEL, saleAdjustmentStatus } from '@/lib/saleAdjustments';
 import {
   Search,
   SlidersHorizontal,
@@ -585,6 +586,11 @@ export default function SalesPage() {
                               <div className="min-w-0">
                                 {sale.or_number && (
                                   <p className="font-mono text-xs font-semibold text-primary leading-tight">{sale.or_number}</p>
+                                )}
+                                {saleAdjustmentStatus(sale) && (
+                                  <Badge variant={saleAdjustmentStatus(sale) === 'partially_returned' ? 'secondary' : 'destructive'} className="text-[10px] px-1.5 py-0 my-0.5">
+                                    {ADJUSTMENT_STATUS_LABEL[saleAdjustmentStatus(sale)]}
+                                  </Badge>
                                 )}
                                 <p className="font-mono text-xs text-muted-foreground leading-tight hidden lg:block">{sale.receipt_number}</p>
                                 <p className="font-mono text-xs text-muted-foreground leading-tight lg:hidden">#{sale.receipt_number?.split('-').pop()}</p>

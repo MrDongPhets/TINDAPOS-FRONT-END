@@ -28,22 +28,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
   ArrowLeft,
   Printer,
   XCircle,
-  Loader2,
   AlertCircle,
   Receipt,
   User,
@@ -54,6 +43,9 @@ import {
   Hash
 } from 'lucide-react';
 import API_CONFIG from '@/config/api';
+import { SaleAdjustmentDialog } from '@/components/sales/SaleAdjustmentDialog';
+import { SaleAdjustmentsCard } from '@/components/sales/SaleAdjustmentsCard';
+import { ADJUSTMENT_STATUS_LABEL, saleAdjustmentStatus, type SaleAdjustment } from '@/lib/saleAdjustments';
 import { buildInvoiceHtml, einvoiceRows, invoiceKind, invoiceNumber, printInvoice, readCachedCompany, resolveSeller, type InvoiceSeller } from '@/lib/invoice';
 
 export default function SaleDetailsPage() {
@@ -66,9 +58,9 @@ export default function SaleDetailsPage() {
   const [error, setError] = useState(null);
   const [sale, setSale] = useState(null);
   const [sellerInfo, setSellerInfo] = useState<InvoiceSeller | null>(null);
-  const [voidReason, setVoidReason] = useState('');
-  const [voidLoading, setVoidLoading] = useState(false);
-  const [voidDialogOpen, setVoidDialogOpen] = useState(false);
+  const [adjustments, setAdjustments] = useState<SaleAdjustment[]>([]);
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [adjustNotice, setAdjustNotice] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -123,45 +115,13 @@ export default function SaleDetailsPage() {
       const data = await response.json();
       setSale({ ...data.sale, einvoice: data.einvoice || null });
       setSellerInfo(data.seller || null);
+      setAdjustments(data.adjustments || []);
 
     } catch (err) {
       console.error('Error fetching sale:', err);
       setError(err.message || 'Failed to load sale details');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVoidSale = async () => {
-    if (!voidReason.trim()) {
-      alert('Please provide a reason for voiding this sale');
-      return;
-    }
-
-    try {
-      setVoidLoading(true);
-      const token = localStorage.getItem('authToken');
-
-      const response = await fetch(`${API_CONFIG.BASE_URL}/client/sales/${saleId}/void`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ reason: voidReason })
-      });
-
-      if (!response.ok) throw new Error('Failed to void sale');
-
-      setVoidDialogOpen(false);
-      fetchSaleDetails(); // Refresh data
-      alert('Sale voided successfully');
-
-    } catch (err) {
-      console.error('Error voiding sale:', err);
-      alert('Failed to void sale: ' + err.message);
-    } finally {
-      setVoidLoading(false);
     }
   };
 
@@ -263,7 +223,8 @@ export default function SaleDetailsPage() {
 
   if (!sale) return null;
 
-  const isVoided = sale.notes?.includes('VOIDED');
+  const adjStatus = saleAdjustmentStatus(sale);
+  const refunded = Number(sale.refunded_amount || 0);
 
   return (
     <SidebarProvider>
@@ -298,8 +259,8 @@ export default function SaleDetailsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2">
               <p className="font-mono text-sm text-muted-foreground">{sale.receipt_number}</p>
-              {isVoided && (
-                <Badge variant="destructive">VOIDED</Badge>
+              {adjStatus && (
+                <Badge variant={adjStatus === 'partially_returned' ? 'secondary' : 'destructive'}>{ADJUSTMENT_STATUS_LABEL[adjStatus]}</Badge>
               )}
             </div>
             <div className="flex gap-2 items-start sm:items-end">
@@ -307,61 +268,33 @@ export default function SaleDetailsPage() {
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
-              {!isVoided && (
-                <Dialog open={voidDialogOpen} onOpenChange={setVoidDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive">
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Void Sale
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Void Sale</DialogTitle>
-                      <DialogDescription>
-                        This action will void/cancel this sale transaction. Please provide a reason.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="reason">Reason for voiding</Label>
-                        <Textarea
-                          id="reason"
-                          placeholder="Enter reason..."
-                          value={voidReason}
-                          onChange={(e) => setVoidReason(e.target.value)}
-                          rows={4}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setVoidDialogOpen(false)}
-                        disabled={voidLoading}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleVoidSale}
-                        disabled={voidLoading || !voidReason.trim()}
-                      >
-                        {voidLoading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Voiding...
-                          </>
-                        ) : (
-                          'Void Sale'
-                        )}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+              {adjStatus !== 'voided' && adjStatus !== 'returned' && (
+                <Button variant="destructive" onClick={() => setAdjustOpen(true)}>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Void / Return
+                </Button>
               )}
             </div>
           </div>
+
+          {adjustNotice && (
+            <Alert>
+              <AlertDescription>{adjustNotice}</AlertDescription>
+            </Alert>
+          )}
+
+          <SaleAdjustmentDialog
+            key={adjustOpen ? 'open' : 'closed'}
+            open={adjustOpen}
+            onOpenChange={setAdjustOpen}
+            saleId={saleId}
+            items={sale.items || []}
+            adjustments={adjustments}
+            onDone={(a) => {
+              setAdjustNotice(`${a.adjustment_no} saved — give back ${formatCurrency(Number(a.total_amount))}. Stock was returned to inventory.`);
+              fetchSaleDetails();
+            }}
+          />
 
           <div className="grid gap-4 md:grid-cols-3 min-w-0 w-full">
             {/* Sale Information */}
@@ -462,6 +395,8 @@ export default function SaleDetailsPage() {
                 </CardContent>
               </Card>
 
+              <SaleAdjustmentsCard adjustments={adjustments} />
+
               {/* Notes */}
               {sale.notes && (
                 <Card>
@@ -532,6 +467,18 @@ export default function SaleDetailsPage() {
                       {formatCurrency(sale.total_amount)}
                     </span>
                   </div>
+                  {refunded > 0 && (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Given back (voids / returns)</span>
+                        <span className="text-red-600">-{formatCurrency(refunded)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-semibold">
+                        <span>Net sale</span>
+                        <span>{formatCurrency(Number(sale.total_amount) - refunded)}</span>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
