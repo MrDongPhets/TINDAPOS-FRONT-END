@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Undo2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
-import { correctionLabel, type SaleAdjustment } from '@/lib/saleAdjustments'
+import { correctionLabel, correctionStatusText, type SaleAdjustment } from '@/lib/saleAdjustments'
 
 export function SaleAdjustmentsCard({ adjustments }: { adjustments: SaleAdjustment[] }) {
   if (!adjustments.length) return null
@@ -36,6 +36,12 @@ export function SaleAdjustmentsCard({ adjustments }: { adjustments: SaleAdjustme
               ))}
             </ul>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">Reason: {a.reason}</p>
+            {(() => {
+              const st = correctionStatusText(a.einvoice)
+              if (!st) return null
+              const tone = st.tone === 'ok' ? 'text-green-700' : st.tone === 'wait' ? 'text-amber-700' : 'text-red-700'
+              return <p className={`text-xs font-medium ${tone}`}>{st.text}</p>
+            })()}
           </div>
         ))}
       </CardContent>
