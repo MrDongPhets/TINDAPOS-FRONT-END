@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
+import { EisConnectionCard } from '@/components/settings/EisConnectionCard'
+import { eisReady, type EisConnectionView } from '@/lib/eisConnection'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CheckCircle, FileText, Loader2, Store } from 'lucide-react'
 
-const { SETTINGS: BIR_SETTINGS } = API_CONFIG.ENDPOINTS.BIR
+const { SETTINGS: BIR_SETTINGS, EIS: EIS_SETTINGS } = API_CONFIG.ENDPOINTS.BIR
 
 type VatStatus = 'vat' | 'non_vat' | 'rbe'
 
@@ -56,6 +57,12 @@ export function BirSettingsCard() {
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
+  const [eis, setEis] = useState<EisConnectionView | null>(null)
+
+  useEffect(() => {
+    get(EIS_SETTINGS).then(res => { if (res?.success) setEis(res.data) })
+  }, [get])
+
   useEffect(() => {
     get(BIR_SETTINGS).then(res => {
       if (res?.success && res.data?.company) {
@@ -85,7 +92,7 @@ export function BirSettingsCard() {
         vat_status: company.vat_status,
       },
       stores: stores.map(s => ({
-        id: s.id, branch_code: s.branch_code, ptu_number: s.ptu_number, min_number: s.min_number, msn_number: s.msn_number,
+        id: s.id, branch_code: s.branch_code, ptu_number: s.ptu_number, min_number: s.min_number, msn_number: s.msn_number, invoicing_mode: s.invoicing_mode,
       })),
     })
     setSaving(false)
@@ -167,6 +174,8 @@ export function BirSettingsCard() {
         </CardContent>
       </Card>
 
+      <EisConnectionCard value={eis} onChange={setEis} />
+
       {/* Store = branch / POS terminal */}
       <Card>
         <CardHeader>
@@ -184,9 +193,21 @@ export function BirSettingsCard() {
                   {s.name}
                   {!s.is_active && <span className="ml-2 text-xs text-gray-400">(inactive)</span>}
                 </p>
-                <Badge variant="outline" className="font-normal">
-                  {s.invoicing_mode === 'eis' ? 'E-invoice (EIS)' : 'Manual invoice'}
-                </Badge>
+                <Select
+                  value={s.invoicing_mode}
+                  onValueChange={v => {
+                    if (v === 'eis' && !confirm(`Switch ${s.name} to e-invoice?
+
+From the next sale, TaxTrail issues the invoice and sends it to BIR. The receipt shows TaxTrail's invoice number.`)) return
+                    updateStore(s.id, { invoicing_mode: v as BirStore['invoicing_mode'] })
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-auto min-w-[9.5rem] text-xs" aria-label={`Invoicing for ${s.name}`}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manual invoice</SelectItem>
+                    <SelectItem value="eis" disabled={!eisReady(eis)}>E-invoice (TaxTrail)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
@@ -211,7 +232,11 @@ export function BirSettingsCard() {
               </div>
             </div>
           ))}
-          <p className="text-xs text-gray-500">E-invoicing (sending each invoice to BIR) is coming soon. All stores use manual invoices for now.</p>
+          <p className="text-xs text-gray-500">
+            {eisReady(eis)
+              ? 'Choose "E-invoice" for stores that must send each invoice to BIR, then Save.'
+              : 'E-invoice becomes available after TaxTrail is connected and passes the test above.'}
+          </p>
         </CardContent>
       </Card>
 
