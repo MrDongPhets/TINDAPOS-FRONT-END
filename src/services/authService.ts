@@ -183,8 +183,13 @@ class AuthService {
       ...(options.headers as Record<string, string>),
     }
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`
+    // The login (AuthProvider) saves the token to localStorage itself — read it fresh on every call,
+    // otherwise a page opened before logging in sends no token until it is reloaded
+    let token = this.token
+    try { token = localStorage.getItem('authToken') || this.token } catch { /* storage unavailable */ }
+    if (token) {
+      this.token = token
+      headers['Authorization'] = `Bearer ${token}`
     }
 
     try {
