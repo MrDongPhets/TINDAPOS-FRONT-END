@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { useLocation, useNavigate } from 'react-router-dom'
 import API_CONFIG from '@/config/api'
 import { localDb, hashPassword } from '@/db/localDb'
+import { IS_STAGING } from '@/lib/staging'
 import { cacheDataForOffline } from '@/hooks/useOfflineSync'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -279,7 +280,7 @@ export function AuthProvider({ children }) {
     }
 
     // If client subscription is expired/suspended, block all client routes except subscription-expired page
-    if (isAuthenticated && userType === 'client' && isClientRoute && pathname !== '/client/subscription-expired') {
+    if (!IS_STAGING && isAuthenticated && userType === 'client' && isClientRoute && pathname !== '/client/subscription-expired') {
       try {
         const companyRaw = localStorage.getItem('companyData')
         const company = companyRaw ? JSON.parse(companyRaw) : null

@@ -77,6 +77,8 @@ import StaffExpensesPage from '@/pages/pos/expenses/page'
 import { StaffLayout } from '@/components/pos/StaffLayout'
 import PosPage from '@/pages/pos/page'
 import PosStockCountPage from '@/pages/pos/stock-count/page'
+import { IS_STAGING } from '@/lib/staging'
+import { StagingBadge } from '@/components/ui/StagingBadge'
 import PosStockCountDetailPage from '@/pages/pos/stock-count/detail/page'
 
 function AppContent() {
@@ -142,8 +144,8 @@ function App() {
         <Route path="/client/staff/activity-logs" element={<ActivityLogsPage />} />
         <Route path="/client/stores" element={<StoresPage />} />
         <Route path="/client/stores/request" element={<StoreRequestPage />} />
-        <Route path="/client/subscription-expired" element={<SubscriptionExpiredPage />} />
-        <Route path="/client/subscription" element={<SubscriptionPage />} />
+        <Route path="/client/subscription-expired" element={IS_STAGING ? <Navigate to="/client/dashboard" replace /> : <SubscriptionExpiredPage />} />
+        <Route path="/client/subscription" element={IS_STAGING ? <Navigate to="/client/dashboard" replace /> : <SubscriptionPage />} />
         <Route path="/client/settings" element={<SettingsPage />} />
         <Route path="/client/utang" element={<UtangPage />} />
         <Route path="/client/attendance" element={<ClientAttendancePage />} />
@@ -170,6 +172,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       <Toaster />
+      <StagingBadge />
     </AuthProvider>
   )
 }

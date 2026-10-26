@@ -37,6 +37,7 @@ import {
   WifiOff,
 } from "lucide-react"
 import API_CONFIG from "@/config/api"
+import { IS_STAGING } from '@/lib/staging'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
@@ -468,7 +469,7 @@ export default function ClientDashboard() {
 
 
           {/* Subscription Banner */}
-          {subscription && (() => {
+          {subscription && !IS_STAGING && (() => {
             const { status, days_left } = subscription
             const isExpired = status === 'expired' || (days_left !== null && days_left <= 0)
             const isUrgent = !isExpired && days_left !== null && days_left <= 7

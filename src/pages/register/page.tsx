@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Loader2, UserPlus, ArrowLeft, Check, X, Zap, Star, ChevronRight, Eye, EyeOff } from "lucide-react"
 import API_CONFIG from "@/config/api" // Import API config
+import { IS_STAGING } from '@/lib/staging'
 import { BEST_VALUE_MONTHS, getPrice, peso, toPaidPlanId } from "@/config/pricing"
 
 const subscriptionPlans = [
@@ -512,7 +513,7 @@ export default function RegisterPage() {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-semibold">Choose Your Plan</h2>
-                <p className="text-gray-600">Select a subscription plan that fits your business</p>
+                <p className="text-gray-600">{IS_STAGING ? 'Test server — every feature is free here' : 'Select a subscription plan that fits your business'}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full">
@@ -528,7 +529,7 @@ export default function RegisterPage() {
                     }`}
                     onClick={() => !plan.disabled && setSelectedPlan(plan.id)}
                   >
-                    {plan.recommended && (
+                    {plan.recommended && !IS_STAGING && (
                       <Badge className="absolute -top-2 left-4 bg-green-500 text-white">
                         1 Month Free
                       </Badge>
@@ -544,16 +545,16 @@ export default function RegisterPage() {
                         {plan.icon}
                       </div>
                       <h3 className="font-semibold text-lg mb-1">{plan.name}</h3>
-                      {plan.trialDays > 0 && (
+                      {plan.trialDays > 0 && !IS_STAGING && (
                         <p className="text-xs text-green-600 font-medium mb-3">
                           {plan.trialDays} days free, then ₱{plan.price}/{plan.duration}
                         </p>
                       )}
-                      <div className="mb-4">
+                      {!IS_STAGING && <div className="mb-4">
                         <span className="text-3xl font-bold">₱{plan.price}</span>
                         <span className="text-gray-500 ml-1">/{plan.duration}</span>
-                      </div>
-                      {(() => {
+                      </div>}
+                      {!IS_STAGING && (() => {
                         const best = getPrice(toPaidPlanId(plan.id), BEST_VALUE_MONTHS)
                         return (
                           <p className="mb-4 rounded-md bg-[#FFF1F0] px-2 py-1.5 text-xs text-[#B91C1C]">

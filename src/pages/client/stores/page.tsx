@@ -18,6 +18,7 @@ import {
 import { Plus, Store, MapPin, Phone, CheckCircle, XCircle, Pause, RefreshCw, AlertCircle, Pencil } from 'lucide-react'
 import { toast } from "sonner"
 import API_CONFIG from "@/config/api"
+import { IS_STAGING } from '@/lib/staging'
 import { UserMenuDropdown } from "@/components/ui/UserMenuDropdown"
 
 export default function ClientStores() {
@@ -211,7 +212,7 @@ export default function ClientStores() {
               </h1>
               <p className="text-gray-600 mt-1">
                 {stores.length} / {storeLimit} store{storeLimit !== 1 ? 's' : ''} used
-                <span className="ml-2 text-xs text-gray-400 capitalize">({plan} plan)</span>
+                {!IS_STAGING && <span className="ml-2 text-xs text-gray-400 capitalize">({plan} plan)</span>}
               </p>
             </div>
             <div className="flex flex-col items-start sm:items-end gap-2">

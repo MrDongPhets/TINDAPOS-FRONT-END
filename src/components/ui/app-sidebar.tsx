@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { IS_STAGING } from '@/lib/staging'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -307,7 +308,8 @@ export function AppSidebar({ userType = "client", user = null, company = null })
   // Determine which navigation to use
   const isAdmin = userType === "super_admin"
   const isStaff = userType === "staff"
-  const navigation = isAdmin ? superAdminNavigation : isStaff ? staffNavigation : clientNavigation
+  const navigation = (isAdmin ? superAdminNavigation : isStaff ? staffNavigation : clientNavigation)
+    .filter(item => !(IS_STAGING && item.href === '/client/subscription'))
 
   // Determine branding
   const brandName = isAdmin ? "Admin Portal" : (company?.name || "Business")

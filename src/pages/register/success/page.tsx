@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, ArrowRight } from 'lucide-react'
+import { IS_STAGING } from '@/lib/staging'
 import { FACEBOOK_MESSENGER_URL } from '@/config/contact'
 
 export default function RegisterSuccessPage() {
@@ -18,7 +19,7 @@ export default function RegisterSuccessPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">You're all set!</h1>
           <p className="mt-2 text-gray-500">
-            Your Tindapo account has been created. Your 30-day free trial is now active.
+            Your Tindapo account has been created.{IS_STAGING ? ' Every feature is free on this test server.' : ' Your 30-day free trial is now active.'}
           </p>
         </div>
 
@@ -35,7 +36,7 @@ export default function RegisterSuccessPage() {
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-              Start selling with your free 30-day trial
+              {IS_STAGING ? 'Start selling — all features unlocked' : 'Start selling with your free 30-day trial'}
             </li>
           </ul>
         </div>

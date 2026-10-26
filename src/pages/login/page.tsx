@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, LogIn, Building2, WifiOff, AlertTriangle, User, LogOut, Users, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/components/auth/AuthProvider"
 import API_CONFIG from "@/config/api"
+import { IS_STAGING } from '@/lib/staging'
 import { Capacitor } from "@capacitor/core"
 
 function checkIsNativeApp(): boolean {
@@ -395,7 +396,7 @@ function LoginForm() {
             <div className="text-center text-sm mt-6 pt-4 border-t">
               <span className="text-gray-600">Don't have a business account? </span>
               <Link to="/register" className="text-[#E8302A] hover:text-[#B91C1C] font-medium">
-                Start Free Trial
+                {IS_STAGING ? 'Create a test account' : 'Start Free Trial'}
               </Link>
             </div>
           )}
