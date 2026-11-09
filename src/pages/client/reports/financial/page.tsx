@@ -277,7 +277,7 @@ export default function FinancialReportsPage() {
                 <Lock className="h-8 w-8 text-gray-400" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Laking Negosyo Feature</h2>
-              <p className="text-sm text-gray-500 mb-6">Financial Reports are available on the Laking Negosyo plan (₱599/mo). Upgrade to get profit/loss, COGS, tax reports, and revenue by store.</p>
+              <p className="text-sm text-gray-500 mb-6">Financial Reports are available on the Laking Negosyo plan (₱399/mo). Upgrade to get profit/loss, COGS, tax reports, and revenue by store.</p>
               <Button className="bg-[#E8302A] hover:bg-[#B91C1C] text-white" onClick={() => window.location.href = '/client/subscription'}>
                 Upgrade Plan
               </Button>

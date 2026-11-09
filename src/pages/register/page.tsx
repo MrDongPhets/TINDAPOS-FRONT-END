@@ -17,7 +17,7 @@ const subscriptionPlans = [
   {
     id: 'negosyo',
     name: 'Negosyo',
-    price: 299,
+    price: 199,
     duration: 'per month',
     trialDays: 30,
     features: [
@@ -39,7 +39,7 @@ const subscriptionPlans = [
   {
     id: 'laking-negosyo',
     name: 'Laking Negosyo',
-    price: 599,
+    price: 399,
     duration: 'per month',
     trialDays: 30,
     features: [

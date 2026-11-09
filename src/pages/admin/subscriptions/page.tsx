@@ -557,8 +557,8 @@ export default function AdminSubscriptions() {
                   <Select value={editForm.plan} onValueChange={plan => setEditForm(f => ({ ...f, plan }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="negosyo">Negosyo — ₱299/mo</SelectItem>
-                      <SelectItem value="laking-negosyo">Laking Negosyo — ₱599/mo</SelectItem>
+                      <SelectItem value="negosyo">Negosyo — ₱199/mo</SelectItem>
+                      <SelectItem value="laking-negosyo">Laking Negosyo — ₱399/mo</SelectItem>
                       <SelectItem value="basic">Basic (Legacy)</SelectItem>
                       <SelectItem value="standard">Standard (Legacy)</SelectItem>
                     </SelectContent>

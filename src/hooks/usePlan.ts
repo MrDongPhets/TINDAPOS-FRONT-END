@@ -9,7 +9,7 @@ export function usePlan() {
   // Trial users get full access to everything
   const isTrial = planName === 'trial'
 
-  // Advanced reports: trial OR plan has reports feature enabled (Laking Negosyo 599)
+  // Advanced reports: trial OR plan has reports feature enabled (Laking Negosyo 399)
   const hasAdvancedReports = isTrial || features?.reports === true
 
   return {

@@ -9,8 +9,8 @@ export const BEST_VALUE_MONTHS: BillingMonths = 12
 
 // Total price in pesos for the whole period
 export const PLAN_PRICES: Record<PaidPlanId, Record<BillingMonths, number>> = {
-  'negosyo':        { 1: 299, 6: 1499, 12: 2699 },
-  'laking-negosyo': { 1: 599, 6: 2999, 12: 5399 },
+  'negosyo':        { 1: 199, 6: 999, 12: 1799 },
+  'laking-negosyo': { 1: 399, 6: 1999, 12: 3599 },
 }
 
 export const PLAN_LABELS: Record<PaidPlanId, string> = {
